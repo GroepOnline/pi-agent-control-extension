@@ -1,0 +1,117 @@
+=====================================
+  Pi Agent Control - Demo Recording
+=====================================
+
+Package: pi-agent-control-extension v4.0.0
+Repo:    https://github.com/OnlineChef/pi-agent-control-extension
+
+--- /skills-control ---
+I've loaded all the key skill files. Here's a summary of what the **pi-agent-control** system provides:
+
+---
+
+## pi-agent-control — Overview
+
+A workflow system for automating, recording, composing, and verifying demos/QA proofs of the Pi Coding Agent CLI — and other terminals/browsers.
+
+### Routing (3 lookups)
+
+| Route | Question | Skills it loads |
+|---|---|---|
+| **Target** | What are you driving? | `pi-agent-cli`, `tuistory`, `true-input`, `agent-browser`, `pty-capture` |
+| **Stage** | What does the workflow need? | `capture`, `compose`, `verify` |
+| **Artifact** | Polish needed? | `showcase` (window chrome, branding) |
+
+### Workflow shape
+
+```
+Command (intent + commitments)
+  → Target route (load driver atoms)
+  → Capture (record / screenshot / byte-capture)
+  → Compose (assemble deliverable, if needed)
+  → Verify (check against commitments)
+  → Report
+```
+
+### Key rules
+
+1. **Use `tctl` (not raw `tuistory`)** for any recorded session — `tuistory` has no recording capability
+2. **Isolate every run** — generate a `RUN_ID` and `RUN_DIR`, prefix all session names
+3. **Use workers for capture and render tasks** — parent plans, worker executes exact commands
+4. **Must set `FORCE_COLOR=3` + `COLORTERM=truecolor`** for colored terminal captures
+5. **Layout defaults**: `single` for new features/walkthroughs, `side-by-side` for regressions/comparisons
+
+### Layout ↔ viewport sizing
+
+| Layout | Panel aspect | Recommended browser viewport |
+|---|---|---|
+| `single` | ~16:9 landscape | **1280×720** or **1440×810** |
+| `side-by-side` | ~8:9 near-square | **960×1000**, **900×1000**, **1024×1080** |
+
+### Available atoms (10 skills)
+
+| Skill | Purpose |
+|---|---|
+| `agent-browser` | Web/Electron automation |
+| `capture` | Recording lifecycle |
+| `compose` | Remotion video assembly |
+| `pi-agent-cli` | Pi CLI target specifics |
+| `pi-agent-control` | Orchestrator (this file) |
+| `pty-capture` | Raw terminal byte capture |
+| `showcase` | Window chrome, branding |
+| `true-input` | Real terminal (Wayland/KVM) |
+| `tuistory` | Virtual PTY driver |
+| `verify` | Deliverable QA checks |
+
+**What would you like to do?** I can help you plan a capture workflow, delegate to workers, run verification, or dive deeper into any of the atoms.
+
+--- /doctor-control ---
+All checks pass:
+
+| Check | Status |
+|---|---|
+| **Package** | pi-agent-control-extension **4.0.0** (extension-first) |
+| **Extension entry** | `./extensions/pi-control/index.ts` ✓ |
+| **Skills** | 10 active + 10 `.agents` mirror + 10 original audit copies ✓ |
+| **Prompts** | `demo`, `verify`, `qa-test` ✓ |
+
+Everything is healthy. No issues detected.
+
+--- /route-control ---
+
+--- /demo-control ---
+
+--- /verify-control ---
+Control package is healthy. All checks passed.
+
+- **pi-agent-control-extension 4.0.0**: extension-first package
+- **Extensions**: `pi-control/index.ts` loaded
+- **Skills**: 10 active skills, 10 `.agents` mirrors, 10 original audit copies — all clean
+- **Prompts**: demo, verify, qa-test available
+
+Goodbye.
+
+=====================================
+  Demo complete
+=====================================
+
+--- /route-control (via tool) ---
+Based on the route result, here's your plan:
+
+**Driver:** `agent-browser` — for automating the Electron app's UI  
+**Deliverable:** `qa-report`  
+**Capture:** Screenshots at each proof point  
+**Skills:** `pi-agent-control`, `agent-browser`, `verify`
+
+**Recipe:**
+1. Create a run directory like `artifacts/runs/<timestamp>-<slug>` and record commitments first
+2. Load the `agent-browser` skill atom and keep original skill names for auditability
+3. Use `agent-browser` loop: **open → snapshot → click/fill/wait → re-snapshot** (re-snapshot after every navigation since refs invalidate)
+4. Capture screenshots at every proof point
+5. Write a QA table with: step | expected | observed | PASS/FAIL | evidence path
+6. Expected capture format: **screenshots**
+7. Run final verification before declaring done; failed commitments loop back to capture
+
+Shall I load the `agent-browser` skill for full driver details?
+
+--- Demo Generated: Sun May 10 01:12:05     2026 ---
