@@ -1,0 +1,6 @@
+{
+  "packages": [
+    ".."
+  ],
+  "note": "From .pi/settings.json this loads the package root one directory up. Do not also enable .pi/extensions unless you want a development hot-reload copy."
+}

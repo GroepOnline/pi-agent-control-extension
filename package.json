@@ -1,0 +1,58 @@
+{
+  "name": "pi-agent-control-extension",
+  "version": "4.0.0",
+  "description": "Pi extension-first conversion of droid-control with commands, tools, routing guards, prompts, and all original skill atoms preserved.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "agent-skills",
+    "terminal-automation",
+    "tui",
+    "qa",
+    "showcase"
+  ],
+  "license": "UNLICENSED",
+  "scripts": {
+    "doctor": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
+    "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
+    "extension:check": "pi --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./extensions/pi-control/index.ts --list-models does-not-exist-xyz",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/pi-control/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ],
+    "image": "./diagrams/architecture-routing.svg"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "files": [
+    "AGENTS.md",
+    "README.md",
+    "ARCHITECTURE.md",
+    "NOTICES.md",
+    "CHANGELOG-v4.md",
+    "extensions",
+    "skills",
+    "prompts",
+    "commands",
+    "docs",
+    "scripts",
+    "bin",
+    "diagrams",
+    "remotion",
+    ".agents",
+    ".pi/extensions",
+    ".pi/settings.example.json",
+    "original-skills"
+  ]
+}
