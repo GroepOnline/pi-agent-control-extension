@@ -43,8 +43,40 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     skills.push("verify");
   }
 
-  if (has(input, ["droid", "droid-dev", "tctl"])) {
+  if (has(input, ["droid", "droid-dev", "tctl", "pi", "pi coding"])) {
     skills.push("pi-agent-cli");
+  }
+
+  // Meta/utility skills — add based on task type, independent of driver
+  if (has(input, ["design", "ui", "frontend", "styling", "css", "layout", "landing page", "website design", "web design"])) {
+    skills.push("frontend-design");
+  }
+  if (has(input, ["write", "text", "blog", "humanize", "prose", "edit writing", "rewrite", "copy", "slop"])) {
+    skills.push("human-writing");
+  }
+  if (has(input, ["skill create", "new skill", "improve skill", "extract skill", "skill design"])) {
+    skills.push("skill-creation");
+  }
+  if (has(input, ["image", "logo", "icon", "diagram", "flowchart", "presentation", "slides", "slide deck", "photo", "picture"])) {
+    skills.push("visual-design");
+  }
+  if (has(input, ["wiki", "document", "architecture doc", "codebase doc", "generate doc"])) {
+    skills.push("wiki");
+  }
+  if (has(input, ["init", "agents.md", "setup repo", "initialize", "project setup"])) {
+    skills.push("init");
+  }
+  if (has(input, ["review", "pr review", "pull request", "code review", "diff"])) {
+    skills.push("review");
+  }
+  if (has(input, ["session", "history", "search session", "past session", "previous session", "resume"])) {
+    skills.push("session-navigation");
+  }
+  if (has(input, ["simplify", "refactor", "clean code", "cleanup", "code quality", "debloat"])) {
+    skills.push("simplify");
+  }
+  if (has(input, ["autoresearch", "optimize", "benchmark", "experiment", "tune", "hyperparameter", "metric improve"])) {
+    skills.push("autoresearch");
   }
 
   if (driver === "tuistory" && !has(input, ["force_color", "colorterm", "truecolor"])) {

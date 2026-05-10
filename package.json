@@ -1,6 +1,6 @@
 {
   "name": "pi-agent-control-extension",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Pi extension for terminal/CLI/browser control workflows: routing, capture, compose, verify, QA proofs, and showcase demos",
   "type": "module",
   "keywords": ["pi-package", "pi-extension", "terminal-automation", "tui", "qa", "showcase"],

@@ -6,8 +6,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILLS = {
-    "agent-browser", "capture", "compose", "pi-agent-cli", "pi-agent-control",
-    "pty-capture", "showcase", "true-input", "tuistory", "verify"
+    "agent-browser", "autoresearch", "capture", "compose", "frontend-design",
+    "human-writing", "init", "pi-agent-cli", "pi-agent-control", "pty-capture",
+    "review", "session-navigation", "showcase", "simplify", "skill-creation",
+    "true-input", "tuistory", "verify", "visual-design", "wiki"
 }
 REQUIRED_FILES = [
     "package.json",
@@ -39,7 +41,7 @@ check("Keyword: pi-package", "pi-package" in pkg.get("keywords", []))
 base = ROOT / "skills"
 found = {p.parent.name for p in base.glob("*/SKILL.md")}
 missing = EXPECTED_SKILLS - found
-check("All 10 skills present", not missing)
+check(f"All {len(EXPECTED_SKILLS)} skills present", not missing)
 if missing:
     print(f"       Missing: {', '.join(sorted(missing))}")
 
@@ -49,4 +51,4 @@ check("Demo GIF exists", (ROOT / "artifacts" / "demo" / "demo.gif").exists())
 if errors:
     print(f"\n[FAIL] {len(errors)} check(s) failed")
 else:
-    print(f"\n[OK] {pkg['name']} {pkg['version']}: clean package with 10 skills + extension + demo")
+    print(f"\n[OK] {pkg['name']} {pkg['version']}: clean package with {len(EXPECTED_SKILLS)} skills + extension + demo")
