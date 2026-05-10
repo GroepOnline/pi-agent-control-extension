@@ -1,80 +1,47 @@
 # Pi Agent Control Extension
 
-A Pi-native, extension-first conversion of the original `droid-control` package.
+Pi extension for terminal/CLI/browser control workflows: routing, capture, compose, verify, QA proofs, and showcase demos.
 
-The earlier Pi variant only exposed skills and prompt templates. That was not enough for this package, because `droid-control` is operational: it routes tasks, selects terminal/browser drivers, validates capture commands, creates proof recipes, and checks deliverables. In Pi, those behaviors belong in an extension.
-
-## What this package loads
-
-- `extensions/pi-control/index.ts` — primary Pi extension.
-- `skills/` — all 10 preserved skill atoms from the original package.
-- `prompts/` — reusable `/demo`, `/verify`, and `/qa-test` prompt templates.
-- `.pi/extensions/pi-control/index.ts` — development wrapper for project-local auto-discovery and `/reload`.
-
-## Extension commands
-
-- `/control <task>` — route a task and show the recommended workflow.
-- `/route-control <task>` — print driver, skills, capture type, warnings, and recipe.
-- `/demo-control` — show the canonical tuistory demo capture recipe.
-- `/verify-control` — show the evidence schema.
-- `/qa-control` — show the QA report template.
-- `/doctor-control` — run the package validator.
-- `/skills-control` — list loaded control skill atoms.
-
-## Extension tools
-
-- `control_route`
-- `control_recipe`
-- `control_evidence_schema`
-- `control_skill_index`
-- `control_doctor`
-- `control_verify_commitments`
-
-## Install
-
-From this directory:
+## Quick start
 
 ```bash
-pi install .
+pi install git:github.com/OnlineChef/pi-agent-control-extension
 ```
 
-For development/hot reload from a checked-out repo, Pi can auto-discover the wrapper under `.pi/extensions/pi-control/index.ts`; after edits, run:
+Then in any Pi session:
 
-```text
-/reload
-```
+| Command | What it does |
+|---|---|
+| `/skills-control` | List 10 bundled skill atoms |
+| `/route-control <task>` | Route a task → driver + skills + capture + recipe |
+| `/demo-control` | Show the canonical tuistory capture recipe |
+| `/verify-control` | Show verification/evidence schema |
+| `/qa-control` | Show QA report template |
+| `/doctor-control` | Run package validator |
+| `/control <task>` | Route + show full workflow |
 
-For quick one-off testing:
+Or use the LLM tools: `control_route`, `control_recipe`, `control_evidence_schema`, `control_skill_index`, `control_doctor`, `control_verify_commitments`.
 
-```bash
-pi -e ./extensions/pi-control/index.ts
-```
+## Skill atoms
 
-## Preserved skill atoms
+`agent-browser` · `capture` · `compose` · `pi-agent-cli` · `pi-agent-control` · `pty-capture` · `showcase` · `true-input` · `tuistory` · `verify`
 
-- `agent-browser`
-- `capture`
-- `compose`
-- `pi-agent-cli`
-- `pi-agent-control`
-- `pty-capture`
-- `showcase`
-- `true-input`
-- `tuistory`
-- `verify`
+## Routing
+
+Three lookups → load driver + skills + recipe:
+
+| Route | Example task | Driver | Capture |
+|---|---|---|---|
+| Web / Electron | "browser QA test" | `agent-browser` | screenshots |
+| Real terminal | "ghostty key encoding" | `true-input` | mp4 |
+| TUI / CLI | "pi demo recording" | `tuistory` | asciicast |
 
 ## Validate
 
 ```bash
-npm run doctor
+npm run validate
 ```
-
-The validator checks that the extension, manifest, prompts, active skills, and original skill archive are present.
 
 ---
 
-## Demo
-
-![Pi Agent Control Demo](artifacts/demo/demo.gif)
-
-Terminal demo showing `/skills-control`, `/doctor-control`, routing, and verification commands.
+![Demo](artifacts/demo/demo.gif)
