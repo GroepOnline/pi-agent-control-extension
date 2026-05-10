@@ -70,3 +70,11 @@ npm run doctor
 ```
 
 The validator checks that the extension, manifest, prompts, active skills, and original skill archive are present.
+
+---
+
+## Demo
+
+![Pi Agent Control Demo](artifacts/demo/demo.gif)
+
+Terminal demo showing `/skills-control`, `/doctor-control`, routing, and verification commands.
