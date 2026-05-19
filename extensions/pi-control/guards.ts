@@ -15,7 +15,7 @@ export function inspectToolCall(event: any) {
   if (!command) return null;
 
   if (["bash", "shell", "terminal", "exec"].some((t) => toolName.includes(t))) {
-    if (/rm\s+-rf\s+(\/|~|\.\.|\*)/.test(lower)) {
+    if (/rm\s+-rf\s+(\/|~|\.\.|\*|\.\/?(\s|$))/.test(lower)) {
       return { block: true, reason: "Blocked destructive rm -rf pattern. Narrow the target path and explain why deletion is required." };
     }
     if (/\.env(\s|$)/.test(lower) && /(cat|sed|grep|cp|mv|rm|>|tee)/.test(lower)) {

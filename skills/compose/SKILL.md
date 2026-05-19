@@ -215,7 +215,7 @@ Use a run-scoped props path like `$PROPS`; do not reuse a global `/tmp/showcase-
 |---|---|---|---|
 | `pi-warm` | Warm black bg, traffic lights, 12px radius, 80px margin | Pi (warm) | Official Pi content |
 | `pi-hero` | Same as pi-warm + gradient bg | Pi (warm) | Pi landing pages, social |
-| `hero` | Gradient bg, generous margins, prominent shadow | Catppuccin (cool) | Non-Factory marketing |
+| `hero` | Gradient bg, generous margins, prominent shadow | Catppuccin (cool) | Non-Pi marketing |
 | `macos` | Dark bg, traffic lights, clean frame | Catppuccin (cool) | General-purpose demos |
 | `presentation` | Black bg, generous margins | Catppuccin (cool) | Slide decks, talks |
 | `minimal` | No window bar, tiny radius, tight margins | Catppuccin (cool) | Docs embeds, inline clips |
@@ -347,7 +347,7 @@ Hand to the **verify** stage:
 - resolution: 1920x1080
 - duration: 42s
 - size: 3.2 MB
-- preset: factory
+- preset: pi-warm
 - keystrokes: 3 events overlaid
 - effects: 1 spotlight
 - engine: remotion
