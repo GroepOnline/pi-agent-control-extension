@@ -1,7 +1,7 @@
 {
   "name": "pi-agent-control-extension",
   "version": "5.1.1",
-  "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, and showcase workflows",
+  "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
   "type": "module",
   "keywords": [
     "pi-package",
@@ -13,6 +13,7 @@
     "tui",
     "qa",
     "qa-evidence",
+    "usage-observability",
     "verification",
     "showcase"
   ],
@@ -37,6 +38,7 @@
   "files": [
     "README.md",
     "CHANGELOG-v4.md",
+    "CHANGELOG-v5.md",
     "extensions",
     "skills",
     "scripts",
