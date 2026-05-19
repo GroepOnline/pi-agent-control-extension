@@ -1,1 +1,45 @@
-{updated full package.json content here with version 5.1.1, better description, keywords like pi-extension, agent-control, browser-cdp, qa-evidence, enterprise etc.}
+{
+  "name": "pi-agent-control-extension",
+  "version": "5.1.1",
+  "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, and showcase workflows",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "agent-control",
+    "terminal-automation",
+    "browser-routing",
+    "browser-cdp",
+    "tui",
+    "qa",
+    "qa-evidence",
+    "verification",
+    "showcase"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
+    "check": "pi --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./extensions/pi-control/index.ts --list-models does-not-exist-xyz",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/pi-control/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "files": [
+    "README.md",
+    "CHANGELOG-v4.md",
+    "extensions",
+    "skills",
+    "scripts",
+    "artifacts/demo/demo.gif"
+  ]
+}
