@@ -14,6 +14,8 @@ export const SKILL_NAMES = [
   "tuistory",
   "verify",
   "wiki",
+  "background-pty",
+  "meta-control",
 ] as const;
 
 export type ControlSkillName = (typeof SKILL_NAMES)[number];
