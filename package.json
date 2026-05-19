@@ -26,6 +26,7 @@
     "test:watch": "vitest",
     "test:e2e": "bash scripts/test-e2e.sh",
     "lint": "tsc --noEmit",
+    "lint:python": "ruff check . && ruff format --check .",
     "pack:dry": "npm pack --dry-run"
   },
   "pi": {

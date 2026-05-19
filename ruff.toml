@@ -1,0 +1,10 @@
+line-length = 100
+indent-width = 4
+
+[lint]
+select = ["E", "F", "B", "I", "W"]
+ignore = ["E501"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

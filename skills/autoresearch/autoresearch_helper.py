@@ -239,9 +239,9 @@ def cmd_evaluate(args):
     delta_pct = (delta / compare_against) * 100 if compare_against != 0 else 0
 
     if improved:
-        print(f"DECISION: keep")
+        print("DECISION: keep")
     else:
-        print(f"DECISION: discard")
+        print("DECISION: discard")
 
     print(f"  Metric: {args.metric}")
     print(f"  Compare against: {compare_against} ({'best kept' if best is not None else 'baseline'})")
@@ -252,7 +252,7 @@ def cmd_evaluate(args):
         label = "likely real" if confidence >= 2.0 else "marginal" if confidence >= 1.0 else "within noise"
         print(f"  Confidence: {confidence}x ({label})")
         if confidence < 1.0 and improved:
-            print(f"  Warning: improvement is within noise floor. Consider re-running to confirm.")
+            print("  Warning: improvement is within noise floor. Consider re-running to confirm.")
 
 
 def cmd_summary(args):
