@@ -1,52 +1,101 @@
 # Pi Agent Control Extension
 
-Pi extension for terminal/CLI/browser control workflows: routing, capture, compose, verify, QA proofs, and showcase demos. Plus general-purpose agent skills for code quality, design, writing, research, and documentation.
+Pi Agent Control Extension is a Pi extension package for terminal, CLI, browser-routing, capture, verification, QA proof, and showcase workflows. It provides commands and LLM tools that turn loose automation requests into a repeatable driver, skill stack, capture format, and evidence recipe.
 
-## Quick start
+[![Package](https://img.shields.io/badge/pi-extension-blue)](#)
+[![Version](https://img.shields.io/badge/version-5.1.1-informational)](#)
+[![License](https://img.shields.io/badge/license-MIT-green)](#)
+
+## Install
 
 ```bash
 pi install git:github.com/OnlineChef/pi-agent-control-extension
 ```
 
-Then in any Pi session:
+Then start or reload a Pi session. The extension registers commands, tools, bundled skills, routing rules, and package validation helpers.
+
+## What it gives you
+
+| Area | Capability |
+|---|---|
+| Routing | Selects `tuistory`, `true-input`, or `agent-browser` from the task intent |
+| Capture | Recommends casts, screenshots, mp4, or report-only evidence |
+| Verification | Produces commitment and evidence schemas for audit-friendly proof |
+| QA | Generates QA report structures with expected, observed, result, and evidence columns |
+| Showcase | Provides recipes for demo capture and Remotion-based composition |
+| Guardrails | Blocks risky capture and shell patterns before they become expensive mistakes |
+
+## Commands
 
 | Command | What it does |
 |---|---|
-| `/skills-control` | List all 20 bundled skill atoms |
-| `/route-control <task>` | Route a task → driver + skills + capture + recipe |
-| `/demo-control` | Show the canonical tuistory capture recipe |
-| `/verify-control` | Show verification/evidence schema |
-| `/qa-control` | Show QA report template |
-| `/doctor-control` | Run package validator |
+| `/skills-control` | Lists bundled skill atoms |
+| `/route-control <task>` | Routes a task to driver, skills, capture, deliverable, warnings, and recipe |
+| `/demo-control` | Shows the canonical tuistory capture recipe |
+| `/verify-control` | Shows the required verification and evidence schema |
+| `/qa-control` | Shows the QA report template |
+| `/doctor-control` | Runs the package validator |
 
-Or use the LLM tools: `control_route`, `control_recipe`, `control_evidence_schema`, `control_skill_index`, `control_doctor`, `control_verify_commitments`.
+## LLM tools
+
+| Tool | Purpose |
+|---|---|
+| `control_route` | Route a task programmatically |
+| `control_recipe` | Return a canonical workflow recipe |
+| `control_evidence_schema` | Return the evidence schema |
+| `control_skill_index` | List bundled skills and missing expected skills |
+| `control_doctor` | Run package validation |
+| `control_verify_commitments` | Check a verification report for core commitment and evidence sections |
 
 ## Skill atoms
 
-### Control (10)
+Control skills:
+
 `agent-browser` · `capture` · `compose` · `pi-agent-cli` · `pi-agent-control` · `pty-capture` · `showcase` · `true-input` · `tuistory` · `verify`
 
-### General (10)
+General skills:
+
 `autoresearch` · `frontend-design` · `human-writing` · `init` · `review` · `session-navigation` · `simplify` · `skill-creation` · `visual-design` · `wiki`
 
-## Routing
+## Routing model
 
-Three lookups → load driver + skills + recipe:
+Three lookups drive most decisions: intent, required proof format, and target runtime.
 
 | Route | Example task | Driver | Capture |
 |---|---|---|---|
-| Web / Electron | "browser QA test" | `agent-browser` | screenshots |
-| Real terminal | "ghostty key encoding" | `true-input` | mp4 |
-| TUI / CLI | "pi demo recording" | `tuistory` | asciicast |
+| Web or Electron | Browser QA test with screenshots | `agent-browser` | screenshots |
+| Real terminal | Ghostty key encoding or escape sequence proof | `true-input` | mp4 or raw PTY evidence |
+| TUI or CLI | Pi demo recording, droid-dev snapshot, terminal stream proof | `tuistory` | asciicast and text snapshots |
 
-General-purpose skills are auto-routed based on task keywords (design, review, writing, wiki, etc.).
+General-purpose skill atoms are selected when the task asks for design, review, writing, documentation, simplification, or research.
+
+## Evidence contract
+
+Every run should produce a stable run directory:
+
+```text
+artifacts/runs/<timestamp>-<slug>/
+  run.json
+  transcript.md
+  evidence/
+  verification.md
+```
+
+Each claim should map to a step, driver, evidence file, result, and reason. Do not mark a task complete until visible evidence supports the stated commitment.
+
+## Guardrails
+
+The extension inspects shell-style tool calls and blocks known unsafe patterns, including broad `rm -rf`, direct `.env` reads or edits, missing `--repo-root` in droid-dev launches, and tuistory launches that omit color-preserving environment variables.
 
 ## Validate
 
 ```bash
 npm run validate
+npm run pack:dry
 ```
 
----
+`npm run validate` checks the package structure, required files, manifest entries, skill inventory, and demo artifact.
+
+## Demo
 
 ![Demo](artifacts/demo/demo.gif)
