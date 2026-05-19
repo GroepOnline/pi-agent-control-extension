@@ -179,12 +179,12 @@ function buildParallelVerifyReport(reports: ParallelReport[]) {
 }
 
 export default function piControlExtension(pi: ExtensionAPI) {
-  pi.on("session_start", async (_event: any, ctx: any) => {
+  pi.on("session_start", async (_event: unknown, ctx: any) => {
     const n = listSkills(rootDir()).length;
     ctx.ui?.notify?.(`pi-agent-control loaded (${n} skills)`, "info");
   });
 
-  pi.on("tool_call", async (event: any, _ctx: any) => inspectToolCall(event) || undefined);
+  pi.on("tool_call", async (event: unknown, _ctx: unknown) => inspectToolCall(event) || undefined);
 
   const show = (text: string) => async (_args: string, ctx: any) => { ctx.ui?.notify?.(text, "info"); };
   const showFn = (fn: (s: string) => string) => async (args: string, ctx: any) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
@@ -323,7 +323,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
       const args = p.command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)?.map((a) => a.replace(/^["']|["']$/g, "")) ?? [];
       if (p.session) args.unshift("--session", p.session);
       try {
-        const out = execFileSync("agent-browser", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+        const out = execFileSync("agent-browser", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000 });
         return { content: [{ type: "text", text: out.trim() }], details: { command: p.command, success: true } };
       } catch (e: any) {
         return { content: [{ type: "text", text: `Error: ${e.stderr || e.message}` }], details: { command: p.command, success: false, error: e.message } };
