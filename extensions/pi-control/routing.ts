@@ -27,7 +27,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
   }
 
   if (has(input, ["tui", "terminal", "cli", "droid-dev", "snapshot", "esc", "stream", "ink"])) {
-    if (driver !== "true-input") driver = "tuistory";
+    if (driver !== "true-input" && driver !== "agent-browser") driver = "tuistory";
     skills.push("tuistory", "capture");
     capture = capture === "report" ? "cast" : capture;
   }

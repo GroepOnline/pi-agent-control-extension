@@ -2,10 +2,11 @@
 
 ## Commands
 
+- `npm run setup`: Install all dependencies including the Remotion engine.
 - `npm run validate`: Validate package structure, skills, and manifest.
-- `npm run check`: Verify the extension entry point and model loading via `pi` CLI.
+- `npm run check`: Verify the extension entry point via `pi` CLI.
+- `npm run lint`: Run TypeScript type checking.
 - `npm run pack:dry`: Preview the files included in the npm package.
-- `python3 scripts/validate-package.py`: Run the validation script directly.
 
 ## Architecture
 
@@ -13,16 +14,17 @@ This project is a Pi extension package that provides routing, capture, and verif
 
 ### Core Components
 
-- **Extension Entry Point ([index.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/index.ts))**: Registers slash commands (e.g., `/route-control`, `/doctor-control`) and LLM tools (e.g., `control_route`, `control_doctor`) with the Pi Extension API.
-- **Routing ([routing.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/routing.ts))**: Contains the logic for mapping user task intents to specific drivers (`agent-browser`, `tuistory`, `true-input`), capture formats, and workflow recipes.
-- **Recipes & Verification ([recipes.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/recipes.ts))**: Provides canonical templates for common workflows and logic to verify that evidence reports meet required standards.
-- **Guardrails ([guards.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/guards.ts))**: Inspects tool calls to prevent unsafe operations (e.g., broad deletions, sensitive file access).
-- **Schema ([schema.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/schema.ts))**: Defines the `EVIDENCE_SCHEMA` and the list of expected skill atoms.
+- **Extension Entry Point ([index.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/index.ts))**: Registers slash commands (e.g., `/route-control`, `/browser-control`) and LLM tools (e.g., `control_route`, `control_browser_command`) with the Pi Extension API.
+- **Routing ([routing.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/routing.ts))**: Contains the logic for mapping user task intents to specific drivers (`agent-browser`, `tuistory`, `true-input`).
+- **Browser Control ([browser.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/tools/browser.ts))**: Provides native tools and guidance for web and Electron automation.
+- **Guardrails ([guards.ts](file:///home/jan/projects/pi-agent-control-extension/extensions/pi-control/guards.ts))**: Security checks for destructive actions and sensitive data access (including cloud metadata IPs).
 
-### Skills
+### Core Assets
 
-The `skills/` directory contains atomized skill definitions. Each subdirectory contains a `SKILL.md` file that describes the skill's purpose, requirements, and process. These skills are automatically registered by the extension.
+- **`bin/`**: Contains the `tctl` terminal control wrapper and other binary helpers.
+- **`remotion/`**: A React-based video rendering engine for creating showcase videos.
+- **`skills/`**: 20 atomized skill definitions registered automatically.
 
 ### Validation
 
-The project uses a Python-based validator ([validate-package.py](file:///home/jan/projects/pi-agent-control-extension/scripts/validate-package.py)) to ensure all required files, skills, and manifest entries are present and correctly configured.
+The project uses a Python-based validator ([validate-package.py](file:///home/jan/projects/pi-agent-control-extension/scripts/validate-package.py)) to ensure all required files, skills, and manifest entries are present.

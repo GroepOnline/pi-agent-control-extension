@@ -6,6 +6,12 @@ description: Generate comprehensive codebase documentation. Read a repository an
 
 Read a repository, then produce interconnected documentation pages explaining what the code does and how it fits together. Output is a `docs/wiki/` directory of markdown files.
 
+## Requirements
+
+1. **Repository Access**: Full read access to the target repository.
+2. **Structural Understanding**: Ability to parse dependency manifests (`package.json`, etc.) and entry points.
+3. **Diagram Capabilities**: Proficiency in Mermaid diagram syntax for architectural visualization.
+
 ## 1. Survey the repository
 
 Build a mental model before writing.

@@ -6,6 +6,12 @@ description: Review code changes and identify high-confidence, actionable bugs. 
 
 Senior staff engineer code review. Identify high-confidence, actionable bugs.
 
+## Requirements
+
+1. **Complete Diff**: You must have the full character-level diff of the changes being reviewed.
+2. **Type Context**: For TypeScript/Go/Rust, you must understand the type definitions of changed and touched structures.
+3. **Execution Environment**: Knowledge of the target runtime (Node.js, Python, Browser) to identify platform-specific pitfalls.
+
 ## Setup
 
 1. Get context: branch, target/base branch, PR description/issues.
