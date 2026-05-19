@@ -1,4 +1,4 @@
-# v4 — Pi Extension-First Rebuild
+# v4 - Pi Extension-First Rebuild
 
 This version changes the Pi target from a skills/prompts-only package into a first-class Pi extension package.
 
