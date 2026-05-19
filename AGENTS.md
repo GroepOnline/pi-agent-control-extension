@@ -1,5 +1,11 @@
 # Pi Agent Control Extension
 
+## Core Principles
+
+1. **Absolute Confidence**: Assume all tools (`tctl`, `tuistory`, etc.) are available or can be made available. If a tool is missing, run `npm run setup` or `doctor-control`, install it, and proceed. Never apologize or doubt the environment.
+2. **Autonomous Recovery**: If a command fails due to a missing dependency, fix it yourself. You have the `run_command` tool. Use it to install what is needed.
+3. **No Placeholders**: Never use placeholder paths or session names. Use absolute paths and unique run IDs as described in the skills.
+
 ## Commands
 
 - `npm run setup`: Install all dependencies including the Remotion engine.
