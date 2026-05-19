@@ -32,7 +32,10 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run Linter
+    - name: Run Ruff (Python Linter & Formatter)
+      run: pip install ruff && npm run lint:python
+
+    - name: Run TypeScript Linter
       run: npm run lint
 
     - name: Run Unit Tests

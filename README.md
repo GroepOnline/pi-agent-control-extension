@@ -2,6 +2,7 @@
 
 Pi Agent Control Extension is a Pi extension package for terminal, CLI, browser-routing, capture, verification, QA proof, and showcase workflows. It provides commands and LLM tools that turn loose automation requests into a repeatable driver, skill stack, capture format, and evidence recipe.
 
+[![CI](https://github.com/OnlineChef/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
 [![Package](https://img.shields.io/badge/pi-extension-blue)](#)
 [![Version](https://img.shields.io/badge/version-5.1.1-informational)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
@@ -24,6 +25,7 @@ Then start or reload a Pi session. The extension registers commands, tools, bund
 | QA | Generates QA report structures with expected, observed, result, and evidence columns |
 | Showcase | Provides recipes for demo capture and Remotion-based composition |
 | Guardrails | Blocks risky capture and shell patterns before they become expensive mistakes |
+| Testing | Fully unit, E2E, strict TypeScript, and Ruff Python tested in CI/CD |
 
 ## Commands
 
@@ -61,11 +63,21 @@ Advanced/Chained skills:
 
 Three lookups drive most decisions: intent, required proof format, and target runtime.
 
-| Route | Example task | Driver | Capture |
-|---|---|---|---|
-| Web or Electron | Browser QA test with screenshots | `agent-browser` | screenshots |
-| Real terminal | Ghostty key encoding or escape sequence proof | `true-input` | mp4 or raw PTY evidence |
-| TUI or CLI | Pi demo recording, pi-agent snapshot, terminal stream proof | `tuistory` | asciicast and text snapshots |
+```mermaid
+graph TD
+    A[User Task Intent] --> B{Router Logic}
+    B -- "Web / Electron QA" --> C[agent-browser driver]
+    C --> C1[screenshots]
+    
+    B -- "Ghostty / Wezterm / Vim" --> D[true-input driver]
+    D --> D1[mp4 / raw PTY]
+    
+    B -- "CLI / TUI Snapshot" --> E[tuistory driver]
+    E --> E1[asciicast / text snapshots]
+    
+    B -- "Chained Analysis" --> F[mixed driver]
+    F --> F1[init + wiki + review + autoresearch]
+```
 
 
 ## Evidence contract

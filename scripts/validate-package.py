@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Validate pi-agent-control-extension package structure."""
 from __future__ import annotations
+
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILLS = {
-    "agent-browser", "capture", "compose", "pi-agent-cli", "pi-agent-control", 
+    "agent-browser", "capture", "compose", "pi-agent-cli", "pi-agent-control",
     "pty-capture", "showcase", "true-input", "tuistory", "verify",
     "init", "wiki", "review", "autoresearch", "session-navigation"
 }
