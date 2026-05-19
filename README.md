@@ -107,6 +107,10 @@ npm run pack:dry
 
 `npm run validate` checks the package structure, required files, manifest entries, skill inventory, and demo artifact.
 
+## Roadmap & Future Plans
+
+Interested in what's next for the extension? Check out our [ROADMAP.md](ROADMAP.md) for upcoming features like LLM-powered guardrails, native Playwright integration, and remote tmux orchestration.
+
 ## Demo
 
 ![Demo](artifacts/demo/demo.gif)
