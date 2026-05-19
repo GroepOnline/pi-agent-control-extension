@@ -160,8 +160,44 @@ agent-browser tab                 # list tabs
 agent-browser tab new [url]       # new tab
 agent-browser tab 2               # switch to tab by index
 agent-browser tab close           # close current tab
+agent-browser window new          # new window
 agent-browser frame "#iframe"     # switch to iframe
 agent-browser frame main          # back to main frame
+```
+
+### Network
+
+```bash
+agent-browser network route <url>              # intercept requests
+agent-browser network route <url> --abort      # block requests
+agent-browser network route <url> --body '{}'  # mock response
+agent-browser network unroute [url]            # remove routes
+agent-browser network requests                 # view tracked requests
+agent-browser network requests --filter api    # filter by pattern
+```
+
+### Cookies & storage
+
+```bash
+agent-browser cookies                     # get all cookies
+agent-browser cookies set name value      # set cookie
+agent-browser cookies clear               # clear all
+agent-browser storage local               # get all localStorage
+agent-browser storage local key           # get specific key
+agent-browser storage local set k v       # set value
+agent-browser storage local clear         # clear all
+```
+
+### Browser settings
+
+```bash
+agent-browser set viewport 1920 1080      # set viewport size
+agent-browser set device "iPhone 14"      # emulate device
+agent-browser set geo 37.7749 -122.4194   # set geolocation
+agent-browser set offline on              # toggle offline mode
+agent-browser set headers '{"X-Key":"v"}' # extra HTTP headers
+agent-browser set credentials user pass   # HTTP basic auth
+agent-browser set media dark              # force color scheme (dark|light)
 ```
 
 ## Screenshots & recording
@@ -282,6 +318,7 @@ Each `--session` spawns a separate Chromium process (~300 MB). Prefer navigating
 | Flag | Purpose |
 |---|---|
 | `--session <name>` | Isolated browser session |
+| `--session-name <name>` | Named session with auto-save/restore |
 | `--headed` | Show browser window |
 | `--cdp <port>` | Connect via CDP |
 | `--auto-connect` | Auto-discover running Chrome |
