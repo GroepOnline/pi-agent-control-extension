@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.venv/
+.env
+*.log
+.DS_Store
+.ruff_cache/
+artifacts/runs/*
+!artifacts/runs/.gitkeep
+remotion/node_modules/
+remotion/package-lock.json
+/tmp/tctl-sessions/
