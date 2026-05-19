@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILLS = {
     "agent-browser", "capture", "compose", "pi-agent-cli", "pi-agent-control",
     "pty-capture", "showcase", "true-input", "tuistory", "verify",
-    "init", "wiki", "review", "autoresearch", "session-navigation"
+    "init", "wiki", "review", "autoresearch", "session-navigation",
+    "background-pty", "meta-control"
 }
 REQUIRED_FILES = [
     "package.json",
