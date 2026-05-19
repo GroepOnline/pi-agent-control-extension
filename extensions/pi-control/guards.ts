@@ -21,8 +21,8 @@ export function inspectToolCall(event: any) {
     if (/\.env(\s|$)/.test(lower) && /(cat|sed|grep|cp|mv|rm|>|tee)/.test(lower)) {
       return { block: true, reason: "Blocked direct .env manipulation/read. Use a redacted config example instead." };
     }
-    if (lower.includes("tctl launch") && lower.includes("droid-dev") && !lower.includes("--repo-root")) {
-      return { block: true, reason: "droid-dev launches must include --repo-root so captures are reproducible." };
+    if (lower.includes("tctl launch") && !lower.includes("--repo-root")) {
+      return { block: true, reason: "Sessions launched via tctl must include --repo-root so captures are reproducible." };
     }
     if (lower.includes("tctl launch") && lower.includes("--backend tuistory")) {
       const hasForceColor = lower.includes("force_color=3");

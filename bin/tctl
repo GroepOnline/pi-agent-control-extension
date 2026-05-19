@@ -32,7 +32,7 @@ Launch options:
   --cols <n>                 Columns (default: 120)
   --rows <n>                 Rows (default: 36)
   --cwd <path>               Working directory (tuistory)
-  --repo-root <path>         Git worktree root for provenance + droid-dev launches
+  --repo-root <path>         Git worktree root for provenance + pi-agent launches
   --env <KEY=VALUE>          Environment variable (repeatable)
   --tmux                     Wrap the command in tmux with RGB-safe tuistory defaults
   --record <path>            Record from launch (.cast or .mp4)
@@ -164,7 +164,7 @@ REPO_ROOT=$(quote_sh "${REPO_ROOT:-}")
 META
 }
 
-command_uses_droid_dev() {
+command_uses_pi_agent() {
   local command="$1"
   local token normalized tokens=()
   read -r -a tokens <<< "$command"
@@ -179,7 +179,7 @@ command_uses_droid_dev() {
     normalized="${normalized//\"/}"
     normalized="${normalized//\'/}"
     normalized="${normalized%%[;&|()<>]*}"
-    if [[ "$normalized" == "droid-dev" ]]; then
+    if [[ "$normalized" == "pi" || "$normalized" == "pi-agent" ]]; then
       return 0
     fi
   done
@@ -815,7 +815,7 @@ cmd_launch() {
   done
 
   if [[ -z "$repo_root" ]]; then
-    repo_root="$(launch_env_value DROID_DEV_REPO_ROOT "${envs[@]}" || true)"
+    repo_root="$(launch_env_value PI_AGENT_REPO_ROOT "${envs[@]}" || true)"
   fi
 
   if [[ -n "$repo_root" ]]; then
@@ -826,11 +826,11 @@ cmd_launch() {
     cwd="$repo_root"
   fi
 
-  if command_uses_droid_dev "$command"; then
+  if command_uses_pi_agent "$command"; then
     [[ -n "$repo_root" ]] \
-      || die "droid-dev launches require --repo-root <worktree> or --env DROID_DEV_REPO_ROOT=<worktree>"
-    if ! launch_env_value DROID_DEV_REPO_ROOT "${envs[@]}" >/dev/null 2>&1; then
-      envs+=("DROID_DEV_REPO_ROOT=$repo_root")
+      || die "pi-agent launches require --repo-root <worktree> or --env PI_AGENT_REPO_ROOT=<worktree>"
+    if ! launch_env_value PI_AGENT_REPO_ROOT "${envs[@]}" >/dev/null 2>&1; then
+      envs+=("PI_AGENT_REPO_ROOT=$repo_root")
     fi
   fi
 

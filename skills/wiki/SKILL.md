@@ -1,124 +1,49 @@
 ---
 name: wiki
-description: Generate comprehensive codebase documentation. Read a repository and produce interconnected markdown documentation pages explaining what the code does and how it fits together. Use when asked to document a codebase, generate wiki pages, create architecture docs, or explain a project structure.
+description: Generate comprehensive Pi-centric codebase documentation. Use when asked to map out an extension's architecture, document skill connections, or create internal developer wikis tailored for AI agents.
 ---
-# Wiki generation
+# Wiki Generation
 
-Read a repository, then produce interconnected documentation pages explaining what the code does and how it fits together. Output is a `docs/wiki/` directory of markdown files.
+Read the repository and produce an interconnected documentation wiki specifically optimized for Pi Agent extensions and automation workflows.
 
-## Requirements
+## Subagent Parallelization
 
-1. **Repository Access**: Full read access to the target repository.
-2. **Structural Understanding**: Ability to parse dependency manifests (`package.json`, etc.) and entry points.
-3. **Diagram Capabilities**: Proficiency in Mermaid diagram syntax for architectural visualization.
+If the codebase is large, do not attempt to read and write everything in one turn. Use the `invoke_subagent` tool to dispatch specialized research tasks to cheaper, faster models (e.g., `gemini-1.5-flash` or `claude-3-haiku`):
 
-## 1. Survey the repository
+- **Subagent 1:** Map all `.pi/skills/` and `skills/` directories.
+- **Subagent 2:** Map the core routing logic (e.g., `routing.ts`, `index.ts`).
+- **Subagent 3:** Map evidence and verification guardrails.
 
-Build a mental model before writing.
+Once the subagents return their summaries, synthesize them into the final wiki.
 
-### Pass 1: Structural scan
+## The Output: `docs/wiki/`
 
-Read (when they exist):
-- `README.md`, `AGENTS.md`, `CONTRIBUTING.md` — project intent and conventions
-- `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml` — dependencies and scripts
-- `docs/` directory — existing documentation
-- Entry points (`src/index.ts`, `main.go`, `app.py`, etc.)
-- CI/CD config (`.github/workflows/`, etc.)
-- Build tool config (`vite.config.*`, `Makefile`, etc.)
-- Directory listing of project root and key subdirectories
+Generate markdown files in `docs/wiki/`. The structure must follow Pi extension conventions:
 
-Build a map of:
-- What the project does (1-2 sentences)
-- Major subsystems and how they connect
-- Key data flows
-- External dependencies (databases, APIs, services)
-- Build and test commands
-
-### Pass 2: Deep code scan
-
-The structural scan finds what's visible from directory names. The deep scan finds what's only visible in code:
-- Grep for feature flag names — each flag often represents a distinct capability
-- Scan frontend route definitions — each route group is a user-facing feature
-- Scan API endpoint groups — each controller/router file represents a domain
-- Look in `src/features/`, `src/modules/`, `src/domains/` — names reveal product capabilities
-- Scan service classes, event handlers, job/worker definitions — background systems
-
-### Exhaustive subsystem discovery
-
-Walk every top-level source directory. For each:
-
-- **Tier 1** — core subsystems most contributors encounter. Full dedicated page.
-- **Tier 2** — important but specialized. Shorter dedicated page.
-- **Tier 3** — niche or thin wrapper. Paragraph in "Other subsystems" page.
-
-Also check for commonly overlooked areas: custom lint rules, automation workflows, CLI/dev tools, test infrastructure, multi-language components.
-
-## 2. Plan the table of contents
-
-### Always-present pages
-
-```
+\`\`\`text
 docs/wiki/
-├── overview/
-│   ├── index.md              — project overview, what it does, who uses it, quick links
-│   ├── architecture.md       — system architecture with Mermaid diagrams
-│   ├── getting-started.md    — prerequisites, install, build, test, run
-│   └── glossary.md           — project-specific terms
-├── by-the-numbers.md         — codebase statistics (lines, activity, complexity)
-├── lore.md                   — timeline and history of the codebase
-└── how-to-contribute/
-    ├── index.md              — work pickup, PR process, review expectations
-    ├── development-workflow.md — branch, code, test, PR, merge cycle
-    ├── testing.md            — frameworks, patterns, how to run
-    ├── debugging.md          — logs, common errors, troubleshooting
-    ├── patterns-and-conventions.md — error handling, coding style
-    └── tooling.md            — build system, linters, code generators
-```
+├── index.md                 # Entry point: What this extension/repo does
+├── architecture.md          # High-level component map with Mermaid
+├── skills-catalog.md        # List of all registered Pi skills
+├── routing-logic.md         # How intents map to drivers and capabilities
+└── testing-and-evidence.md  # How to run checks and validate captures
+\`\`\`
 
-### Organizational lenses
+## Deep Scan Methodology
 
-Pick one primary lens as the main domain pages section (in sidebar), then optionally reference other lenses:
+Look for Pi-specific paradigms:
+- **Routing**: How does the user's intent get parsed into a `RouteDecision`?
+- **Capture**: What formats are expected (e.g., `mp4`, `cast`, `screenshots`)?
+- **Skills**: What atomized skills are available? Are they "control" or "general"?
+- **Validation**: Is there a `validate-package.py` or equivalent strict constraint checking script?
 
-| Lens | When to use | Example |
-|---|---|---|
-| Features | User-facing or business capabilities | Search, Notifications, Billing |
-| Services | Service-oriented / microservices | api-gateway, auth-service, worker |
-| Apps | Monorepo with independent apps | web, mobile, admin, cli |
-| Packages | Library monorepo or heavy SDK use | core, plugins, ui-kit |
-| Systems | Backend with distinct technical systems | database, caching, queue, auth |
+## Drafting the Pages
 
-### Conditional sections
+### General Rules
+- Use Mermaid diagrams heavily (e.g., `sequenceDiagram` for tool flow, `graph TD` for component mapping).
+- Keep descriptions concise and agent-friendly. Avoid human-centric tutorials.
+- Every skill listed must have a hyperlink to its actual `SKILL.md` file.
+- Document any "guardrails" (e.g., blocked commands, restricted file paths).
 
-Include these when the codebase warrants:
-
-- `migrations/` — database migration guidelines and known pitfalls
-- `cleanup-opportunities/` — known tech debt, dead code, improvement areas
-- `reference/` — external API docs, spec links, vendor docs
-- `processes/` — non-coding workflows: releases, incident response, on-call
-- `maintainers.md` — who owns what, how to contact
-
-## 3. Write the pages
-
-### General rules
-
-- Use Mermaid for diagrams (`graph TD`, `sequenceDiagram`, `classDiagram`, `xychart-beta`). Do NOT use pie charts.
-- Be specific: "The auth service issues JWT tokens with 15-minute expiry" > "The auth service handles authentication."
-- Use concrete examples from the actual codebase.
-- Link between pages aggressively — docs should be connected.
-- Keep pages focused — under 400 lines each.
-- Include code snippets with backticks and language tags.
-- Use checklists for step-by-step procedures.
-
-### Page structure
-
-Each page starts with a 1-2 sentence summary, then clear sections. Core pages include: overview, key decisions, how to use, common tasks, gotchas.
-
-## 4. Verify
-
-After writing, verify:
-
-- All links between pages resolve
-- All Mermaid diagrams render
-- Code snippets match actual code (re-read to confirm)
-- Getting started instructions work (run the commands)
-- No pages over 400 lines
+### Chaining
+Once the wiki is generated, if there are obvious gaps in test coverage or documentation, consider chaining into the `review` skill to audit the implementation, or `autoresearch` to find solutions.

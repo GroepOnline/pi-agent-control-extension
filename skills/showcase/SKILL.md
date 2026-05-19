@@ -16,20 +16,20 @@ Each preset configures window chrome, spacing, background style, and palette sel
 
 | Preset | Look | Best for |
 |---|---|---|
-| `factory` | Warm black bg with amber radial glow, traffic-light dots, 12px radius, generous margins. Rich cinematic warmth. | Official Factory content |
-| `factory-hero` | Same as `factory` + gradient background. Maximum cinematic punch. | Factory landing pages, social media |
-| `hero` | Cool gradient bg, large margins, prominent shadow. | Non-Factory marketing, third-party |
+| `pi-warm` | Warm black bg with amber radial glow, traffic-light dots, 12px radius, generous margins. Rich cinematic warmth. | Official Pi content |
+| `pi-hero` | Same as `pi-warm` + gradient background. Maximum cinematic punch. | Pi landing pages, social media |
+| `hero` | Cool gradient bg, large margins, prominent shadow. | Non-Pi marketing, third-party |
 | `macos` | Clean dark bg, traffic lights, subtle shadow. Professional but understated. | General-purpose demos, README heroes |
 | `presentation` | Black bg, generous margins. Designed to look good on slides. | Talks, slide decks |
 | `minimal` | No window bar, tiny radius, tight margins. Barely-there frame. | Docs embeds, inline clips |
 
 ### What each preset automatically includes
 
-**Factory / factory-hero presets** (warm palette):
+**Pi-warm / pi-hero presets** (warm palette):
 - Warm radial background vignette with amber glow blobs that intensify over video duration
 - Warm-tinted box shadow with faint accent glow halo
 - Warm color grade overlay (amber tint)
-- Floating particles in Factory Orange
+- Floating particles in Pi Orange
 
 **All other presets** (cool Catppuccin palette):
 - Cool-toned solid or gradient background
@@ -41,15 +41,15 @@ Each preset configures window chrome, spacing, background style, and palette sel
 
 ## Visual palettes
 
-Palette is auto-selected based on preset. Factory/factory-hero use the warm palette; everything else uses cool.
+Palette is auto-selected based on preset. `pi-warm`/`pi-hero` use the warm palette; everything else uses cool.
 
-### Factory (warm)
+### Pi-warm (warm)
 
 | Token | Hex | Role |
 |---|---|---|
 | bg | `#0a0804` | Warm near-black |
 | surface | `#18120e` | Terminal content bg |
-| accent | `#EE6018` | Factory Orange |
+| accent | `#EE6018` | Pi Orange |
 | text | `#f0e8e0` | Warm white |
 | muted | `#948781` | De-emphasized text |
 
@@ -69,7 +69,7 @@ Palette is auto-selected based on preset. Factory/factory-hero use the warm pale
 
 | Preset | Recommended (default first) | Avoid |
 |---|---|---|
-| `factory`, `factory-hero` | `motion-blur`, `light-leak`, `whip-pan`, `flash` | `glitch-lite` (clashes with warm tone) |
+| `pi-warm`, `pi-hero` | `motion-blur`, `light-leak`, `whip-pan`, `flash` | `glitch-lite` (clashes with warm tone) |
 | `hero`, `presentation` | `motion-blur`, `whip-pan`, `flash` | `light-leak` (warm sweep clashes with cool palette) |
 | `macos`, `minimal` | `motion-blur` | `glitch-lite`, `light-leak` (too much personality for utilitarian frames) |
 

@@ -5,7 +5,7 @@ export function recipeFor(kind: string) {
 RUN_ID=$(date +%Y%m%d-%H%M%S)-demo
 RUN_DIR=artifacts/runs/$RUN_ID
 mkdir -p "$RUN_DIR"
-$TCTL launch "droid-dev" -s "$RUN_ID" --backend tuistory \
+$TCTL launch "pi" -s "$RUN_ID" --backend tuistory \
   --repo-root /path/to/worktree \
   --cols 120 --rows 36 \
   --record "$RUN_DIR/demo.cast" \

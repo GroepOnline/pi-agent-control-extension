@@ -53,9 +53,9 @@ Control skills:
 
 `agent-browser` · `capture` · `compose` · `pi-agent-cli` · `pi-agent-control` · `pty-capture` · `showcase` · `true-input` · `tuistory` · `verify`
 
-General skills:
+Advanced/Chained skills:
 
-`autoresearch` · `frontend-design` · `human-writing` · `init` · `review` · `session-navigation` · `simplify` · `skill-creation` · `visual-design` · `wiki`
+`init` · `wiki` · `review` · `autoresearch` · `session-navigation`
 
 ## Routing model
 
@@ -65,9 +65,8 @@ Three lookups drive most decisions: intent, required proof format, and target ru
 |---|---|---|---|
 | Web or Electron | Browser QA test with screenshots | `agent-browser` | screenshots |
 | Real terminal | Ghostty key encoding or escape sequence proof | `true-input` | mp4 or raw PTY evidence |
-| TUI or CLI | Pi demo recording, droid-dev snapshot, terminal stream proof | `tuistory` | asciicast and text snapshots |
+| TUI or CLI | Pi demo recording, pi-agent snapshot, terminal stream proof | `tuistory` | asciicast and text snapshots |
 
-General-purpose skill atoms are selected when the task asks for design, review, writing, documentation, simplification, or research.
 
 ## Evidence contract
 
@@ -85,7 +84,7 @@ Each claim should map to a step, driver, evidence file, result, and reason. Do n
 
 ## Guardrails
 
-The extension inspects shell-style tool calls and blocks known unsafe patterns, including broad `rm -rf`, direct `.env` reads or edits, missing `--repo-root` in droid-dev launches, and tuistory launches that omit color-preserving environment variables.
+The extension inspects shell-style tool calls and blocks known unsafe patterns, including broad `rm -rf`, direct `.env` reads or edits, missing `--repo-root` in pi-agent launches, and tuistory launches that omit color-preserving environment variables.
 
 ## Validate
 
