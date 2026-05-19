@@ -10,6 +10,41 @@ import { recipeFor, verifyCommitments } from "./recipes.ts";
 import { inspectToolCall } from "./guards.ts";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const DEFAULT_CURRENCY = "USD";
+
+type UsageInput = {
+  model?: string;
+  promptTokens?: number;
+  completionTokens?: number;
+  cachedInputTokens?: number;
+  inputCostPerMillion?: number;
+  outputCostPerMillion?: number;
+  currency?: string;
+};
+
+type ParallelReport = {
+  name: string;
+  markdown: string;
+  evidence?: string[];
+};
+
+const CONTROL_HUB = `# Control Hub
+
+Recommended extension stack:
+
+1. Route first with /route-control or control_route.
+2. Capture with tuistory, true-input, or agent-browser depending on the routed driver.
+3. Verify commitments with /verify-control or control_verify_commitments.
+4. Produce QA evidence with /qa-control or control_parallel_verify.
+5. Inspect cost and token usage with /usage or control_usage.
+
+Composability rules:
+
+- Use pi-agent-control for routing and proof contracts.
+- Use agent-browser for browser and Electron UI loops.
+- Use tuistory for deterministic TUI capture.
+- Use true-input when terminal emulator key behavior matters.
+- Use showcase and compose only after the verification report is already supported by evidence.`;
 
 function rootDir() {
   const candidates = [
@@ -46,6 +81,102 @@ function runValidator(root: string) {
   return "Unable to run Python validator.";
 }
 
+function finiteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function money(amount: number, currency: string) {
+  return `${currency} ${amount.toFixed(6)}`;
+}
+
+function buildUsageReport(input: UsageInput = {}) {
+  const promptTokens = finiteNumber(input.promptTokens);
+  const completionTokens = finiteNumber(input.completionTokens);
+  const cachedInputTokens = finiteNumber(input.cachedInputTokens);
+  const billableInputTokens = Math.max(promptTokens - cachedInputTokens, 0);
+  const inputCostPerMillion = finiteNumber(input.inputCostPerMillion);
+  const outputCostPerMillion = finiteNumber(input.outputCostPerMillion);
+  const currency = input.currency || DEFAULT_CURRENCY;
+  const estimatedInputCost = (billableInputTokens / 1_000_000) * inputCostPerMillion;
+  const estimatedOutputCost = (completionTokens / 1_000_000) * outputCostPerMillion;
+  const estimatedTotalCost = estimatedInputCost + estimatedOutputCost;
+
+  const lines = [
+    "# Usage & Observability",
+    "",
+    `Model: ${input.model || "not provided"}`,
+    `Prompt tokens: ${promptTokens}`,
+    `Cached input tokens: ${cachedInputTokens}`,
+    `Billable input tokens: ${billableInputTokens}`,
+    `Completion tokens: ${completionTokens}`,
+    `Input rate per 1M: ${money(inputCostPerMillion, currency)}`,
+    `Output rate per 1M: ${money(outputCostPerMillion, currency)}`,
+    `Estimated input cost: ${money(estimatedInputCost, currency)}`,
+    `Estimated output cost: ${money(estimatedOutputCost, currency)}`,
+    `Estimated total cost: ${money(estimatedTotalCost, currency)}`,
+    "",
+    "Suggestions:",
+    "- Route with control_route before capturing so expensive loops use the right driver.",
+    "- Prefer text snapshots for TUI proof before recording mp4 showcase material.",
+    "- Use control_verify_commitments before rerunning a capture loop.",
+  ];
+
+  if (!promptTokens && !completionTokens) {
+    lines.splice(2, 0, "No token counters were supplied. Pass promptTokens and completionTokens to control_usage for an estimate.", "");
+  }
+
+  return {
+    text: lines.join("\n"),
+    details: {
+      model: input.model || null,
+      promptTokens,
+      completionTokens,
+      cachedInputTokens,
+      billableInputTokens,
+      inputCostPerMillion,
+      outputCostPerMillion,
+      currency,
+      estimatedInputCost,
+      estimatedOutputCost,
+      estimatedTotalCost,
+    },
+  };
+}
+
+function buildParallelVerifyReport(reports: ParallelReport[]) {
+  if (!reports.length) {
+    return {
+      text: "# Targeted Parallel QA\n\nNo reports supplied. Pass reports with name, markdown, and optional evidence paths to control_parallel_verify.",
+      details: { reports: [], ok: false },
+    };
+  }
+
+  const checked = reports.map((report) => {
+    const result = verifyCommitments(report.markdown || "");
+    return {
+      name: report.name,
+      ok: result.ok,
+      missing: result.failed,
+      evidence: report.evidence ?? [],
+      checks: result.checks,
+    };
+  });
+
+  const lines = [
+    "# Targeted Parallel QA",
+    "",
+    "| Report | Result | Evidence | Missing |",
+    "|---|---|---|---|",
+    ...checked.map((r) => `| ${r.name} | ${r.ok ? "PASS" : "FAIL"} | ${r.evidence.length ? r.evidence.join(", ") : "none listed"} | ${r.missing.length ? r.missing.join(", ") : "none"} |`),
+    "",
+    checked.every((r) => r.ok)
+      ? "All supplied reports include the required commitment, evidence, and pass/fail signals."
+      : "At least one report is missing required proof structure. Fix the missing sections before marking QA complete.",
+  ];
+
+  return { text: lines.join("\n"), details: { reports: checked, ok: checked.every((r) => r.ok) } };
+}
+
 export default function piControlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: any, ctx: any) => {
     const n = listSkills(rootDir()).length;
@@ -54,7 +185,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
 
   pi.on("tool_call", async (event: any, _ctx: any) => inspectToolCall(event));
 
-  const show = (text: string) => (args: string, ctx: any) => ctx.ui?.notify?.(text, "info");
+  const show = (text: string) => (_args: string, ctx: any) => ctx.ui?.notify?.(text, "info");
   const showFn = (fn: (s: string) => string) => (args: string, ctx: any) => ctx.ui?.notify?.(fn(args || ""), "info");
 
   pi.registerCommand("route-control", { description: "Route a control task: driver + skills + capture + recipe", handler: showFn((a) => renderRoute(routeControlTask(a))) });
@@ -63,6 +194,9 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("verify-control", { description: "Show verification/evidence schema", handler: show(EVIDENCE_SCHEMA) });
   pi.registerCommand("qa-control", { description: "Show QA report template", handler: show(recipeFor("qa-report")) });
   pi.registerCommand("doctor-control", { description: "Run package validator", handler: showFn(() => runValidator(rootDir())) });
+  pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: (_a, ctx) => ctx.ui?.notify?.(buildUsageReport({}).text, "info") });
+  pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
+  pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
 
   pi.registerTool({
     name: "control_route",
@@ -126,6 +260,42 @@ export default function piControlExtension(pi: ExtensionAPI) {
     async execute(_id: string, p: any) {
       const r = verifyCommitments(p.markdown);
       return { content: [{ type: "text", text: r.ok ? "Report passes." : `Missing: ${r.failed.join(", ")}` }], details: r };
+    },
+  });
+
+  pi.registerTool({
+    name: "control_usage",
+    label: "Usage & Observability",
+    description: "Estimate token usage cost and suggest lower-cost control workflow choices.",
+    parameters: Type.Object({
+      model: Type.Optional(Type.String()),
+      promptTokens: Type.Optional(Type.Number()),
+      completionTokens: Type.Optional(Type.Number()),
+      cachedInputTokens: Type.Optional(Type.Number()),
+      inputCostPerMillion: Type.Optional(Type.Number()),
+      outputCostPerMillion: Type.Optional(Type.Number()),
+      currency: Type.Optional(Type.String()),
+    }),
+    async execute(_id: string, p: any) {
+      const report = buildUsageReport(p);
+      return { content: [{ type: "text", text: report.text }], details: report.details };
+    },
+  });
+
+  pi.registerTool({
+    name: "control_parallel_verify",
+    label: "Targeted Parallel QA",
+    description: "Verify multiple named QA/proof reports in one structured pass without spawning general-purpose subagents.",
+    parameters: Type.Object({
+      reports: Type.Array(Type.Object({
+        name: Type.String(),
+        markdown: Type.String(),
+        evidence: Type.Optional(Type.Array(Type.String())),
+      })),
+    }),
+    async execute(_id: string, p: any) {
+      const report = buildParallelVerifyReport(Array.isArray(p.reports) ? p.reports : []);
+      return { content: [{ type: "text", text: report.text }], details: report.details };
     },
   });
 }
