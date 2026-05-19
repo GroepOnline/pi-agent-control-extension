@@ -1,9 +1,21 @@
 {
   "name": "pi-agent-control-extension",
-  "version": "5.1.0",
-  "description": "Pi extension for terminal/CLI/browser control workflows: routing, capture, compose, verify, QA proofs, and showcase demos",
+  "version": "5.1.1",
+  "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, and showcase workflows",
   "type": "module",
-  "keywords": ["pi-package", "pi-extension", "terminal-automation", "tui", "qa", "showcase"],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "agent-control",
+    "terminal-automation",
+    "browser-routing",
+    "browser-cdp",
+    "tui",
+    "qa",
+    "qa-evidence",
+    "verification",
+    "showcase"
+  ],
   "license": "MIT",
   "scripts": {
     "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
@@ -11,8 +23,12 @@
     "pack:dry": "npm pack --dry-run"
   },
   "pi": {
-    "extensions": ["./extensions/pi-control/index.ts"],
-    "skills": ["./skills"]
+    "extensions": [
+      "./extensions/pi-control/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
