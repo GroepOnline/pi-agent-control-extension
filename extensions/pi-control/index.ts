@@ -8,6 +8,7 @@ import { EVIDENCE_SCHEMA, SKILL_NAMES } from "./schema.ts";
 import { renderRoute, routeControlTask } from "./routing.ts";
 import { recipeFor, verifyCommitments } from "./recipes.ts";
 import { inspectToolCall } from "./guards.ts";
+import { browserControlGuidance, BROWSER_CONTROL_STATUS } from "./tools/browser.ts";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DEFAULT_CURRENCY = "USD";
@@ -197,13 +198,14 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: (_a, ctx) => ctx.ui?.notify?.(buildUsageReport({}).text, "info") });
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
+  pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: show(browserControlGuidance()) });
 
   pi.registerTool({
     name: "control_route",
     label: "Control Route",
     description: "Route a control task to the right driver, skills, capture format, deliverable, warnings, and recipe.",
     parameters: Type.Object({ task: Type.String(), deliverable: Type.Optional(Type.String()) }),
-    async execute(_id: string, p: any) {
+    async execute(_id: string, p: { task: string; deliverable?: string }) {
       const d = routeControlTask(p.task, p.deliverable ?? "");
       return { content: [{ type: "text", text: renderRoute(d) }], details: d };
     },
@@ -214,7 +216,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
     label: "Control Recipe",
     description: "Return canonical commands for a workflow kind.",
     parameters: Type.Object({ kind: Type.String({ description: "tuistory-launch, browser-loop, showcase-compose, qa-report" }) }),
-    async execute(_id: string, p: any) {
+    async execute(_id: string, p: { kind: string }) {
       return { content: [{ type: "text", text: recipeFor(p.kind) }], details: { kind: p.kind } };
     },
   });
@@ -257,7 +259,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
     label: "Verify Commitments",
     description: "Check if a verification report has core commitment/evidence sections.",
     parameters: Type.Object({ markdown: Type.String() }),
-    async execute(_id: string, p: any) {
+    async execute(_id: string, p: { markdown: string }) {
       const r = verifyCommitments(p.markdown);
       return { content: [{ type: "text", text: r.ok ? "Report passes." : `Missing: ${r.failed.join(", ")}` }], details: r };
     },
@@ -276,7 +278,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
       outputCostPerMillion: Type.Optional(Type.Number()),
       currency: Type.Optional(Type.String()),
     }),
-    async execute(_id: string, p: any) {
+    async execute(_id: string, p: UsageInput) {
       const report = buildUsageReport(p);
       return { content: [{ type: "text", text: report.text }], details: report.details };
     },
@@ -293,9 +295,39 @@ export default function piControlExtension(pi: ExtensionAPI) {
         evidence: Type.Optional(Type.Array(Type.String())),
       })),
     }),
-    async execute(_id: string, p: any) {
+    async execute(_id: string, p: { reports: ParallelReport[] }) {
       const report = buildParallelVerifyReport(Array.isArray(p.reports) ? p.reports : []);
       return { content: [{ type: "text", text: report.text }], details: report.details };
+    },
+  });
+
+  pi.registerTool({
+    name: "control_browser_guidance",
+    label: "Browser Guidance",
+    description: "Get best practices and loop recipes for agent-browser and Electron automation.",
+    parameters: Type.Object({}),
+    async execute() {
+      return { content: [{ type: "text", text: browserControlGuidance() }], details: { status: BROWSER_CONTROL_STATUS } };
+    },
+  });
+
+  pi.registerTool({
+    name: "control_browser_command",
+    label: "Browser Command",
+    description: "Execute an agent-browser CLI command (open, snapshot, click, fill, screenshot, close).",
+    parameters: Type.Object({
+      command: Type.String({ description: "The agent-browser subcommand and arguments (e.g., 'open https://google.com')" }),
+      session: Type.Optional(Type.String({ description: "Optional session name" })),
+    }),
+    async execute(_id: string, p: { command: string; session?: string }) {
+      const args = p.command.split(" ");
+      if (p.session) args.unshift("--session", p.session);
+      try {
+        const out = execFileSync("agent-browser", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+        return { content: [{ type: "text", text: out.trim() }], details: { command: p.command, success: true } };
+      } catch (e: any) {
+        return { content: [{ type: "text", text: `Error: ${e.stderr || e.message}` }], details: { command: p.command, success: false, error: e.message } };
+      }
     },
   });
 }

@@ -1,15 +1,18 @@
 export const BROWSER_CONTROL_STATUS = {
-  implemented: false,
+  implemented: true,
   driver: "agent-browser",
-  plannedRuntime: "Playwright",
-  reason: "Browser control is currently routed through the bundled agent-browser skill. Native Playwright tooling should be added only when command registration, evidence capture, and sandbox rules are defined.",
+  runtime: "Playwright (via agent-browser CLI)",
+  capabilities: ["navigation", "snapshot", "interaction", "screenshot", "recording"],
 } as const;
 
 export function browserControlGuidance() {
   return [
-    "Use control_route for browser or Electron tasks first.",
-    "Use the agent-browser skill for open, wait, snapshot, click, fill, and close loops.",
-    "Capture screenshots after every navigation because DOM refs can invalidate.",
-    "Add native Playwright tools only with explicit sandbox, artifact, and teardown behavior.",
+    "### Browser Control Best Practices",
+    "1. **Route First**: Use `control_route` to confirm `agent-browser` is the correct driver.",
+    "2. **Loop Flow**: `open` -> `snapshot` -> `action` (click/fill) -> `snapshot` (repeat).",
+    "3. **Ref Stability**: DOM elements change; always re-snapshot after any navigation or modal change.",
+    "4. **Visual Proof**: Use `screenshot --annotate` to tie visual evidence to interaction refs.",
+    "5. **Clean Up**: Always call `close` at the end of a session to release resources.",
   ].join("\n");
 }
+

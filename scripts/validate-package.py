@@ -18,6 +18,10 @@ REQUIRED_FILES = [
     "extensions/pi-control/guards.ts",
     "extensions/pi-control/recipes.ts",
     "extensions/pi-control/schema.ts",
+    "scripts/validate-package.py",
+    "bin/tctl",
+    "scripts/render-showcase.sh",
+    "remotion/package.json",
     "README.md",
 ]
 

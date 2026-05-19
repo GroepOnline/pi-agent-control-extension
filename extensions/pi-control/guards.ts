@@ -31,6 +31,9 @@ export function inspectToolCall(event: any) {
         return { block: true, reason: "tuistory launches must include --env FORCE_COLOR=3 --env COLORTERM=truecolor to preserve colors in recordings." };
       }
     }
+    if (/169\.254\.169\.254/.test(lower)) {
+      return { block: true, reason: "Blocked access to cloud metadata IP (169.254.169.254). Internal metadata retrieval is prohibited." };
+    }
   }
 
   return null;
