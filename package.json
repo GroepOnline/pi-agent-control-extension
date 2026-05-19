@@ -19,7 +19,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "setup": "npm install && (cd remotion && npm install)",
+    "setup": "bash scripts/setup-deps.sh && npm install && (cd remotion && npm install)",
     "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
     "check": "pi --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./extensions/pi-control/index.ts --list-models does-not-exist-xyz",
     "test": "vitest run",

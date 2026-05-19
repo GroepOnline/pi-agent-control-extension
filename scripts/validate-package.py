@@ -52,6 +52,24 @@ if missing:
 check("README exists", (ROOT / "README.md").exists())
 check("Demo GIF exists", (ROOT / "artifacts" / "demo" / "demo.gif").exists())
 
+import shutil
+BINARIES = {
+    "python3": "sudo apt-get install -y python3",
+    "ruff": "pip install ruff",
+    "tuistory": "npm install -g tuistory",
+    "asciinema": "pip install asciinema",
+    "ffmpeg": "sudo apt-get install -y ffmpeg",
+    "cage": "sudo apt-get install -y cage",
+    "wtype": "sudo apt-get install -y wtype",
+}
+
+print("\nChecking system dependencies...")
+for cmd, install in BINARIES.items():
+    path = shutil.which(cmd)
+    check(f"Binary: {cmd}", path is not None)
+    if not path:
+        print(f"       To fix: {install}")
+
 if errors:
     print(f"\n[FAIL] {len(errors)} check(s) failed")
 else:
