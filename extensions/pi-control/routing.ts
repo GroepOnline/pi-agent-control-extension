@@ -2,7 +2,10 @@ import { SKILL_NAMES, type RouteDecision, type ControlSkillName } from "./schema
 
 function has(text: string, terms: string[]) {
   const t = text.toLowerCase();
-  return terms.some((term) => t.includes(term));
+  return terms.some((term) => {
+    if (term.includes(" ")) return t.includes(term);
+    return new RegExp(`\\b${term}\\b`).test(t);
+  });
 }
 
 export function routeControlTask(task: string, deliverableHint = ""): RouteDecision {
@@ -13,7 +16,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
   let capture: RouteDecision["capture"] = "report";
   let deliverable: RouteDecision["deliverable"] = "proof-report";
 
-  if (has(input, ["browser", "web", "electron", "dom", "screenshot", "visual qa"])) {
+  if (has(input, ["browser", "web", "electron", "dom manipulation", "dom element", "screenshot", "visual qa"])) {
     driver = "agent-browser";
     skills.push("agent-browser");
     capture = "screenshots";
@@ -26,7 +29,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     capture = "mp4";
   }
 
-  if (has(input, ["tui", "terminal", "cli", "tctl", "snapshot", "esc", "stream", "ink"])) {
+  if (has(input, ["tui", "terminal", "cli tool", "cli app", "tctl", "snapshot", "escape key", "ink framework"])) {
     if (driver !== "true-input" && driver !== "agent-browser") driver = "tuistory";
     skills.push("tuistory", "capture");
     capture = capture === "report" ? "cast" : capture;
@@ -43,11 +46,11 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     skills.push("verify");
   }
 
-  if (has(input, ["tctl", "pi", "pi coding", "control cli"])) {
+  if (has(input, ["tctl", "pi agent", "pi cli", "pi coding", "control cli"])) {
     skills.push("pi-agent-cli");
   }
 
-  if (has(input, ["init", "setup", "workspace", "onboard"])) {
+  if (has(input, ["initialize workspace", "setup workspace", "workspace init", "onboard", "scaffold"])) {
     skills.push("init", "wiki");
     driver = "mixed";
   }
@@ -67,7 +70,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     driver = "mixed";
   }
 
-  if (has(input, ["improve", "chain", "analyze and improve"])) {
+  if (has(input, ["analyze and improve", "full improvement", "chain skills"])) {
     skills.push("init", "wiki", "review", "autoresearch");
     driver = "mixed";
   }

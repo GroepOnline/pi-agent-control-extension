@@ -320,7 +320,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
       session: Type.Optional(Type.String({ description: "Optional session name" })),
     }),
     async execute(_id: string, p: { command: string; session?: string }) {
-      const args = p.command.split(" ");
+      const args = p.command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)?.map((a) => a.replace(/^["']|["']$/g, "")) ?? [];
       if (p.session) args.unshift("--session", p.session);
       try {
         const out = execFileSync("agent-browser", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
