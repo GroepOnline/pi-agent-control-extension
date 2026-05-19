@@ -6,10 +6,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILLS = {
-    "agent-browser", "autoresearch", "capture", "compose", "frontend-design",
-    "human-writing", "init", "pi-agent-cli", "pi-agent-control", "pty-capture",
-    "review", "session-navigation", "showcase", "simplify", "skill-creation",
-    "true-input", "tuistory", "verify", "visual-design", "wiki"
+    "agent-browser", "capture", "compose", "pi-agent-cli", "pi-agent-control", 
+    "pty-capture", "showcase", "true-input", "tuistory", "verify",
+    "init", "wiki", "review", "autoresearch", "session-navigation"
 }
 REQUIRED_FILES = [
     "package.json",

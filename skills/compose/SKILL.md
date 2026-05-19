@@ -22,7 +22,7 @@ The command or capture stage should have provided a handoff with two sections:
 - **subtitle**: one-sentence summary
 - **sections**: text banners for chapters `[{t, title}]` (optional)
 - **keys**: keystroke events `[{t, label, dur?}]` (if overlay requested)
-- **showcase**: preset name -- `macos`, `minimal`, `hero`, `presentation`, `factory`, `factory-hero`
+- **showcase**: preset name -- `macos`, `minimal`, `hero`, `presentation`, `pi-warm`, `pi-hero`
 - **effects tier**: `utilitarian` | `full` | `none` (see "Choosing effects at compose time" below)
 - **output**: desired output path
 
@@ -54,11 +54,11 @@ Both use the same Remotion pipeline but target different visual registers.
 | | Showcase | Demo |
 |---|---|---|
 | **Goal** | Cinematic, high-polish marketing material | Clear, utilitarian demonstration — single or comparison, whichever the story calls for |
-| **Preset** | `factory`, `factory-hero`, or `hero` | `macos`, `minimal`, or `presentation` |
+| **Preset** | `pi-warm`, `pi-hero`, or `hero` | `macos`, `minimal`, or `presentation` |
 | **Effects tier** | **Full** -- spotlight, zoom, callout, keystroke overlay. Go all out. | **Utilitarian** -- zoom for readability, keystroke overlay for user actions |
 | **Audience** | External — landing pages, social, marketing | Internal — PR reviews, docs, QA |
 
-**Decision rule**: If the video will be seen outside the eng team, use Showcase mode. If it's for a PR description, internal demo, or documentation embed, use Demo mode. The visual polish layers (warm glow, particles, color grade, motion blur) are always present but their intensity is palette-driven — Factory presets produce rich cinematic warmth while Catppuccin presets stay subtle and cool.
+**Decision rule**: If the video will be seen outside the eng team, use Showcase mode. If it's for a PR description, internal demo, or documentation embed, use Demo mode. The visual polish layers (warm glow, particles, color grade, motion blur) are always present but their intensity is palette-driven — `pi-warm` presets produce rich cinematic warmth while Catppuccin presets stay subtle and cool.
 
 ### Choosing effects at compose time
 
@@ -108,7 +108,7 @@ Set the `speed` prop to hit the target: if the raw recording is 3 minutes and th
 
 ### Clip aspect ratio (mandatory check for browser captures)
 
-At the default 1920×1080 output with factory preset margins, panels come out roughly:
+At the default 1920×1080 output with `pi-warm` preset margins, panels come out roughly:
 
 | Layout | Panel aspect |
 |---|---|
@@ -165,7 +165,7 @@ cat > "$PROPS" << 'EOF'
   "speed": 3,
   "title": "PR #11621 — Prevent session freezes",
   "subtitle": "Bash Mode blocks interactive commands and supports ESC cancellation",
-  "preset": "factory",
+  "preset": "pi-warm",
   "keys": [
     {"t": 2.0, "label": "vim"},
     {"t": 5.5, "label": "sleep 100"},
@@ -213,8 +213,8 @@ Use a run-scoped props path like `$PROPS`; do not reuse a global `/tmp/showcase-
 
 | Preset | Look | Palette | Best for |
 |---|---|---|---|
-| `factory` | Warm black bg, traffic lights, 12px radius, 80px margin | Factory (warm) | Official Factory content |
-| `factory-hero` | Same as factory + gradient bg | Factory (warm) | Factory landing pages, social |
+| `pi-warm` | Warm black bg, traffic lights, 12px radius, 80px margin | Pi (warm) | Official Pi content |
+| `pi-hero` | Same as pi-warm + gradient bg | Pi (warm) | Pi landing pages, social |
 | `hero` | Gradient bg, generous margins, prominent shadow | Catppuccin (cool) | Non-Factory marketing |
 | `macos` | Dark bg, traffic lights, clean frame | Catppuccin (cool) | General-purpose demos |
 | `presentation` | Black bg, generous margins | Catppuccin (cool) | Slide decks, talks |
@@ -285,10 +285,10 @@ Keep it short — aim for ≤ 15 lines per card, hold for 3–6 seconds.
 
 | Style | Feel | Use when… |
 |---|---|---|
-| `motion-blur` | Subtle dolly, blur + opacity crossfade | Default for PR demos, Factory content, most showcase work |
+| `motion-blur` | Subtle dolly, blur + opacity crossfade | Default for PR demos, Pi content, most showcase work |
 | `flash` | Quick palette-tinted flash at midpoint | Bug-fix proofs where the "after" state should feel sudden |
 | `whip-pan` | Horizontal pan + motion blur | Energetic showcase / marketing when pacing is fast |
-| `light-leak` | Warm gradient sweep | Factory-branded landing/social clips |
+| `light-leak` | Warm gradient sweep | Pi-branded landing/social clips |
 | `glitch-lite` | RGB channel offset + horizontal band | Security/vulnerability proof, terminal aesthetic; never default, never twice |
 
 ## Step 3: Render

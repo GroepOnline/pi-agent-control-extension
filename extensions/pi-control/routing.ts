@@ -26,7 +26,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     capture = "mp4";
   }
 
-  if (has(input, ["tui", "terminal", "cli", "droid-dev", "snapshot", "esc", "stream", "ink"])) {
+  if (has(input, ["tui", "terminal", "cli", "tctl", "snapshot", "esc", "stream", "ink"])) {
     if (driver !== "true-input" && driver !== "agent-browser") driver = "tuistory";
     skills.push("tuistory", "capture");
     capture = capture === "report" ? "cast" : capture;
@@ -43,47 +43,41 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     skills.push("verify");
   }
 
-  if (has(input, ["droid", "droid-dev", "tctl", "pi", "pi coding"])) {
+  if (has(input, ["tctl", "pi", "pi coding", "control cli"])) {
     skills.push("pi-agent-cli");
   }
 
-  // Meta/utility skills — add based on task type, independent of driver
-  if (has(input, ["design", "ui", "frontend", "styling", "css", "layout", "landing page", "website design", "web design"])) {
-    skills.push("frontend-design");
+  if (has(input, ["init", "setup", "workspace", "onboard"])) {
+    skills.push("init", "wiki");
+    driver = "mixed";
   }
-  if (has(input, ["write", "text", "blog", "humanize", "prose", "edit writing", "rewrite", "copy", "slop"])) {
-    skills.push("human-writing");
-  }
-  if (has(input, ["skill create", "new skill", "improve skill", "extract skill", "skill design"])) {
-    skills.push("skill-creation");
-  }
-  if (has(input, ["image", "logo", "icon", "diagram", "flowchart", "presentation", "slides", "slide deck", "photo", "picture"])) {
-    skills.push("visual-design");
-  }
-  if (has(input, ["wiki", "document", "architecture doc", "codebase doc", "generate doc"])) {
+
+  if (has(input, ["wiki", "document", "architecture map"])) {
     skills.push("wiki");
+    driver = "mixed";
   }
-  if (has(input, ["init", "agents.md", "setup repo", "initialize", "project setup"])) {
-    skills.push("init");
+
+  if (has(input, ["review", "audit", "guardrail", "safety"])) {
+    skills.push("review", "session-navigation");
+    driver = "mixed";
   }
-  if (has(input, ["review", "pr review", "pull request", "code review", "diff"])) {
-    skills.push("review");
+
+  if (has(input, ["research", "optimize", "investigate", "subagent"])) {
+    skills.push("autoresearch", "session-navigation");
+    driver = "mixed";
   }
-  if (has(input, ["session", "history", "search session", "past session", "previous session", "resume"])) {
-    skills.push("session-navigation");
+
+  if (has(input, ["improve", "chain", "analyze and improve"])) {
+    skills.push("init", "wiki", "review", "autoresearch");
+    driver = "mixed";
   }
-  if (has(input, ["simplify", "refactor", "clean code", "cleanup", "code quality", "debloat"])) {
-    skills.push("simplify");
-  }
-  if (has(input, ["autoresearch", "optimize", "benchmark", "experiment", "tune", "hyperparameter", "metric improve"])) {
-    skills.push("autoresearch");
-  }
+
 
   if (driver === "tuistory" && !has(input, ["force_color", "colorterm", "truecolor"])) {
     warnings.push("For tuistory captures, launch with FORCE_COLOR=3 and COLORTERM=truecolor so Ink/chalk output keeps color.");
   }
-  if (has(input, ["droid-dev"]) && !has(input, ["repo-root", "worktree"])) {
-    warnings.push("droid-dev launches require --repo-root; tctl should refuse without it.");
+  if (has(input, ["tctl"]) && !has(input, ["repo-root", "worktree"])) {
+    warnings.push("tctl launches require --repo-root; sessions should refuse without it.");
   }
 
   const uniqueSkills = Array.from(new Set(skills)).filter((s): s is ControlSkillName => (SKILL_NAMES as readonly string[]).includes(s));
@@ -104,6 +98,8 @@ function buildRecipe(driver: RouteDecision["driver"], deliverable: RouteDecision
   } else if (driver === "true-input") {
     steps.push("Use true-input when the claim depends on real terminal keyboard encoding or terminal emulator behavior.");
     steps.push("Collect PTY bytes or VM screenshots and preserve raw logs under evidence/.");
+  } else if (driver === "mixed") {
+    steps.push("Use subagents and chained orchestration (e.g., init -> wiki -> review -> autoresearch) to complete complex logical goals.");
   } else {
     steps.push("Use tctl with backend tuistory for deterministic TUI automation and text snapshots.");
     steps.push("Launch with --cols 120 --rows 36 plus --env FORCE_COLOR=3 --env COLORTERM=truecolor.");

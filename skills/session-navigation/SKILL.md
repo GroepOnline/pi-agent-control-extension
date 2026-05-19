@@ -1,82 +1,40 @@
 ---
 name: session-navigation
-description: Navigate, search, and manage Pi sessions. Use when listing recent sessions, searching session history, resuming previous sessions, finding sessions by project/date/content, or reviewing what was accomplished in past sessions.
+description: Navigate, search, and manage Pi sessions. Use when finding historical context, tracking down previous architecture decisions, or using Pi's built-in session commands.
 ---
-# Session navigation
+# Session Navigation
 
-Find your way around past Pi sessions. Pick up where you left off, find that thing you did last week, or see what's been happening in a project.
+Manage and explore Pi session history. This skill defines how to find past context across projects and how to utilize Pi's native session management commands.
 
-## Where sessions live
+## Where Pi Sessions Live
 
-Sessions are in `~/.pi/agent/sessions/`, organized by project folder:
+Pi natively stores session logs and metadata inside your home directory:
 
-```
+\`\`\`text
 ~/.pi/agent/sessions/
-├── -Users-name-code-myapp/
-│   ├── <uuid>.jsonl
-│   └── <uuid>.settings.json
-├── -Users-name-code-api/
-│   └── ...
-```
+├── -Users-name-projects-pi-agent-control-extension/
+│   ├── <uuid>.jsonl           # The conversation transcript
+│   └── <uuid>.settings.json   # Model stats, duration, token usage
+\`\`\`
 
-Key files per session:
-- **`.jsonl`** — conversation. First line = metadata. Rest = user/assistant/tool messages.
-- **`.settings.json`** — stats: model, duration, tokens.
+## Searching Sessions
 
-## Finding sessions
+Instead of blind \`grep\`, leverage structured search:
 
-```bash
-# List project folders
-ls ~/.pi/agent/sessions/
+1. **Find by Intent**: Use \`grep_search\` on the \`jsonl\` files looking for \`"role": "user"\` and the specific topic.
+2. **Find by Model Usage**: Check the \`.settings.json\` files if you need to find sessions where a specific model (e.g., \`gemini-1.5-pro\`) was used.
+3. **Parse Transcripts**: Use \`jq\` to extract code blocks or tool calls from the \`.jsonl\` files if you need to recover a lost bash command or architectural decision.
 
-# Find project folders (partial match)
-ls ~/.pi/agent/sessions/ | grep "myapp"
+## Native Session Commands
 
-# Recent sessions in a project
-ls -lt ~/.pi/agent/sessions/<project-dir>/
+The user has access to Pi's built-in session commands. When assisting the user with session management, recommend these slash commands:
 
-# Get titles of recent sessions
-for f in $(ls -t ~/.pi/agent/sessions/<project-dir>/*.jsonl | head -10); do
-  head -1 "$f" | jq -r '.title // "Untitled"'
-done
-```
+- \`/session\` — Display current session information and stats.
+- \`/resume\` — Open a UI to browse and select a previous session to resume.
+- \`/tree\` — Navigate the session branching tree visually.
+- \`/fork\` — Create a new session branched from a previous message.
+- \`/clone\` — Duplicate the active branch into an entirely new session.
 
-## Searching
+## Chaining
 
-```bash
-# Search across ALL sessions
-rg "authentication" ~/.pi/agent/sessions/
-
-# Search within specific project
-rg "bug fix" ~/.pi/agent/sessions/<project-dir>/
-
-# With context
-rg -C 2 "login" ~/.pi/agent/sessions/<project-dir>/
-
-# Find projects with sessions about a topic
-rg -l "redis" ~/.pi/agent/sessions/ | cut -d'/' -f1-5 | sort -u
-```
-
-## Reading a session
-
-```bash
-# Metadata (title, working directory)
-head -1 ~/.pi/agent/sessions/<project-dir>/<uuid>.jsonl | jq .
-
-# Session stats (model, tokens, duration)
-cat ~/.pi/agent/sessions/<project-dir>/<uuid>.settings.json | jq .
-
-# Conversation length
-wc -l ~/.pi/agent/sessions/<project-dir>/<uuid>.jsonl
-```
-
-User messages: `"role": "user"`. Assistant: `"role": "assistant"`. Tool calls show what commands ran.
-
-## Pi session commands
-
-Pi has built-in session commands:
-- `/resume` — browse and select a previous session
-- `/session` — show current session info
-- `/tree` — navigate session branches
-- `/fork` — fork from previous message
-- `/clone` — duplicate active branch to new session
+If you are trying to \`review\` code or perform \`autoresearch\` and you lack the context of *why* a decision was made, use the Session Navigation skill to find the original PR or session log.

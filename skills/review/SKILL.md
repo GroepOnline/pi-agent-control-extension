@@ -1,72 +1,53 @@
 ---
 name: review
-description: Review code changes and identify high-confidence, actionable bugs. Use when reviewing pull requests, branch diffs, or finding bugs/security/correctness problems. Structured summary with bug patterns and severity.
+description: Code review with strict focus on Pi Extension safety, tool guardrails, and optimal API usage. Use when reviewing PRs, checking new tools, or verifying architectural changes.
 ---
-# Code review
+# Pi Extension Code Review
 
-Senior staff engineer code review. Identify high-confidence, actionable bugs.
+Review code changes and identify high-confidence, actionable bugs specifically related to Pi Extension development, safety, and guardrail compliance.
 
 ## Requirements
 
 1. **Complete Diff**: You must have the full character-level diff of the changes being reviewed.
-2. **Type Context**: For TypeScript/Go/Rust, you must understand the type definitions of changed and touched structures.
-3. **Execution Environment**: Knowledge of the target runtime (Node.js, Python, Browser) to identify platform-specific pitfalls.
+2. **Context**: Understand that this extension uses the `@earendil-works/pi-coding-agent` Extension API.
 
-## Setup
+## High-Signal Pi Bug Patterns
 
-1. Get context: branch, target/base branch, PR description/issues.
-2. Get diff: `git diff $(git merge-base HEAD <base-branch>)..HEAD`
-3. Review all changed files methodically.
+Flag any of the following issues with high confidence. Do not list speculative nitpicks.
 
-## Review focus
+### 1. Guardrail Evasion
+- Missing security checks for dangerous shell commands (e.g., `rm -rf /`, `curl | bash`).
+- Tools that access cloud metadata IPs (`169.254.169.254`) without explicit opt-in.
+- Hardcoded secrets or `.env` reads directly exposed to the model without stripping.
 
-- Functional correctness, logic bugs, syntax errors
-- Broken dependencies, contracts, or tests
-- Security issues and performance problems
+### 2. Tool Registration Errors
+- Tools registered without `Typebox` schemas for parameters.
+- Missing `name`, `label`, or `description` fields in `pi.registerTool`.
+- `execute` functions that do not return the required `{ content: [{ type: "text", text: string }], details: any }` format.
 
-## High-signal bug patterns
+### 3. Missing Context Returns
+- Tool outputs that do not summarize the action performed.
+- Silent failures (e.g., catching an error but returning a "Success" text instead of the error message).
 
-Only flag issues you're confident about. No speculative or stylistic nitpicks.
+### 4. Overly Permissive Scope
+- Tools that use `execute_url` or `read_url` on wildcard domains unnecessarily.
+- Tools requesting root filesystem access (`/`) instead of workspace-relative paths.
 
-- **Null/undefined safety**: dereferences on optional types, missing-key errors on JSON, unchecked `.find()` / `.get()` / array index
-- **Resource leaks**: unclosed files/streams/connections; missing cleanup on error paths
-- **Injection**: SQL injection, XSS, command/template injection, auth/security invariant violations
-- **OAuth/CSRF**: state must be per-flow unpredictable; flag deterministic or missing state checks
-- **Concurrency**: TOCTOU, lost updates, unsafe shared state, process/thread lifecycle bugs
-- **Missing error handling**: network, persistence, auth, migrations, external APIs
-- **Wrong-variable/shadowing**: variable name mismatches, contract mismatches
-- **Type-assumption bugs**: numeric ops on datetime/strings, ordering-key type mismatches, object ref comparison
-- **Offset/cursor/pagination**: off-by-one, prev/next behavior, commit semantics
-- **Async/await**: `forEach`/`map`/`filter` with async callbacks (fire-and-forget), missing `await`, unhandled promise rejections
+## Analysis Discipline
 
-## Analysis patterns
+Before flagging an issue:
+1. Trace the data flow of the tool parameter to confirm the vulnerability.
+2. Check existing tests and `guards.ts` (if applicable) to see if the vulnerability is mitigated upstream.
+3. Confirm it's a real bug, not a style preference.
 
-### Logic & variables
-Verify correct variable in each conditional, AND vs OR confusion, return statements return intended values.
+## Output Format
 
-### Null/undefined
-For each `a.b.c` access, verify no intermediate can be null. Check auth contexts, optional relationships, map lookups, config values.
+For each finding:
+- **Location**: File + line range.
+- **Severity**: Critical / High / Medium / Low.
+- **Issue**: What is wrong.
+- **Fix**: How to fix it using Pi best practices.
 
-### Type compatibility
-Trace types into math ops, verify comparison operators match types, check serialization/deserialization consistency.
+## Chaining
 
-### Async/await
-Flag `forEach`/`map`/`filter` with async callbacks. Verify all async calls are awaited when result/side-effect is needed.
-
-### Security
-SSRF: unvalidated URL fetching with user input. XSS: unescaped user input in HTML. Auth: OAuth state must be per-request random; CSRF tokens verified. Timing: constant-time secret comparison. Cache poisoning: no asymmetric security caching.
-
-### API contracts
-When serializers change: verify response compatibility. When DB schemas change: verify migrations include backfill. When signatures change: grep all callers.
-
-## Analysis discipline
-
-Before flagging:
-1. Verify with grep/read — don't speculate
-2. Trace data flow to confirm real trigger path
-3. Check existing tests and calling code
-4. Confirm it's a real bug, not a style preference
-
-## Output format
-
-For each finding: file + line range, severity (critical/high/medium/low), what's wrong, how to fix, confidence level.
+If you find critical gaps during review (e.g., "We are missing a guardrail for command injection"), trigger the `autoresearch` skill to find standard mitigation patterns or check if Pi's base layer already handles it.

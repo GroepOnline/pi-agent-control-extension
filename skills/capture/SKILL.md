@@ -33,7 +33,7 @@ Before recording anything:
 
 ### Browser viewport sizing
 
-Panel aspect ratio in the final composition is **layout-dependent**. At the default 1920×1080 output with factory preset margins, the window-chrome panels that clips render into come out roughly:
+Panel aspect ratio in the final composition is **layout-dependent**. At the default 1920×1080 output with `pi-warm` preset margins, the window-chrome panels that clips render into come out roughly:
 
 | Layout | Panel aspect | Recommended browser viewport |
 |---|---|---|

@@ -3,8 +3,6 @@ export const SKILL_NAMES = [
   "autoresearch",
   "capture",
   "compose",
-  "frontend-design",
-  "human-writing",
   "init",
   "pi-agent-cli",
   "pi-agent-control",
@@ -12,12 +10,9 @@ export const SKILL_NAMES = [
   "review",
   "session-navigation",
   "showcase",
-  "simplify",
-  "skill-creation",
   "true-input",
   "tuistory",
   "verify",
-  "visual-design",
   "wiki",
 ] as const;
 

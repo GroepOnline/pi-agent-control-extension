@@ -18,7 +18,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REMOTION_DIR="${SCRIPT_DIR}/../remotion"
-DROID_CLI_THEME='181818,e0d0c0,15161e,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,a9b1d6,414868,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,c0caf5'
+PI_CLI_THEME='181818,e0d0c0,15161e,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,a9b1d6,414868,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,c0caf5'
 
 PROPS_FILE="" PROPS_INLINE="" OUTPUT="" FIDELITY_OVERRIDE="auto" CLIPS=()
 WORK_DIR="$(mktemp -d /tmp/render-showcase-XXXXXX)"
@@ -171,7 +171,7 @@ convert_cast_clip() {
     --rows "$rows" \
     --fps-cap "$agg_fps_cap" \
     --idle-time-limit "$agg_idle_limit" \
-    --theme "$DROID_CLI_THEME" \
+    --theme "$PI_CLI_THEME" \
     "$cast_clip" \
     "$gif_clip"
 
