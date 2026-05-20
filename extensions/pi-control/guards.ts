@@ -14,6 +14,7 @@ export function inspectToolCall(event: any) {
   if (!command) return null;
 
   if (["bash", "shell", "terminal", "exec"].some((t) => toolName.includes(t))) {
+    // ⚡ Bolt Optimization: Defer toLowerCase() until we verify this is a shell tool, saving string allocations for other tools.
     const lower = command.toLowerCase();
     if (/rm\s+-rf\s+(\/|~|\.\.|\*|\.\/?(\s|$))/.test(lower)) {
       return { block: true, reason: "Blocked destructive rm -rf pattern. Narrow the target path and explain why deletion is required." };

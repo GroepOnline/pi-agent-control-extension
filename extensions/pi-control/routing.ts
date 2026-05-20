@@ -1,5 +1,6 @@
 import { SKILL_NAMES, type RouteDecision, type ControlSkillName } from "./schema.ts";
 
+// ⚡ Bolt Optimization: Cache word-boundary regular expressions so they are only compiled once per session.
 const regexCache = new Map<string, RegExp>();
 
 function has(text: string, terms: string[]) {
