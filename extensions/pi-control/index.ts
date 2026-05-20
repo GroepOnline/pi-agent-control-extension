@@ -47,6 +47,7 @@ Composability rules:
 - Use true-input when terminal emulator key behavior matters.
 - Use showcase and compose only after the verification report is already supported by evidence.`;
 
+// ⚡ Bolt Optimization: Memoize rootDir to avoid redundant, synchronous filesystem checks in hot paths.
 let cachedRootDir: string | null = null;
 
 function rootDir() {
@@ -65,6 +66,8 @@ function rootDir() {
   return PACKAGE_ROOT;
 }
 
+// ⚡ Bolt Optimization: Memoize the loaded skill inventory per base directory.
+// This prevents 17+ blocking readFileSync calls every time the skill index is checked.
 const cachedSkills = new Map<string, { name: string; description: string }[]>();
 
 function listSkills(base: string) {
