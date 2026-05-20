@@ -37,7 +37,7 @@ jobs:
       run: pip install ruff && npm run lint:python
 
     - name: Run TypeScript Linter
-      run: npm run lint
+      run: npm install -D typescript && npm run lint
 
     - name: Run Unit Tests
       run: npm run test
