@@ -10,11 +10,11 @@ function getCommand(input: unknown): string {
 export function inspectToolCall(event: any) {
   const toolName = String(event?.toolName ?? event?.name ?? "").toLowerCase();
   const command = getCommand(event?.input ?? event?.params);
-  const lower = command.toLowerCase();
 
   if (!command) return null;
 
   if (["bash", "shell", "terminal", "exec"].some((t) => toolName.includes(t))) {
+    const lower = command.toLowerCase();
     if (/rm\s+-rf\s+(\/|~|\.\.|\*|\.\/?(\s|$))/.test(lower)) {
       return { block: true, reason: "Blocked destructive rm -rf pattern. Narrow the target path and explain why deletion is required." };
     }

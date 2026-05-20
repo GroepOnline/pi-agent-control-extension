@@ -1,10 +1,17 @@
 import { SKILL_NAMES, type RouteDecision, type ControlSkillName } from "./schema.ts";
 
+const regexCache = new Map<string, RegExp>();
+
 function has(text: string, terms: string[]) {
   const t = text.toLowerCase();
   return terms.some((term) => {
     if (term.includes(" ")) return t.includes(term);
-    return new RegExp(`\\b${term}\\b`).test(t);
+    let re = regexCache.get(term);
+    if (!re) {
+      re = new RegExp(`\\b${term}\\b`);
+      regexCache.set(term, re);
+    }
+    return re.test(t);
   });
 }
 
