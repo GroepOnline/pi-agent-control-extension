@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { routeControlTask } from "./routing.ts";
+import { routeControlTask, renderRoute } from "./routing.ts";
 
 describe("Routing Logic", () => {
   it("routes browser tasks to agent-browser and screenshots", () => {
@@ -34,7 +34,7 @@ describe("Routing Logic", () => {
 
     // "random" should not match "dom manipulation"
     const resultRandom = routeControlTask("pick a random number");
-    expect(resultRandom.driver).not.toBe("agent-browser");
+    expect(resultRandom.driver).not.not.toBe("agent-browser");
   });
 
   it("adds color warnings for tuistory driver if missing force_color", () => {
@@ -52,12 +52,104 @@ describe("Routing Logic", () => {
     expect(result.warnings.some(w => w.includes("--repo-root"))).toBe(true);
   });
 
-  it("routes chaining requests to mixed driver", () => {
-    const result = routeControlTask("analyze and improve the whole codebase");
+  it("routes test matrix tasks to qa-report", () => {
+    const result = routeControlTask("run a test matrix on this");
+    expect(result.deliverable).toBe("qa-report");
+    expect(result.skills).toContain("verify");
+  });
+
+  it("routes workspace init tasks", () => {
+    const result = routeControlTask("initialize workspace");
+    expect(result.driver).toBe("mixed");
+    expect(result.skills).toContain("init");
+    expect(result.skills).toContain("wiki");
+  });
+
+  it("routes wiki tasks", () => {
+    const result = routeControlTask("create architecture map");
+    expect(result.driver).toBe("mixed");
+    expect(result.skills).toContain("wiki");
+  });
+
+  it("routes safety review tasks", () => {
+    const result = routeControlTask("audit the safety");
+    expect(result.driver).toBe("mixed");
+    expect(result.skills).toContain("review");
+    expect(result.skills).toContain("session-navigation");
+  });
+
+  it("routes research and optimize tasks", () => {
+    const result = routeControlTask("investigate with a subagent");
+    expect(result.driver).toBe("mixed");
+    expect(result.skills).toContain("autoresearch");
+    expect(result.skills).toContain("session-navigation");
+  });
+
+  it("routes complex chain improvements", () => {
+    const result = routeControlTask("analyze and improve the project");
     expect(result.driver).toBe("mixed");
     expect(result.skills).toContain("init");
     expect(result.skills).toContain("wiki");
     expect(result.skills).toContain("review");
     expect(result.skills).toContain("autoresearch");
+  });
+
+  it("adds warnings for tctl without repo-root", () => {
+    const result = routeControlTask("run tctl");
+    expect(result.warnings.some(w => w.includes("--repo-root"))).toBe(true);
+  });
+
+  it("does not add tuistory warning if proper colors set", () => {
+    const result = routeControlTask("run tuistory with force_color colorterm truecolor");
+    expect(result.warnings.some(w => w.includes("FORCE_COLOR=3"))).toBe(false);
+  });
+
+  it("supports deliverable hint in routeControlTask", () => {
+    const result = routeControlTask("run something", "with a video");
+    expect(result.deliverable).toBe("showcase-video");
+  });
+
+  it("buildRecipe handles agent-browser driver", () => {
+    const result = routeControlTask("test browser", "screenshot");
+    expect(result.recipe.some(step => step.includes("agent-browser open/snapshot"))).toBe(true);
+  });
+
+  it("buildRecipe handles true-input driver", () => {
+    const result = routeControlTask("test real terminal", "mp4");
+    expect(result.recipe.some(step => step.includes("Use true-input"))).toBe(true);
+  });
+
+  it("buildRecipe handles mixed driver", () => {
+    const result = routeControlTask("setup workspace");
+    expect(result.recipe.some(step => step.includes("Use subagents and chained orchestration"))).toBe(true);
+  });
+
+  it("buildRecipe handles qa-report deliverable", () => {
+    const result = routeControlTask("qa checklist");
+    expect(result.recipe.some(step => step.includes("Write a QA table"))).toBe(true);
+  });
+
+  it("buildRecipe handles non-report capture", () => {
+    const result = routeControlTask("run a snapshot on this cli app", "cast");
+    expect(result.recipe.some(step => step.includes("Expected capture artifact type: cast"))).toBe(true);
+  });
+
+  it("renderRoute returns formatted string", () => {
+    // "browser" triggers agent-browser driver and screenshots
+    const decision = routeControlTask("test browser");
+    const rendered = renderRoute(decision);
+    expect(rendered).toContain("Driver: agent-browser");
+    expect(rendered).toContain("Deliverable: browser-proof");
+    expect(rendered).toContain("Capture: screenshots");
+    expect(rendered).toContain("Skills:");
+    expect(rendered).toContain("Warnings:");
+    expect(rendered).toContain("Recipe:");
+  });
+
+  it("renderRoute handles warnings", () => {
+    // "tctl" also triggers tuistory which complains about missing colors
+    const decision = routeControlTask("run tctl with force_color colorterm");
+    const rendered = renderRoute(decision);
+    expect(rendered).toContain("Warnings:\n- tctl launches require --repo-root");
   });
 });

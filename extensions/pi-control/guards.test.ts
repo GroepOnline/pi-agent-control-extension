@@ -53,4 +53,54 @@ describe("Tool Guards", () => {
     const result = inspectToolCall(event);
     expect(result).toBeNull();
   });
+
+  it("handles non-object inputs gracefully", () => {
+    const event = { toolName: "bash", input: "not-an-object" };
+    const result = inspectToolCall(event);
+    expect(result).toBeNull();
+  });
+
+  it("handles undefined inputs gracefully", () => {
+    const event = { toolName: "bash" };
+    const result = inspectToolCall(event);
+    expect(result).toBeNull();
+  });
+
+  it("handles alternative command keys like cmd", () => {
+    const event = { toolName: "bash", input: { cmd: "rm -rf /" } };
+    const result = inspectToolCall(event);
+    expect(result).not.toBeNull();
+    expect(result?.block).toBe(true);
+  });
+
+  it("handles alternative command keys like script", () => {
+    const event = { toolName: "bash", input: { script: "rm -rf /" } };
+    const result = inspectToolCall(event);
+    expect(result).not.toBeNull();
+    expect(result?.block).toBe(true);
+  });
+
+  it("handles non-string values gracefully", () => {
+    const event = { toolName: "bash", input: { command: 123 } };
+    const result = inspectToolCall(event);
+    expect(result).toBeNull();
+  });
+
+  it("returns null if no toolName matches bash shell terminal exec", () => {
+    const event = { toolName: "other", input: { command: "rm -rf /" } };
+    const result = inspectToolCall(event);
+    expect(result).toBeNull();
+  });
+
+  it("returns null if no command is found", () => {
+    const event = { toolName: "bash", input: { arg: "value" } };
+    const result = inspectToolCall(event);
+    expect(result).toBeNull();
+  });
+
+  it("handles event without toolName but with command", () => {
+    const event = { input: { command: "ls" } };
+    const result = inspectToolCall(event);
+    expect(result).toBeNull();
+  });
 });
