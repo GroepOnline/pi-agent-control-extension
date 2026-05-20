@@ -58,15 +58,21 @@ function rootDir() {
   return PACKAGE_ROOT;
 }
 
+let cachedSkills: { name: string, description: string }[] | null = null;
+let cachedSkillsBase: string | null = null;
+
 function listSkills(base: string) {
+  if (cachedSkills && cachedSkillsBase === base) return cachedSkills;
   const dir = join(base, "skills");
   if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true })
+  cachedSkills = readdirSync(dir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(dir, d.name, "SKILL.md")))
     .map((d) => {
       const text = readFileSync(join(dir, d.name, "SKILL.md"), "utf8");
       return { name: d.name, description: (text.match(/^description:\s*(.+)$/m)?.[1] ?? "").replace(/^['"]|['"]$/g, "") };
     });
+  cachedSkillsBase = base;
+  return cachedSkills;
 }
 
 function runValidator(root: string) {
