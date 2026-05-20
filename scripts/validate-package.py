@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate pi-agent-control-extension package structure."""
+
 from __future__ import annotations
 
 import json
@@ -8,10 +9,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILLS = {
-    "agent-browser", "capture", "compose", "pi-agent-cli", "pi-agent-control",
-    "pty-capture", "showcase", "true-input", "tuistory", "verify",
-    "init", "wiki", "review", "autoresearch", "session-navigation",
-    "background-pty", "meta-control"
+    "agent-browser",
+    "capture",
+    "compose",
+    "pi-agent-cli",
+    "pi-agent-control",
+    "pty-capture",
+    "showcase",
+    "true-input",
+    "tuistory",
+    "verify",
+    "init",
+    "wiki",
+    "review",
+    "autoresearch",
+    "session-navigation",
+    "background-pty",
+    "meta-control",
 }
 REQUIRED_FILES = [
     "package.json",
@@ -27,10 +41,12 @@ REQUIRED_FILES = [
     "README.md",
 ]
 
+
 def check(msg: str, ok: bool) -> None:
     print(f"  {'[OK]' if ok else '[FAIL]'} {msg}")
     if not ok:
         errors.append(msg)
+
 
 errors: list[str] = []
 print(f"Validating {ROOT.name}...")
@@ -75,4 +91,6 @@ for cmd, install in BINARIES.items():
 if errors:
     print(f"\n[FAIL] {len(errors)} check(s) failed")
 else:
-    print(f"\n[OK] {pkg['name']} {pkg['version']}: clean package with {len(EXPECTED_SKILLS)} skills + extension + demo")
+    print(
+        f"\n[OK] {pkg['name']} {pkg['version']}: clean package with {len(EXPECTED_SKILLS)} skills + extension + demo"
+    )
