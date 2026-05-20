@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tests for CHANGELOG-v5.md content and structure."""
+
 from __future__ import annotations
 
 import unittest
@@ -165,21 +166,15 @@ class TestChangelogV5Structure(unittest.TestCase):
 
     def test_features_section_appears_after_header(self):
         """'## Features' section must come after the H1 header line."""
-        header_idx = next(
-            (i for i, ln in enumerate(self.lines) if ln.startswith("# ")), None
-        )
-        features_idx = next(
-            (i for i, ln in enumerate(self.lines) if ln == "## Features"), None
-        )
+        header_idx = next((i for i, ln in enumerate(self.lines) if ln.startswith("# ")), None)
+        features_idx = next((i for i, ln in enumerate(self.lines) if ln == "## Features"), None)
         self.assertIsNotNone(header_idx, "H1 header not found")
         self.assertIsNotNone(features_idx, "## Features not found")
         self.assertGreater(features_idx, header_idx)
 
     def test_attribution_appears_after_features(self):
         """Attribution line must come after the features section."""
-        features_idx = next(
-            (i for i, ln in enumerate(self.lines) if ln == "## Features"), None
-        )
+        features_idx = next((i for i, ln in enumerate(self.lines) if ln == "## Features"), None)
         attribution_idx = next(
             (i for i, ln in enumerate(self.lines) if "Prepared by Code Legend" in ln),
             None,
@@ -190,9 +185,7 @@ class TestChangelogV5Structure(unittest.TestCase):
 
     def test_blank_line_between_header_and_features(self):
         """There must be a blank line between the H1 header and the Features section."""
-        header_idx = next(
-            (i for i, ln in enumerate(self.lines) if ln.startswith("# ")), None
-        )
+        header_idx = next((i for i, ln in enumerate(self.lines) if ln.startswith("# ")), None)
         self.assertIsNotNone(header_idx)
         self.assertEqual(
             self.lines[header_idx + 1],
