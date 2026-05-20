@@ -11,6 +11,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "noEmit": true
