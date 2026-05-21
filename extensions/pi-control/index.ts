@@ -1,4 +1,4 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -87,8 +87,8 @@ function listSkills(base: string) {
   return skills;
 }
 
-function runValidator() {
-  const script = join(PACKAGE_ROOT, "scripts", "validate-package.py");
+function runValidator(root: string) {
+  const script = join(root, "scripts", "validate-package.py");
   if (!existsSync(script)) return "scripts/validate-package.py not found.";
   const cmds: [string, string[]][] = process.platform === "win32"
     ? [["py", ["-3", script]], ["python", [script]], ["python3", [script]]]
@@ -197,23 +197,23 @@ function buildParallelVerifyReport(reports: ParallelReport[]) {
 }
 
 export default function piControlExtension(pi: ExtensionAPI) {
-  pi.on("session_start", async (_event: unknown, ctx: any) => {
+  pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
     ctx.ui?.notify?.(`pi-agent-control loaded (${n} skills)`, "info");
   });
 
-  pi.on("tool_call", async (event: unknown, _ctx: unknown) => inspectToolCall(event) || undefined);
+  pi.on("tool_call", async (event: unknown, _ctx: ExtensionContext) => inspectToolCall(event) || undefined);
 
-  const show = (text: string) => async (_args: string, ctx: any) => { ctx.ui?.notify?.(text, "info"); };
-  const showFn = (fn: (s: string) => string) => async (args: string, ctx: any) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
+  const show = (text: string) => async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
+  const showFn = (fn: (s: string) => string) => async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
 
   pi.registerCommand("route-control", { description: "Route a control task: driver + skills + capture + recipe", handler: showFn((a) => renderRoute(routeControlTask(a))) });
-  pi.registerCommand("skills-control", { description: "List bundled skill atoms", handler: async (_a, ctx) => { ctx.ui?.notify?.(listSkills(rootDir()).map((s) => `- ${s.name}: ${s.description}`).join("\n") || "No skills found.", "info"); } });
+  pi.registerCommand("skills-control", { description: "List bundled skill atoms", handler: async (_a, ctx: ExtensionContext) => { ctx.ui?.notify?.(listSkills(rootDir()).map((s) => `- ${s.name}: ${s.description}`).join("\n") || "No skills found.", "info"); } });
   pi.registerCommand("demo-control", { description: "Show tuistory capture recipe", handler: show(recipeFor("tuistory-launch")) });
   pi.registerCommand("verify-control", { description: "Show verification/evidence schema", handler: show(EVIDENCE_SCHEMA) });
   pi.registerCommand("qa-control", { description: "Show QA report template", handler: show(recipeFor("qa-report")) });
-  pi.registerCommand("doctor-control", { description: "Run package validator", handler: showFn(() => runValidator()) });
-  pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: async (_a, ctx) => { ctx.ui?.notify?.(buildUsageReport({}).text, "info"); } });
+  pi.registerCommand("doctor-control", { description: "Run package validator", handler: showFn(() => runValidator(rootDir())) });
+  pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: async (_a, ctx: ExtensionContext) => { ctx.ui?.notify?.(buildUsageReport({}).text, "info"); } });
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
   pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: show(browserControlGuidance()) });
