@@ -316,17 +316,23 @@ export default function piControlExtension(pi: ExtensionAPI) {
     label: "Browser Command",
     description: "Execute an agent-browser CLI command (open, snapshot, click, fill, screenshot, close).",
     parameters: Type.Object({
-      command: Type.String({ description: "The agent-browser subcommand and arguments (e.g., 'open https://google.com')" }),
+      action: Type.String({ description: "The agent-browser subcommand (e.g., 'open', 'click', 'fill')" }),
+      target: Type.Optional(Type.String({ description: "The primary target (e.g., URL for open, selector for click/fill)" })),
+      args: Type.Optional(Type.Array(Type.String(), { description: "Any additional arguments" })),
       session: Type.Optional(Type.String({ description: "Optional session name" })),
     }),
-    async execute(_id: string, p: { command: string; session?: string }) {
-      const args = p.command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)?.map((a) => a.replace(/^["']|["']$/g, "")) ?? [];
-      if (p.session) args.unshift("--session", p.session);
+    async execute(_id: string, p: { action: string; target?: string; args?: string[]; session?: string }) {
+      const execArgs = [p.action];
+      if (p.target !== undefined) execArgs.push(p.target);
+      if (p.args !== undefined) execArgs.push(...p.args);
+
+      if (p.session) execArgs.unshift("--session", p.session);
+
       try {
-        const out = execFileSync("agent-browser", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000 });
-        return { content: [{ type: "text", text: out.trim() }], details: { command: p.command, success: true } };
+        const out = execFileSync("agent-browser", execArgs, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000 });
+        return { content: [{ type: "text", text: out.trim() }], details: { action: p.action, target: p.target, args: p.args, success: true } };
       } catch (e: any) {
-        return { content: [{ type: "text", text: `Error: ${e.stderr || e.message}` }], details: { command: p.command, success: false, error: e.message } };
+        return { content: [{ type: "text", text: `Error: ${e.stderr || e.message}` }], details: { action: p.action, target: p.target, args: p.args, success: false, error: e.message } };
       }
     },
   });
