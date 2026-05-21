@@ -28,7 +28,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
 
     - name: Install dependencies
       run: npm ci
@@ -37,7 +36,7 @@ jobs:
       run: pip install ruff && npm run lint:python
 
     - name: Run TypeScript type check
-      run: npx tsc --noEmit
+      run: npx -p typescript tsc --noEmit
 
     - name: Run Unit Tests
       run: npm run test

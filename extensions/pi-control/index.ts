@@ -47,26 +47,44 @@ Composability rules:
 - Use true-input when terminal emulator key behavior matters.
 - Use showcase and compose only after the verification report is already supported by evidence.`;
 
+// ⚡ Bolt Optimization: Memoize rootDir to avoid redundant, synchronous filesystem checks in hot paths.
+let cachedRootDir: string | null = null;
+
 function rootDir() {
+  if (cachedRootDir) return cachedRootDir;
   const candidates = [
     PACKAGE_ROOT,
     ...(existsSync(join(PACKAGE_ROOT, "package.json")) ? [] : [process.cwd()]),
   ];
   for (const d of candidates) {
-    if (existsSync(join(d, "package.json"))) return d;
+    if (existsSync(join(d, "package.json"))) {
+      cachedRootDir = d;
+      return d;
+    }
   }
+  cachedRootDir = PACKAGE_ROOT;
   return PACKAGE_ROOT;
 }
 
+// ⚡ Bolt Optimization: Memoize the loaded skill inventory per base directory.
+// This prevents 17+ blocking readFileSync calls every time the skill index is checked.
+const cachedSkills = new Map<string, { name: string; description: string }[]>();
+
 function listSkills(base: string) {
+  if (cachedSkills.has(base)) return cachedSkills.get(base)!;
   const dir = join(base, "skills");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true })
+  if (!existsSync(dir)) {
+    cachedSkills.set(base, []);
+    return [];
+  }
+  const skills = readdirSync(dir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(dir, d.name, "SKILL.md")))
     .map((d) => {
       const text = readFileSync(join(dir, d.name, "SKILL.md"), "utf8");
       return { name: d.name, description: (text.match(/^description:\s*(.+)$/m)?.[1] ?? "").replace(/^['"]|['"]$/g, "") };
     });
+  cachedSkills.set(base, skills);
+  return skills;
 }
 
 function runValidator() {
