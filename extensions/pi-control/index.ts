@@ -76,7 +76,7 @@ function runValidator(root: string) {
     ? [["py", ["-3", script]], ["python", [script]], ["python3", [script]]]
     : [["python3", [script]], ["python", [script]]];
   for (const [cmd, args] of cmds) {
-    try { return execFileSync(cmd, args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim(); }
+    try { return execFileSync(cmd, args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }).trim(); }
     catch { }
   }
   return "Unable to run Python validator.";
@@ -320,7 +320,21 @@ export default function piControlExtension(pi: ExtensionAPI) {
       session: Type.Optional(Type.String({ description: "Optional session name" })),
     }),
     async execute(_id: string, p: { command: string; session?: string }) {
+      const ALLOWED_COMMANDS = new Set(["open", "snapshot", "screenshot", "click", "fill", "close", "navigate", "wait", "extract"]);
       const args = p.command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)?.map((a) => a.replace(/^["']|["']$/g, "")) ?? [];
+
+      const subcommand = args[0];
+      if (!subcommand || !ALLOWED_COMMANDS.has(subcommand)) {
+        const allowed = [...ALLOWED_COMMANDS].sort().join(", ");
+        const detail = subcommand
+          ? `Disallowed subcommand: "${subcommand}"`
+          : "No subcommand provided";
+        return {
+          content: [{ type: "text", text: `${detail}. Allowed commands: ${allowed}` }],
+          details: { command: p.command, success: false, error: `Disallowed subcommand: ${subcommand || "(none)"}` },
+        };
+      }
+
       if (p.session) args.unshift("--session", p.session);
       try {
         const out = execFileSync("agent-browser", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000 });
