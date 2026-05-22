@@ -34,7 +34,7 @@ describe("Routing Logic", () => {
 
     // "random" should not match "dom manipulation"
     const resultRandom = routeControlTask("pick a random number");
-    expect(resultRandom.driver).not.not.toBe("agent-browser");
+    expect(resultRandom.driver).not.toBe("agent-browser");
   });
 
   it("adds color warnings for tuistory driver if missing force_color", () => {
@@ -151,5 +151,29 @@ describe("Routing Logic", () => {
     const decision = routeControlTask("run tctl with force_color colorterm");
     const rendered = renderRoute(decision);
     expect(rendered).toContain("Warnings:\n- tctl launches require --repo-root");
+  });
+
+  it("routes meta-skill and chain workflows to mixed driver", () => {
+    const result = routeControlTask("set up a meta-skill pipeline");
+    expect(result.driver).toBe("mixed");
+    expect(result.skills).toContain("meta-control");
+    expect(result.skills).toContain("background-pty");
+  });
+
+  it("routes computer use requests with warning", () => {
+    const result = routeControlTask("automate this desktop app via os control");
+    expect(result.driver).toBe("agent-browser");
+    expect(result.warnings.some(w => w.includes("experimental"))).toBe(true);
+  });
+
+  it("routes background pty tasks", () => {
+    const result = routeControlTask("start a long running background-pty session");
+    expect(result.skills).toContain("background-pty");
+  });
+
+  it("routes chain orchestrat tasks to mixed driver", () => {
+    const result = routeControlTask("workflow orchestrat for the pipeline");
+    expect(result.driver).toBe("mixed");
+    expect(result.skills).toContain("meta-control");
   });
 });

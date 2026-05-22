@@ -10,8 +10,8 @@
     "strictNullChecks": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "noEmit": true

@@ -1,10 +1,18 @@
 import { SKILL_NAMES, type RouteDecision, type ControlSkillName } from "./schema.ts";
 
+// ⚡ Bolt Optimization: Cache word-boundary regular expressions so they are only compiled once per session.
+const regexCache = new Map<string, RegExp>();
+
 function has(text: string, terms: string[]) {
   const t = text.toLowerCase();
   return terms.some((term) => {
     if (term.includes(" ")) return t.includes(term);
-    return new RegExp(`\\b${term}\\b`).test(t);
+    let re = regexCache.get(term);
+    if (!re) {
+      re = new RegExp(`\\b${term}\\b`);
+      regexCache.set(term, re);
+    }
+    return re.test(t);
   });
 }
 
@@ -75,6 +83,22 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     driver = "mixed";
   }
 
+  if (has(input, ["meta skill", "meta-skill", "chain", "pipeline", "workflow orchestrat"])) {
+    skills.push("meta-control", "background-pty");
+    driver = "mixed";
+  }
+
+  if (has(input, ["computer use", "os control", "os-control", "desktop automation", "x11", "wayland", "native input", "keyboard injection", "mouse injection"])) {
+    driver = "agent-browser";
+    skills.push("agent-browser", "background-pty");
+    capture = "mp4";
+    warnings.push("OS-level computer use is experimental. Prefer agent-browser for web UI automation.");
+  }
+
+  if (has(input, ["background pty", "background-pty", "detached session", "long running", "async workflow"])) {
+    skills.push("background-pty");
+    if (driver === "tuistory") capture = "cast";
+  }
 
   if (driver === "tuistory" && !has(input, ["force_color", "colorterm", "truecolor"])) {
     warnings.push("For tuistory captures, launch with FORCE_COLOR=3 and COLORTERM=truecolor so Ink/chalk output keeps color.");

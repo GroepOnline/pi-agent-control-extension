@@ -70,7 +70,6 @@ if missing:
 check("README exists", (ROOT / "README.md").exists())
 check("Demo GIF exists", (ROOT / "artifacts" / "demo" / "demo.gif").exists())
 
-
 BINARIES = {
     "python3": "sudo apt-get install -y python3",
     "ruff": "pip install ruff",
