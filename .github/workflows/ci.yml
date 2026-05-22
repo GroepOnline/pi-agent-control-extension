@@ -45,4 +45,3 @@ jobs:
 
     - name: Run Validation (E2E)
       run: npm run test:e2e
-      continue-on-error: true
