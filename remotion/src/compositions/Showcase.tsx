@@ -52,7 +52,7 @@ export const showcaseSchema = z.object({
   speed: z.number().optional(),
   title: z.string(),
   subtitle: z.string(),
-  preset: z.enum(['warm', 'warm-hero', 'hero', 'macos', 'presentation', 'minimal']),
+  preset: z.enum(['warm', 'pi-warm', 'warm-hero', 'pi-hero', 'hero', 'macos', 'presentation', 'minimal']),
   keys: z.array(keystrokeSchema),
   sections: z.array(sectionSchema).optional(),
   effects: z.array(effectSchema),
@@ -79,9 +79,11 @@ type Palette = {
   shadow: string;
 };
 
-const palettes: Record<ShowcaseProps['preset'], Palette> = {
+const palettes: Record<string, Palette> = {
   warm: { bg: '#181818', panel: '#111111', panel2: '#1f1712', text: '#f4e8dc', muted: '#c5ad98', accent: '#ee6018', border: '#3a2a22', shadow: 'rgba(238,96,24,0.28)' },
+  'pi-warm': { bg: '#181818', panel: '#111111', panel2: '#1f1712', text: '#f4e8dc', muted: '#c5ad98', accent: '#ee6018', border: '#3a2a22', shadow: 'rgba(238,96,24,0.28)' },
   'warm-hero': { bg: '#20130d', panel: '#111111', panel2: '#2c160a', text: '#fff3e8', muted: '#d3b89e', accent: '#ee6018', border: '#4a2a18', shadow: 'rgba(238,96,24,0.38)' },
+  'pi-hero': { bg: '#20130d', panel: '#111111', panel2: '#2c160a', text: '#fff3e8', muted: '#d3b89e', accent: '#ee6018', border: '#4a2a18', shadow: 'rgba(238,96,24,0.38)' },
   hero: { bg: '#11111b', panel: '#181825', panel2: '#1e1e2e', text: '#f5e0dc', muted: '#cdd6f4', accent: '#89b4fa', border: '#313244', shadow: 'rgba(137,180,250,0.25)' },
   macos: { bg: '#0b0b12', panel: '#11111b', panel2: '#181825', text: '#cdd6f4', muted: '#a6adc8', accent: '#89b4fa', border: '#313244', shadow: 'rgba(0,0,0,0.5)' },
   presentation: { bg: '#000000', panel: '#111111', panel2: '#1b1b1b', text: '#ffffff', muted: '#b8b8b8', accent: '#89b4fa', border: '#2c2c2c', shadow: 'rgba(0,0,0,0.6)' },
@@ -281,6 +283,9 @@ export const ShowcaseComposition: React.FC<ShowcaseProps> = (props) => {
   const isOutro = frame >= titleFrames + clipFrames;
   const minimal = props.preset === 'minimal';
   const margin = props.preset === 'minimal' ? 32 : props.preset === 'presentation' ? 96 : 72;
+  const normalizedPreset = props.preset === 'pi-warm' ? 'warm' : props.preset === 'pi-hero' ? 'warm-hero' : props.preset;
+  const minimal = normalizedPreset === 'minimal';
+  const margin = normalizedPreset === 'minimal' ? 32 : normalizedPreset === 'presentation' ? 96 : 72;
   const contentOpacity = isTitle ? interpolate(frame, [titleFrames - 12, titleFrames], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : isOutro ? interpolate(frame, [titleFrames + clipFrames, titleFrames + clipFrames + 12], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 1;
 
   return (

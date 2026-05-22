@@ -19,6 +19,7 @@ Actions:
   wait <pattern> [--timeout] Block until text or /regex/ appears
   wait-idle [--timeout]      Block until output stabilizes
   snapshot [--trim]          Print cleaned text from the session
+  attach                     Attach to a running background (tmux) session
   screenshot [-o <path>]     Capture compositor PNG (true-input only)
   provenance                 Print launch repo root, branch, and commit
   record start <path>        Start video recording (true-input only)
@@ -1015,6 +1016,16 @@ cmd_snapshot() {
   fi
 }
 
+cmd_attach() {
+  local session="$1"
+  load_meta "$session"
+  if [[ -z "${TMUX_SOCKET_NAME:-}" ]]; then
+    die "session '$session' is not a tmux-backed (--background or --tmux) session; attach is not available"
+  fi
+  require_cmd tmux
+  tmux -L "$TMUX_SOCKET_NAME" attach-session -t "$session"
+}
+
 cmd_screenshot() {
   local session="$1"
   shift
@@ -1133,6 +1144,7 @@ main() {
     wait) cmd_wait "$session" "$@" ;;
     wait-idle) cmd_wait_idle "$session" "$@" ;;
     snapshot) cmd_snapshot "$session" "$@" ;;
+    attach) cmd_attach "$session" ;;
     screenshot) cmd_screenshot "$session" "$@" ;;
     provenance) cmd_provenance "$session" ;;
     record) cmd_record "$session" "$@" ;;
