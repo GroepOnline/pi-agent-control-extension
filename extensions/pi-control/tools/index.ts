@@ -5,6 +5,7 @@ import { EVIDENCE_SCHEMA, SKILL_NAMES } from "../schema.ts";
 import { renderRoute, routeControlTask } from "../routing.ts";
 import { recipeFor, verifyCommitments } from "../recipes.ts";
 import { browserControlGuidance, BROWSER_CONTROL_STATUS } from "./browser.ts";
+import { osControlGuidance, OS_CONTROL_STATUS } from "./os.ts";
 import {
   rootDir,
   listSkills,
@@ -124,6 +125,16 @@ export function registerTools(pi: ExtensionAPI) {
     parameters: Type.Object({}),
     async execute() {
       return { content: [{ type: "text", text: browserControlGuidance() }], details: { status: BROWSER_CONTROL_STATUS } };
+    },
+  });
+
+  pi.registerTool({
+    name: "control_os_guidance",
+    label: "OS Control Guidance",
+    description: "Get guidance for OS-level computer use automation (experimental).",
+    parameters: Type.Object({}),
+    async execute() {
+      return { content: [{ type: "text", text: osControlGuidance() }], details: { status: OS_CONTROL_STATUS } };
     },
   });
 
