@@ -93,16 +93,7 @@ def compute_confidence(results, segment, direction):
     if baseline is None:
         return None
 
-    best_kept = None
-    for r in cur:
-        if r.get("status") == "keep":
-            val = r["metric"]
-            if best_kept is None:
-                best_kept = val
-            elif direction == "lower" and val < best_kept:
-                best_kept = val
-            elif direction == "higher" and val > best_kept:
-                best_kept = val
+    best_kept = find_best_kept(results, segment, direction)
 
     if best_kept is None or best_kept == baseline:
         return None

@@ -10,11 +10,12 @@ function getCommand(input: unknown): string {
 export function inspectToolCall(event: any) {
   const toolName = String(event?.toolName ?? event?.name ?? "").toLowerCase();
   const command = getCommand(event?.input ?? event?.params);
-  const lower = command.toLowerCase();
 
   if (!command) return null;
 
   if (["bash", "shell", "terminal", "exec"].some((t) => toolName.includes(t))) {
+    // ⚡ Bolt Optimization: Defer toLowerCase() until we verify this is a shell tool, saving string allocations for other tools.
+    const lower = command.toLowerCase();
     if (/rm\s+-rf\s+(\/|~|\.\.|\*|\.\/?(\s|$))/.test(lower)) {
       return { block: true, reason: "Blocked destructive rm -rf pattern. Narrow the target path and explain why deletion is required." };
     }
@@ -33,6 +34,15 @@ export function inspectToolCall(event: any) {
     }
     if (/169\.254\.169\.254/.test(lower)) {
       return { block: true, reason: "Blocked access to cloud metadata IP (169.254.169.254). Internal metadata retrieval is prohibited." };
+    }
+    if (/(docker\s+run|docker\s+exec)\s+.*--(privileged|pid=host|network=host|volume\s+\/)/.test(lower)) {
+      return { block: true, reason: "Blocked privileged docker escape pattern. Use --cap-add for specific capabilities instead." };
+    }
+    if (/curl\s+.*\|\s*(bash|sh)\s*$/.test(lower) && /(bit\.ly|tinyurl|pastebin|raw\.githubusercontent)/.test(lower)) {
+      return { block: true, reason: "Blocked curl-pipe-to-shell from URL shortener or raw content host. Download and verify the script first." };
+    }
+    if (/(export|set)\s+\w+=\$\(.*\)/.test(lower) && /(cat|curl|wget|nc|ncat)/.test(lower)) {
+      return { block: true, reason: "Blocked inline env-var exfiltration via command substitution. Set env vars from known values only." };
     }
   }
 
