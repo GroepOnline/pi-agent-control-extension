@@ -83,6 +83,22 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     driver = "mixed";
   }
 
+  if (has(input, ["meta skill", "meta-skill", "chain", "pipeline", "workflow orchestrat"])) {
+    skills.push("meta-control", "background-pty");
+    driver = "mixed";
+  }
+
+  if (has(input, ["computer use", "os control", "os-control", "desktop automation", "x11", "wayland", "native input", "keyboard injection", "mouse injection"])) {
+    driver = "agent-browser";
+    skills.push("agent-browser", "background-pty");
+    capture = "mp4";
+    warnings.push("OS-level computer use is experimental. Prefer agent-browser for web UI automation.");
+  }
+
+  if (has(input, ["background pty", "background-pty", "detached session", "long running", "async workflow"])) {
+    skills.push("background-pty");
+    if (driver === "tuistory") capture = "cast";
+  }
 
   if (driver === "tuistory" && !has(input, ["force_color", "colorterm", "truecolor"])) {
     warnings.push("For tuistory captures, launch with FORCE_COLOR=3 and COLORTERM=truecolor so Ink/chalk output keeps color.");

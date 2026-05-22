@@ -12,7 +12,6 @@
     "resolveJsonModule": true,
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "noEmit": true
