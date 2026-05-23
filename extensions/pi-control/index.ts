@@ -41,7 +41,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("demo-control", { description: "Show tuistory capture recipe", handler: show(recipeFor("tuistory-launch")) });
   pi.registerCommand("verify-control", { description: "Show verification/evidence schema", handler: show(EVIDENCE_SCHEMA) });
   pi.registerCommand("qa-control", { description: "Show QA report template", handler: show(recipeFor("qa-report")) });
-  pi.registerCommand("doctor-control", { description: "Run package validator", handler: showFn(() => runValidator(rootDir())) });
+  pi.registerCommand("doctor-control", { description: "Run package validator", handler: showFn(() => runValidator()) });
   pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: async (_a, ctx: ExtensionContext) => { ctx.ui?.notify?.(buildUsageReport({}).text, "info"); } });
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });

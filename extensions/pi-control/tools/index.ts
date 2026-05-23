@@ -67,7 +67,7 @@ export function registerTools(pi: ExtensionAPI) {
     description: "Run the package validator.",
     parameters: Type.Object({}),
     async execute() {
-      return { content: [{ type: "text", text: runValidator(rootDir()) }], details: {} };
+      return { content: [{ type: "text", text: runValidator() }], details: {} };
     },
   });
 
@@ -149,12 +149,10 @@ export function registerTools(pi: ExtensionAPI) {
       session: Type.Optional(Type.String({ description: "Optional session name" })),
     }),
     async execute(_id: string, p: { action: string; target?: string; args?: string[]; session?: string }) {
-      const execArgs = [p.action];
+      const execArgs: string[] = [p.action];
       if (p.target !== undefined) execArgs.push(p.target);
       if (p.args !== undefined) execArgs.push(...p.args);
-
       if (p.session) execArgs.unshift("--session", p.session);
-
       try {
         const out = execFileSync("agent-browser", execArgs, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000 });
         return { content: [{ type: "text", text: out.trim() }], details: { action: p.action, target: p.target, args: p.args, success: true } };
