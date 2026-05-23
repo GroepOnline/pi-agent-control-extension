@@ -23,7 +23,7 @@ export type ParallelReport = {
   evidence?: string[];
 };
 
-// Bolt Optimization: Memoize rootDir to avoid redundant, synchronous filesystem checks in hot paths.
+// ⚡ Bolt Optimization: Memoize rootDir to avoid redundant, synchronous filesystem checks in hot paths.
 let cachedRootDir: string | null = null;
 
 export function rootDir() {
@@ -42,7 +42,7 @@ export function rootDir() {
   return PACKAGE_ROOT;
 }
 
-// Bolt Optimization: Memoize the loaded skill inventory per base directory.
+// ⚡ Bolt Optimization: Memoize the loaded skill inventory per base directory.
 // This prevents 17+ blocking readFileSync calls every time the skill index is checked.
 const cachedSkills = new Map<string, { name: string; description: string }[]>();
 
@@ -63,14 +63,15 @@ export function listSkills(base: string) {
   return skills;
 }
 
-export function runValidator(root: string) {
-  const script = join(root, "scripts", "validate-package.py");
+// SECURITY: Uses PACKAGE_ROOT directly (no parameter injection possible)
+export function runValidator() {
+  const script = join(PACKAGE_ROOT, "scripts", "validate-package.py");
   if (!existsSync(script)) return "scripts/validate-package.py not found.";
   const cmds: [string, string[]][] = process.platform === "win32"
     ? [["py", ["-3", script]], ["python", [script]], ["python3", [script]]]
     : [["python3", [script]], ["python", [script]]];
   for (const [cmd, args] of cmds) {
-    try { return execFileSync(cmd, args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim(); }
+    try { return execFileSync(cmd, args, { cwd: PACKAGE_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }).trim(); }
     catch { }
   }
   return "Unable to run Python validator.";
