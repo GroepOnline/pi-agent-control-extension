@@ -48,83 +48,24 @@ normalize_props() {
   local output_file="$2"
   local fidelity_override="$3"
   local props_source="$4"
-  PROPS_JSON="$props_json" python3 - "$output_file" "$fidelity_override" "$props_source" <<'PY'
-import json
-import os
-import sys
-
-output_file = sys.argv[1]
-fidelity_override = sys.argv[2]
-props_source = sys.argv[3]
-raw_props = os.environ["PROPS_JSON"]
-
-if not raw_props.strip():
-    raise SystemExit(f"error: props JSON is empty: {props_source}")
-
-try:
-    props = json.loads(raw_props)
-except json.JSONDecodeError as error:
-    raise SystemExit(f"error: props JSON is invalid: {props_source}: {error.msg} at line {error.lineno} column {error.colno}")
-
-if fidelity_override != "auto":
-    props["fidelity"] = fidelity_override
-
-fidelity = props.get("fidelity")
-if fidelity is None:
-    fidelity = "standard"
-    props["fidelity"] = fidelity
-
-if props.get("width") is None:
-    props["width"] = 2560 if fidelity == "inspect" else 1920
-if props.get("height") is None:
-    props["height"] = 1440 if fidelity == "inspect" else 1080
-
-with open(output_file, "w", encoding="utf-8") as f:
-    json.dump(props, f)
-
-print(fidelity)
-PY
+  PROPS_JSON="$props_json" python3 "${SCRIPT_DIR}/render-showcase-helper.py" normalize_props "$output_file" "$fidelity_override" "$props_source"
 }
 
 props_number() {
   local props_json="$1"
   local key="$2"
-  PROPS_JSON="$props_json" python3 - "$key" <<'PY'
-import json
-import os
-import sys
-
-key = sys.argv[1]
-value = json.loads(os.environ["PROPS_JSON"]).get(key)
-print("" if value is None else value)
-PY
+  PROPS_JSON="$props_json" python3 "${SCRIPT_DIR}/render-showcase-helper.py" props_number "$key"
 }
 
 rewrite_props_clips() {
   local props_json="$1"
   shift
-  PROPS_JSON="$props_json" python3 - "$@" <<'PY'
-import json
-import os
-import sys
-
-props = json.loads(os.environ["PROPS_JSON"])
-props["clips"] = list(sys.argv[1:])
-print(json.dumps(props))
-PY
+  PROPS_JSON="$props_json" python3 "${SCRIPT_DIR}/render-showcase-helper.py" rewrite_props_clips "$@"
 }
 
 cast_dimensions() {
   local cast_path="$1"
-  python3 - "$cast_path" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1], "r", encoding="utf-8") as f:
-    header = json.loads(f.readline())
-
-print(header.get("width", 120), header.get("height", 36))
-PY
+  python3 "${SCRIPT_DIR}/render-showcase-helper.py" cast_dimensions "$cast_path"
 }
 
 convert_cast_clip() {
@@ -184,17 +125,22 @@ convert_cast_clip() {
     "$output_clip" >/dev/null 2>&1
 }
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --props)        PROPS_FILE="$2";   shift 2 ;;
-    --props-inline) PROPS_INLINE="$2"; shift 2 ;;
-    --fidelity)     FIDELITY_OVERRIDE="$2"; shift 2 ;;
-    --output|-o)    OUTPUT="$2";       shift 2 ;;
-    -h|--help)      sed -n '2,10p' "$0" | sed 's/^# \?//'; exit 0 ;;
-    -*)             echo "error: unknown option '$1'" >&2; exit 1 ;;
-    *)              CLIPS+=("$1");     shift ;;
-  esac
-done
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --props)        PROPS_FILE="$2";   shift 2 ;;
+      --props-inline) PROPS_INLINE="$2"; shift 2 ;;
+      --fidelity)     FIDELITY_OVERRIDE="$2"; shift 2 ;;
+      --output|-o)    OUTPUT="$2";       shift 2 ;;
+      -h|--help)      sed -n '2,10p' "$0" | sed 's/^# \?//'; return 0 ;;
+      -*)             echo "error: unknown option '$1'" >&2; return 1 ;;
+      *)              CLIPS+=("$1");     shift ;;
+    esac
+  done
+}
+
+parse_args "$@" || exit 1
+
 
 [[ -n "$OUTPUT" ]] || { echo "error: --output required" >&2; exit 1; }
 [[ -n "$PROPS_FILE" || -n "$PROPS_INLINE" ]] || { echo "error: --props or --props-inline required" >&2; exit 1; }
@@ -255,16 +201,11 @@ done
 PROPS="$(rewrite_props_clips "$PROPS" "${STAGED_BASES[@]}")"
 
 # Auto-detect clipDuration if not set in props (uses first clip)
-HAS_DURATION=$(echo "$PROPS" | python3 -c "import sys,json; d=json.load(sys.stdin); print('yes' if d.get('clipDuration') else 'no')" 2>/dev/null || echo "no")
+HAS_DURATION=$(echo "$PROPS" | python3 "${SCRIPT_DIR}/render-showcase-helper.py" get_clip_duration 2>/dev/null || echo "no")
 if [[ "$HAS_DURATION" == "no" && ${#STAGED_SOURCES[@]} -gt 0 ]]; then
   DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "${STAGED_SOURCES[0]}" 2>/dev/null | head -1)
   if [[ -n "$DUR" ]]; then
-    PROPS=$(echo "$PROPS" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-d['clipDuration'] = round(float('${DUR}'), 2)
-json.dump(d, sys.stdout)
-")
+    PROPS=$(echo "$PROPS" | python3 "${SCRIPT_DIR}/render-showcase-helper.py" set_clip_duration "${DUR}")
     echo "auto-detected clipDuration: ${DUR}s" >&2
   fi
 fi

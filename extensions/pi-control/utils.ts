@@ -53,12 +53,16 @@ export function listSkills(base: string) {
     cachedSkills.set(base, []);
     return [];
   }
-  const skills = readdirSync(dir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && existsSync(join(dir, d.name, "SKILL.md")))
-    .map((d) => {
+  const skills = [];
+  for (const d of readdirSync(dir, { withFileTypes: true })) {
+    if (!d.isDirectory()) continue;
+    try {
       const text = readFileSync(join(dir, d.name, "SKILL.md"), "utf8");
-      return { name: d.name, description: (text.match(/^description:\s*(.+)$/m)?.[1] ?? "").replace(/^['"]|['"]$/g, "") };
-    });
+      skills.push({ name: d.name, description: (text.match(/^description:\s*(.+)$/m)?.[1] ?? "").replace(/^['"]|['"]$/g, "") });
+    } catch {
+      // Ignore directories without SKILL.md
+    }
+  }
   cachedSkills.set(base, skills);
   return skills;
 }
@@ -86,12 +90,14 @@ function money(amount: number, currency: string) {
 }
 
 export function buildUsageReport(input: UsageInput = {}) {
-  const promptTokens = finiteNumber(input.promptTokens);
-  const completionTokens = finiteNumber(input.completionTokens);
-  const cachedInputTokens = finiteNumber(input.cachedInputTokens);
+  const {
+    promptTokens = 0,
+    completionTokens = 0,
+    cachedInputTokens = 0,
+    inputCostPerMillion = 0,
+    outputCostPerMillion = 0,
+  } = Object.fromEntries(Object.entries(input).map(([k, v]) => [k, finiteNumber(v)]));
   const billableInputTokens = Math.max(promptTokens - cachedInputTokens, 0);
-  const inputCostPerMillion = finiteNumber(input.inputCostPerMillion);
-  const outputCostPerMillion = finiteNumber(input.outputCostPerMillion);
   const currency = input.currency || DEFAULT_CURRENCY;
   const estimatedInputCost = (billableInputTokens / 1_000_000) * inputCostPerMillion;
   const estimatedOutputCost = (completionTokens / 1_000_000) * outputCostPerMillion;

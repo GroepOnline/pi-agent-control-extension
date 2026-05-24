@@ -884,7 +884,7 @@ cmd_launch() {
     socket_name="tctl-$(session_slug "$session")"
     TMUX_SOCKET_NAME="$socket_name"
     tmux -L "$socket_name" new-session -d -s "$session" "$runner" 2>&1 || die "tmux new-session failed"
-    echo "tctl: launched background session '$session' (tmux socket: $socket)"
+    echo "tctl: launched background session '$session' (tmux socket: $socket_name)"
     return 0
   fi
 
