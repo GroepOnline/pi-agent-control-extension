@@ -59,7 +59,7 @@ export const showcaseSchema = z.object({
   height: z.number().optional(),
   objectFit: z.enum(['contain', 'cover', 'fill']).optional(),
   codeAnnotations: z.array(codeAnnotationSchema).optional(),
-  transitionStyle: z.enum(['motion-blur', 'flash', 'whip-pan', 'light-leak', 'glitch-lite', 'scan-line', 'vignette', 'grain', 'chromatic', 'ripple', 'pixelate', 'blur-zoom']).optional(),
+  transitionStyle: z.enum(['motion-blur', 'flash', 'whip-pan', 'light-leak', 'glitch-lite', 'scan-line', 'vignette', 'grain', 'chromatic', 'ripple', 'pixelate', 'blur-zoom', 'split', 'radial-wipe', 'slide', 'mosaic']).optional(),
   showProgress: z.boolean().optional(),
 });
 

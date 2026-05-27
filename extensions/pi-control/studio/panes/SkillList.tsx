@@ -9,7 +9,7 @@ export const SkillList: React.FC<{
   totalCount: number;
   scrollOffset: number;
   filterQuery?: string;
-}> = ({ skills, selectedIndex, focus, totalCount, scrollOffset, filterQuery }) => {
+}> = React.memo(({ skills, selectedIndex, focus, totalCount, scrollOffset, filterQuery }) => {
   const isFocused = focus === 'list';
   const hasMoreAbove = scrollOffset > 0;
   const hasMoreBelow = scrollOffset + skills.length < totalCount;
@@ -109,4 +109,5 @@ export const SkillList: React.FC<{
       )}
     </Box>
   );
-};
+});
+SkillList.displayName = 'SkillList';

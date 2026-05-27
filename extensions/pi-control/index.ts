@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { EVIDENCE_SCHEMA } from "./schema.ts";
@@ -181,6 +181,62 @@ function skillDiff(args: string) {
   }
 }
 
+export function skillSearch(args: string) {
+  const query = args.trim().toLowerCase();
+  if (!query) return "Usage: /skill-search <query>";
+  const skills = listSkills(rootDir());
+  const matches = skills.filter((s) => s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
+  if (!matches.length) return `No skills matching "${query}".`;
+  return [
+    `## Skill Search: "${query}"`,
+    "",
+    ...matches.map((s) => `- **${s.name}**: ${s.description || "(no description)"}`),
+  ].join("\n");
+}
+
+export function skillInfo(args: string) {
+  const name = args.trim();
+  if (!name) return "Usage: /skill-info <skill-name>";
+  const repoRoot = rootDir();
+  const paths = [
+    join(repoRoot, "skills", name, "SKILL.md"),
+    join(homedir(), ".agents", "skills", name, "SKILL.md"),
+    join(homedir(), ".devin", "skills", name, "SKILL.md"),
+    join(homedir(), ".claude", "skills", name, "SKILL.md"),
+  ];
+  const found = paths.find((p) => existsSync(p));
+  if (!found) return `Skill "${name}" not found.`;
+  try {
+    const content = readFileSync(found, "utf8");
+    const lines = content.split("\n").slice(0, 30);
+    return [`## Skill Info: ${name}`, "", `**Path**: ${found}`, "", "\`\`\`yaml", ...lines, "\`\`\`"].join("\n");
+  } catch (e: any) {
+    return `Could not read skill: ${e.message}`;
+  }
+}
+
+export function presetList() {
+  const presets = ["warm", "pi-warm", "warm-hero", "pi-hero", "hero", "macos", "presentation", "minimal", "dark-pro", "neon", "paper", "ocean"];
+  return [
+    `## Remotion Presets`,
+    "",
+    ...presets.map((p) => `- **${p}**`),
+    "",
+    `Use \`preset: '<name>'\` in your showcase config.`,
+  ].join("\n");
+}
+
+export function transitionList() {
+  const transitions = ["motion-blur", "flash", "whip-pan", "light-leak", "glitch-lite", "scan-line", "vignette", "grain", "chromatic", "ripple", "pixelate", "blur-zoom", "split", "radial-wipe", "slide", "mosaic"];
+  return [
+    `## Remotion Transitions`,
+    "",
+    ...transitions.map((t) => `- **${t}**`),
+    "",
+    `Use \`transitionStyle: '<name>'\` in your showcase config.`,
+  ].join("\n");
+}
+
 export default function piControlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
@@ -209,6 +265,10 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("evidence-new", { description: "Generate a new evidence run directory", handler: show(evidenceNew()) });
   pi.registerCommand("tctl-status", { description: "Show active tctl sessions", handler: show(tctlStatus()) });
   pi.registerCommand("skill-diff", { description: "Diff user vs PI version of a skill", handler: showFn((a) => skillDiff(a)) });
+  pi.registerCommand("skill-search", { description: "Search skills by name or description", handler: showFn((a) => skillSearch(a)) });
+  pi.registerCommand("skill-info", { description: "Show detailed info about a skill", handler: showFn((a) => skillInfo(a)) });
+  pi.registerCommand("preset-list", { description: "List all Remotion color presets", handler: show(presetList()) });
+  pi.registerCommand("transition-list", { description: "List all Remotion transition styles", handler: show(transitionList()) });
 
   registerTools(pi);
 }
