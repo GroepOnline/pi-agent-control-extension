@@ -66,4 +66,30 @@
 - render.test.ts: 6 tests for recipe-to-props mapping
 - EvidencePane.test.tsx: 3 tests for empty state, details, warnings
 
+# v5.1.3 - Skill Merge System & Remote Agent Bridge
+
+## Skill Override / Merge System (Optie C)
+- 3-way merge engine in `skill-merge.ts` with LCS-based diff
+- `/skill-merge <name>` — auto-merge user skill with PI version
+- Conflict detection with line-level context markers (`<<<<<<< PI`, `=======`, `>>>>>>> USER`)
+- `/merge-list` — view all recorded merge states
+- Resolution helpers: `--pi`, `--user`, `--manual`
+- Persistent merge state in `~/.config/devin/skill-studio.json`
+- Auto-detect: warns when PI skill is updated after last merge
+- TUI integration: key `m` triggers merge on selected skill
+
+## Remote Agent Protocol (Optie F)
+- WebSocket bridge in `bridge.ts` for remote agent communication
+- `/bridge-start [--port 8765]` — start MCP-style WebSocket server
+- `/bridge-status` — show connected clients, uptime, events
+- Token-based auth stored in `~/.config/devin/bridge-token`
+- Protocol message types: `ping`, `skill.list`, `capture.start`, `render.start`, `bridge.status`, `bridge.broadcast`
+- Broadcast events to all connected clients
+- Heartbeat ping every 30s with automatic client cleanup
+
+## Tests
+- 182 tests passing across 25 test files
+- skill-merge.test.ts: merge state, conflict detection, resolve paths
+- bridge.test.ts: bridge state, status markdown formatting
+
 Prepared by Code Legend 🔥

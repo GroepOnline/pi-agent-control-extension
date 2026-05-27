@@ -10,6 +10,8 @@ import { inspectToolCall } from "./guards.ts";
 import { browserControlGuidance } from "./tools/browser.ts";
 import { rootDir, listSkills, runValidator, buildUsageReport } from "./utils.ts";
 import { registerCapture } from "./capture.ts";
+import { registerBridge } from "./bridge.ts";
+import { mergeSkill, listMergeStates } from "./skill-merge.ts";
 import { registerTools } from "./tools/index.ts";
 
 const CONTROL_HUB = `# Control Hub
@@ -349,6 +351,35 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("showcase-preview", { description: "Preview showcase render props for a recipe", handler: showFn((a) => showcasePreview(a)) });
   pi.registerCommand("showcase-render", { description: "Render a Remotion showcase video from a recipe", handler: async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(await showcaseRender(args), "info"); } });
 
+  pi.registerCommand("skill-merge", { description: "3-way merge a user skill with its PI version", handler: showFn((a) => {
+    const name = a.trim();
+    if (!name) return "Usage: /skill-merge <skill-name>";
+    const result = mergeSkill(name);
+    if (result.hasConflicts) {
+      return [
+        `## Skill Merge: ${name}`,
+        "",
+        `❌ ${result.conflicts.length} conflict(s) found`,
+        "",
+        ...result.conflicts.map((c) => `- **Line ${c.line}**: ${c.context}`),
+        "",
+        `Use \`/skill-merge-resolve ${name} --pi\` or \`--user\` or \`--manual\`.`
+      ].join("\n");
+    }
+    return `## Skill Merge: ${name}\n\n✅ Clean merge. ${result.state.autoResolved} lines auto-resolved.`;
+  }) });
+
+  pi.registerCommand("merge-list", { description: "List all skill merge states", handler: show((() => {
+    const states = listMergeStates();
+    if (!states.length) return "## Merge States\n\nNo merges recorded yet.";
+    return [
+      `## Merge States`,
+      "",
+      ...states.map((s) => `- **${s.name}**: ${s.conflictCount} conflicts, ${s.autoResolved} auto-resolved, ${s.manualRequired} manual — ${s.mergedAt}`),
+    ].join("\n");
+  })()) });
+
   registerCapture(pi);
+  registerBridge(pi);
   registerTools(pi);
 }
