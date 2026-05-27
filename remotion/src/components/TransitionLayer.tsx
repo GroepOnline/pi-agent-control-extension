@@ -108,6 +108,49 @@ export const TransitionLayer: React.FC<{
       const scale = interpolate(frame, [0, durFrames / 2, durFrames], [1, 1.15, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
       return <AbsoluteFill style={{ filter: `blur(${blur}px)`, transform: `scale(${scale})`, opacity: 1, pointerEvents: 'none' }} />;
     }
+    case 'split': {
+      const progress = interpolate(frame, [0, durFrames], [0, 100], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+      return (
+        <AbsoluteFill style={{ pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', left: 0, top: 0, width: `${progress}%`, height: '100%', background: '#111', opacity: 0.9 }} />
+          <div style={{ position: 'absolute', right: 0, top: 0, width: `${progress}%`, height: '100%', background: '#111', opacity: 0.9 }} />
+        </AbsoluteFill>
+      );
+    }
+    case 'radial-wipe': {
+      const progress = interpolate(frame, [0, durFrames], [0, 360], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+      return (
+        <AbsoluteFill style={{ pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', inset: 0, background: `conic-gradient(from 0deg, transparent ${progress}deg, #111 ${progress}deg)`, opacity: 0.95 }} />
+        </AbsoluteFill>
+      );
+    }
+    case 'slide': {
+      const translateX = interpolate(frame, [0, durFrames], [100, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+      const opacity = interpolate(frame, [0, durFrames / 2, durFrames], [0, 0.3, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+      return <AbsoluteFill style={{ transform: `translateX(${translateX}%)`, opacity, background: '#111', pointerEvents: 'none' }} />;
+    }
+    case 'mosaic': {
+      const opacity = interpolate(frame, [0, durFrames / 2, durFrames], [0, 0.4, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+      const tiles = Array.from({ length: 6 }, (_, row) =>
+        Array.from({ length: 8 }, (_, col) => {
+          const delay = (row + col) * 2;
+          const tileOpacity = interpolate(frame, [delay, delay + durFrames / 3], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+          return (
+            <div key={`${row}-${col}`} style={{
+              position: 'absolute',
+              left: `${(col / 8) * 100}%`,
+              top: `${(row / 6) * 100}%`,
+              width: `${100 / 8}%`,
+              height: `${100 / 6}%`,
+              background: '#111',
+              opacity: tileOpacity,
+            }} />
+          );
+        })
+      ).flat();
+      return <AbsoluteFill style={{ opacity, pointerEvents: 'none' }}>{tiles}</AbsoluteFill>;
+    }
     default:
       return null;
   }
