@@ -24,7 +24,7 @@ export interface BridgeClient {
 export interface BridgeState {
   running: boolean;
   port: number;
-  clients: BridgeClient[];
+  clientCount: number;
   events: BridgeMessage[];
   startTime: Date | null;
 }
@@ -71,7 +71,13 @@ function addEvent(msg: BridgeMessage) {
 }
 
 export function getBridgeState(): BridgeState {
-  return { ...bridgeState, clients: bridgeState.clients.map((c) => ({ ...c, socket: undefined as any })) };
+  return {
+    running: bridgeState.running,
+    port: bridgeState.port,
+    clientCount: bridgeState.clients.length,
+    events: bridgeState.events,
+    startTime: bridgeState.startTime,
+  };
 }
 
 export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionContext): Promise<{ port: number; token: string }> {
@@ -217,7 +223,7 @@ export function formatBridgeStatusMarkdown(): string {
     `|---|---|`,
     `| **Running** | ${s.running ? "✅" : "❌"} |`,
     `| **Port** | ${s.port || "N/A"} |`,
-    `| **Clients** | ${s.clients.length} |`,
+    `| **Clients** | ${s.clientCount} |`,
     `| **Uptime** | ${s.startTime ? `${Math.round((Date.now() - s.startTime.getTime()) / 1000)}s` : "N/A"} |`,
     `| **Events** | ${s.events.length} |`,
     ``,
@@ -225,6 +231,10 @@ export function formatBridgeStatusMarkdown(): string {
       ? `Token: \`${loadToken() ?? "N/A"}\``
       : "Bridge not running. Start with `/bridge-start`.",
   ].join("\n");
+}
+
+function show(text: string) {
+  return async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
 }
 
 export function registerBridge(pi: ExtensionAPI) {
@@ -248,9 +258,4 @@ export function registerBridge(pi: ExtensionAPI) {
     description: "Show remote agent bridge status",
     handler: show(formatBridgeStatusMarkdown()),
   });
-}
-
-// Helper
-function show(text: string) {
-  return async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
 }

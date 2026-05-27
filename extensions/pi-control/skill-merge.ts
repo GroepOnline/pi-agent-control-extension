@@ -49,22 +49,11 @@ function saveMergeState(merges: Map<string, MergeState>) {
   } catch { /* ignore */ }
 }
 
-function computeLcsMatrix(a: string[], b: string[]): number[][] {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (a[i - 1] === b[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1;
-      } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-      }
-    }
-  }
-  return dp;
-}
-
+/**
+ * Naive line-by-line 3-way merge. Assumes files are reasonably aligned.
+ * For well-structured SKILL.md files with frontmatter this works well.
+ * Falls back to conflict markers when both sides diverged from base.
+ */
 function threeWayMerge(baseLines: string[], piLines: string[], userLines: string[]): MergeResult {
   const conflicts: MergeConflict[] = [];
   const output: string[] = [];

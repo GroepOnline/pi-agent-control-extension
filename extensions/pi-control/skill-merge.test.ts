@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { listMergeStates, checkSkillUpdateConflict, resolveMerge } from "./skill-merge.ts";
+import { listMergeStates, checkSkillUpdateConflict, resolveMerge, mergeSkill } from "./skill-merge.ts";
 
 vi.mock("node:fs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs")>();
@@ -41,5 +41,13 @@ describe("resolveMerge", () => {
     const result = resolveMerge("nonexistent", "pi");
     expect(result.saved).toBe(false);
     expect(result.error).toContain("User skill not found");
+  });
+});
+
+describe("mergeSkill edge cases", () => {
+  it("returns not-found error for missing PI skill", () => {
+    const result = mergeSkill("totally-missing-skill");
+    expect(result.merged).toBe(false);
+    expect(result.output).toContain("not found");
   });
 });
