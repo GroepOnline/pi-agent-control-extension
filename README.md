@@ -34,6 +34,8 @@ Then start or reload a Pi session. The extension registers commands, tools, bund
 | `/skills-control` | Lists bundled skill atoms |
 | `/route-control <task>` | Routes a task to driver, skills, capture, deliverable, warnings, and recipe |
 | `/capture <target> [--format mp4|cast|png|report]` | Unified evidence capture: auto-selects driver and format |
+| `/showcase-preview <recipe>` | Preview showcase render props for a recipe |
+| `/showcase-render <recipe>` | Render a Remotion showcase video from a recipe |
 | `/demo-control` | Shows the canonical tuistory capture recipe |
 | `/verify-control` | Shows the required verification and evidence schema |
 | `/qa-control` | Shows the QA report template |
@@ -52,6 +54,24 @@ Capture evidence with a single command. The orchestrator inspects your target, p
 Supported formats: `mp4`, `cast`, `png`, `report`.
 
 The result is validated against the evidence schema and can be viewed in the Skill Studio TUI evidence pane.
+
+### Showcase Rendering
+
+Turn a capture run into a Remotion showcase video. Each recipe auto-selects preset, layout, and transitions.
+
+```bash
+/showcase-preview showcase-compose
+/showcase-render showcase-compose
+/showcase-render tuistory-launch artifacts/runs/run-2026-05-27/evidence/capture.cast
+```
+
+Recipes: `tuistory-launch`, `browser-loop`, `showcase-compose`, `qa-report`.
+
+Or from the shell:
+
+```bash
+npm run showcase:render -- showcase-compose
+```
 
 ## LLM tools
 
