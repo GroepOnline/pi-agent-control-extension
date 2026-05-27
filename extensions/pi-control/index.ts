@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { execFileSync } from "node:child_process";
+import { execFileSync, execFile } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -238,6 +238,82 @@ export function transitionList() {
   ].join("\n");
 }
 
+function execAsync(cmd: string, args: string[], timeout = 120000): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, { encoding: "utf8", timeout }, (err, stdout, stderr) => {
+      if (err) reject({ ...err, stdout, stderr });
+      else resolve({ stdout, stderr });
+    });
+  });
+}
+
+export function showcasePreview(args: string) {
+  const parts = args.trim().split(/\s+/);
+  const recipe = parts[0] || "showcase-compose";
+  const capturePath = parts[1];
+  const outPath = parts[2] || `artifacts/showcases/${recipe}.mp4`;
+
+  const recipes = ["tuistory-launch", "browser-loop", "showcase-compose", "qa-report"];
+  if (!recipes.includes(recipe)) {
+    return `Unknown recipe "${recipe}". Known: ${recipes.join(", ")}`;
+  }
+
+  return [
+    `## Showcase Preview: ${recipe}`,
+    "",
+    `| Field | Value |`,
+    `|---|---|`,
+    `| **Recipe** | ${recipe} |`,
+    `| **Capture binding** | ${capturePath || "(none)"} |`,
+    `| **Output path** | ${outPath} |`,
+    `| **Command** | \`npx tsx remotion/scripts/render-showcase.ts ${recipe}${capturePath ? ` ${capturePath}` : ""}${outPath ? ` ${outPath}` : ""}\` |`,
+    "",
+    `Preset, layout, and transition are auto-selected per recipe.`,
+    `Run \`/showcase-render ${recipe}\` to execute.`,
+  ].join("\n");
+}
+
+export async function showcaseRender(args: string): Promise<string> {
+  const parts = args.trim().split(/\s+/);
+  const recipe = parts[0] || "showcase-compose";
+  const capturePath = parts[1];
+  const outPath = parts[2];
+
+  const recipes = ["tuistory-launch", "browser-loop", "showcase-compose", "qa-report"];
+  if (!recipes.includes(recipe)) {
+    return `Unknown recipe "${recipe}". Known: ${recipes.join(", ")}`;
+  }
+
+  const extraArgs: string[] = [];
+  if (capturePath) extraArgs.push(capturePath);
+  if (outPath) extraArgs.push(outPath);
+
+  try {
+    const { stdout, stderr } = await execAsync("npx", ["tsx", "remotion/scripts/render-showcase.ts", recipe, ...extraArgs], 300000);
+    const lines = stdout.split("\n").filter(Boolean);
+    const lastLine = lines[lines.length - 1];
+    let result: { ok?: boolean; outputPath?: string; sizeInBytes?: number; durationInFrames?: number; error?: string } = {};
+    try { result = JSON.parse(lastLine); } catch { /* ignore */ }
+
+    if (result.ok) {
+      return [
+        `## Showcase Render: ${recipe}`,
+        "",
+        `✅ Render complete`,
+        ``,
+        `| Field | Value |`,
+        `|---|---|`,
+        `| **Output** | ${result.outputPath} |`,
+        `| **Size** | ${((result.sizeInBytes ?? 0) / 1024 / 1024).toFixed(2)} MB |`,
+        `| **Frames** | ${result.durationInFrames} |`,
+      ].join("\n");
+    }
+    return `## Showcase Render: ${recipe}\n\n❌ Render failed\n\n\`\`\`\n${stderr || stdout}\n\`\`\``;
+  } catch (e: any) {
+    return `## Showcase Render: ${recipe}\n\n❌ Render failed: ${e.stderr || e.stdout || e.message}`;
+  }
+}
+
 export default function piControlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
@@ -270,6 +346,8 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("skill-info", { description: "Show detailed info about a skill", handler: showFn((a) => skillInfo(a)) });
   pi.registerCommand("preset-list", { description: "List all Remotion color presets", handler: show(presetList()) });
   pi.registerCommand("transition-list", { description: "List all Remotion transition styles", handler: show(transitionList()) });
+  pi.registerCommand("showcase-preview", { description: "Preview showcase render props for a recipe", handler: showFn((a) => showcasePreview(a)) });
+  pi.registerCommand("showcase-render", { description: "Render a Remotion showcase video from a recipe", handler: async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(await showcaseRender(args), "info"); } });
 
   registerCapture(pi);
   registerTools(pi);

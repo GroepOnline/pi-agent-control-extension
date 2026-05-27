@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList } from "./index.ts";
+import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList, showcasePreview, showcaseRender } from "./index.ts";
 
 function buildExecArgs(p: { action: string; target?: string; args?: string[]; session?: string }) {
   const execArgs = [p.action];
@@ -82,6 +82,33 @@ describe("transitionList", () => {
     expect(result).toContain("flash");
     expect(result).toContain("mosaic");
     expect(result).toContain("chromatic");
+  });
+});
+
+describe("showcasePreview", () => {
+  it("returns preview markdown for a known recipe", () => {
+    const result = showcasePreview("browser-loop");
+    expect(result).toContain("Showcase Preview");
+    expect(result).toContain("browser-loop");
+    expect(result).toContain("Recipe");
+    expect(result).toContain("Output path");
+  });
+
+  it("returns error for unknown recipe", () => {
+    const result = showcasePreview("unknown-recipe");
+    expect(result).toContain("Unknown recipe");
+  });
+
+  it("includes capture path when provided", () => {
+    const result = showcasePreview("tuistory-launch /tmp/evidence/capture.cast");
+    expect(result).toContain("/tmp/evidence/capture.cast");
+  });
+});
+
+describe("showcaseRender", () => {
+  it("returns error for unknown recipe", async () => {
+    const result = await showcaseRender("unknown-recipe");
+    expect(result).toContain("Unknown recipe");
   });
 });
 
