@@ -1,0 +1,19 @@
+{
+  "date": "2026-05-27",
+  "session": "ses_1950e0fcbffe9NWh35hY9KVCY8",
+  "backups_created_during_cycle": [
+    "~/.pi/agent/models.json.bak-20260527-211224",
+    "~/.pi/agent/settings.json.bak-20260527-211224",
+    "~/.factory/settings.json.bak-20260527-211224",
+    "~/.config/opencode/opencode.jsonc.bak-20260527-211224",
+    "~/.pi/agent/models.json.bak-20260527-211537",
+    "~/.factory/settings.json.bak-20260527-211537",
+    "~/.config/opencode/opencode.jsonc.bak-20260527-211537"
+  ],
+  "additional_fixes_in_this_continuation": [
+    "gpt-chat-latest maxTokens added to ~/.pi/agent/models.json (no new .bak created in this step)",
+    "gpt-chat-latest limit.output added to ~/.config/opencode/opencode.jsonc (no new .bak created in this step)",
+    "OpenCode default model switched to eus02 (no dedicated backup taken for this single-line change)"
+  ],
+  "note": "All original .bak files from the 21:12 session round remain the primary rollback points. The two schema + routing fixes in this continuation are minimal and reversible."
+}
