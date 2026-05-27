@@ -110,6 +110,16 @@ describe("showcaseRender", () => {
     const result = await showcaseRender("unknown-recipe");
     expect(result).toContain("Unknown recipe");
   });
+
+  it("rejects path traversal in capturePath", async () => {
+    const result = await showcaseRender("showcase-compose ../../../etc/passwd");
+    expect(result).toContain("path traversal");
+  });
+
+  it("rejects path traversal in outPath", async () => {
+    const result = await showcaseRender("showcase-compose /tmp/capture.cast ../../../etc/passwd");
+    expect(result).toContain("path traversal");
+  });
 });
 
 describe("Browser Command Argument Construction", () => {
