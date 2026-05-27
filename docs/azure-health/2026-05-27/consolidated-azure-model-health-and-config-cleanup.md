@@ -167,3 +167,67 @@ All changes were made with backups. No production keys are stored in this report
 
 **Prepared as continuation of opencode session `ses_1950e0fcbffe9NWh35hY9KVCY8`.**  
 Ready for review and import into the OnlineChefGroep techstack repository.
+
+---
+
+## Additional Config Cleanup Pass — 2026-05-27 23:51 (this continuation)
+
+After the initial session work and the unblocking fixes (gpt-chat-latest schema + default model switch), a final systematic pass was executed on the live configs with fresh backups.
+
+### Fresh Backups Created
+- `~/.pi/agent/models.json.bak-20260527-235157`
+- `~/.pi/agent/settings.json.bak-20260527-235157`
+- `~/.config/opencode/opencode.jsonc.bak-20260527-235157`
+- `~/.factory/settings.json.bak-20260527-235157`
+
+### Changes Applied in This Pass
+
+**Pi `models.json`**:
+- Removed three Kimi variants from the we01 provider (Kimi-K2.6, kimi-k25-gs, kimi-k26-gs) — these had shown timeout/reliability issues in health testing.
+- gpt-chat-latest already had `maxTokens` (from earlier fix in session).
+
+**OpenCode `opencode.jsonc`**:
+- Removed `kimi-k26-gs` from the we01 provider block.
+- Defaults already set to stable eus02 models (gpt-54-mini-eus02 / nano-eus02).
+
+**Pi `settings.json`**:
+- Default changed to `azure-aisvfoundrywe01-8d85881d/gpt-54-nano-we01` (fast & stable on we01).
+- `enabledModels` pruned: removed we01 Kimi-K2.6 and FW-Kimi-K2.6; kept only validated fast/reliable routes (we01 GPT-54 series + DeepSeek Flash/Pro, strong eus02 models, chefchef codex).
+
+**Factory `settings.json`**:
+- Removed `FW-Kimi-K2.6` custom model entry (westus2) matching previously identified problematic route.
+
+All Kimi/Helios/Responses-misrouted models that were sources of the original session crashes and health failures have now been consistently removed or deprioritized across the three runtimes.
+
+### Git Update
+The entire `docs/azure-health/2026-05-27/` bundle (this report + proposal + notes + manifests) was committed in the pi-agent-control-extension repo:
+
+```
+commit a80afc1a
+docs(azure): add 2026-05-27 consolidated health & cleanup report + techstack proposal
+```
+
+The artifacts are now tracked in this repo and ready to be promoted/copied into the central OnlineChefGroep techstack repo under `azure/`.
+
+**Configs are now in a clean, healthy state** aligned with the health verification results and the original intent of the interrupted opencode session. 
+
+### Final "Only Good Models" Pass (this request)
+Additional aggressive prune performed to ensure **only the proven-good, live-tested Azure models** remain:
+
+**Pi models.json we01 provider — final list:**
+- DeepSeek-V4-Flash
+- DeepSeek-V4-Pro
+- gpt-54-mini-we01
+- gpt-54-nano-we01
+- gpt-54-we01
+
+**OpenCode we01 provider — final list:** same 5 models above (all Kimi variants fully removed).
+
+**Additional removals in this pass:**
+- `fw-kimi-k2-5` removed from eus01 provider in both Pi models.json and OpenCode opencode.jsonc (mixed reliability in testing).
+
+**Result:** Both Pi and OpenCode now have only the fastest and most reliable Azure models from our curl + az verification (primarily we01 GPT-54 series + DeepSeek for speed, plus strong eus02 models for capability).
+
+Fresh backups created before this final pass (20260527-2352xx range).
+
+Ready for review or further targeted tuning.
