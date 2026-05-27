@@ -10,7 +10,7 @@ export const StatusBar: React.FC<{
   selectedValid?: string;
   filterMode?: boolean;
   filterQuery?: string;
-}> = ({ totalSkills, filteredCount, query, selectedName, selectedSource, selectedValid, filterMode, filterQuery }) => {
+}> = React.memo(({ totalSkills, filteredCount, query, selectedName, selectedSource, selectedValid, filterMode, filterQuery }) => {
   const filterIndicator = query
     ? `  filter: "${query}"  ${filteredCount}/${totalSkills}`
     : `  ${filteredCount}/${totalSkills} skills`;
@@ -52,4 +52,5 @@ export const StatusBar: React.FC<{
       </Box>
     </Box>
   );
-};
+});
+StatusBar.displayName = 'StatusBar';
