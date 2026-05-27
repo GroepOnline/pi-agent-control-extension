@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Find package root
+cd "$(dirname "$0")/.."
+
+# Run the Ink TUI app
+if command -v tsx >/dev/null 2>&1; then
+  exec tsx "extensions/pi-control/studio/index.tsx"
+elif command -v node >/dev/null 2>&1; then
+  exec node --import tsx "extensions/pi-control/studio/index.tsx"
+else
+  echo "skill-studio: tsx or node not found. Install with: npm install -g tsx" >&2
+  exit 1
+fi

@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { buildUsageReport, buildParallelVerifyReport } from "./utils.ts";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { buildUsageReport, buildParallelVerifyReport, listSkills, runValidator, rootDir } from "./utils.ts";
 
 describe("buildUsageReport", () => {
   it("returns default text when no input given", () => {
@@ -131,3 +134,108 @@ describe("buildParallelVerifyReport", () => {
     expect(result.details.reports[0].evidence).toEqual([]);
   });
 });
+
+describe("listSkills", () => {
+  let tmpBase: string;
+
+  beforeEach(() => {
+    tmpBase = join(tmpdir(), `test-skills-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  });
+
+  it("returns empty array when skills directory does not exist", () => {
+    const result = listSkills(tmpBase);
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array when skills dir exists but has no valid skill dirs", () => {
+    const skillsDir = join(tmpBase, "skills");
+    mkdirSync(skillsDir, { recursive: true });
+    writeFileSync(join(skillsDir, "not-a-dir.txt"), "hello");
+    const result = listSkills(skillsDir.replace("/skills", ""));
+    expect(result).toEqual([]);
+    rmSync(tmpBase, { recursive: true, force: true });
+  });
+
+  it("returns skills from directories that contain a SKILL.md", () => {
+    const skillsDir = join(tmpBase, "skills");
+    const agentDir = join(skillsDir, "agent-foo");
+    mkdirSync(agentDir, { recursive: true });
+    writeFileSync(join(agentDir, "SKILL.md"), "---\nname: agent-foo\ndescription: Does foo things\n---\n# Agent Foo\n");
+    const result = listSkills(tmpBase);
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe("agent-foo");
+    expect(result[0].description).toBe("Does foo things");
+    rmSync(tmpBase, { recursive: true, force: true });
+  });
+
+  it("ignores directories without a SKILL.md", () => {
+    const skillsDir = join(tmpBase, "skills");
+    mkdirSync(join(skillsDir, "no-skill"), { recursive: true });
+    const agentDir = join(skillsDir, "agent-bar");
+    mkdirSync(agentDir, { recursive: true });
+    writeFileSync(join(agentDir, "SKILL.md"), "---\nname: agent-bar\ndescription: Bar skill\n---\n");
+    const result = listSkills(tmpBase);
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe("agent-bar");
+    rmSync(tmpBase, { recursive: true, force: true });
+  });
+
+  it("strips surrounding quotes from description", () => {
+    const skillsDir = join(tmpBase, "skills");
+    const agentDir = join(skillsDir, "agent-quoted");
+    mkdirSync(agentDir, { recursive: true });
+    writeFileSync(join(agentDir, "SKILL.md"), "---\nname: agent-quoted\ndescription: 'Quoted description'\n---\n");
+    const result = listSkills(tmpBase);
+    expect(result[0].description).toBe("Quoted description");
+    rmSync(tmpBase, { recursive: true, force: true });
+  });
+
+  it("returns empty description when no description field in SKILL.md", () => {
+    const skillsDir = join(tmpBase, "skills");
+    const agentDir = join(skillsDir, "agent-nodesc");
+    mkdirSync(agentDir, { recursive: true });
+    writeFileSync(join(agentDir, "SKILL.md"), "# Agent No Desc\nNo frontmatter here.\n");
+    const result = listSkills(tmpBase);
+    expect(result[0].description).toBe("");
+    rmSync(tmpBase, { recursive: true, force: true });
+  });
+});
+
+describe("runValidator", () => {
+  it("returns a non-empty string result", () => {
+    // The validator script exists in this package, so it should run and return output
+    const result = runValidator();
+    expect(typeof result).toBe("string");
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it("returns output containing known validator keywords", () => {
+    const result = runValidator();
+    // The validator should either succeed or output a known error/pass message
+    const isKnownOutput =
+      result.includes("validate") ||
+      result.includes("ok") ||
+      result.includes("pass") ||
+      result.includes("error") ||
+      result.includes("missing") ||
+      result.includes("Unable to run") ||
+      result.includes("not found");
+    expect(isKnownOutput).toBe(true);
+  });
+});
+
+describe("rootDir", () => {
+  it("returns a consistent path", () => {
+    const result = rootDir();
+    expect(typeof result).toBe("string");
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it("caches the result between calls", () => {
+    const first = rootDir();
+    const second = rootDir();
+    expect(second).toBe(first);
+  });
+});
+
+

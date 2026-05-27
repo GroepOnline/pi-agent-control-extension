@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Deliverable verification against commitments.
+description: Verify final deliverables against commitments before marking work complete. Use after capture/compose to check video proofs, screenshots, or QA reports. Examples: "verify this demo", "check the deliverable", "did we meet all commitments", "qa validation"
 ---
 # Verify
 
