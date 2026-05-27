@@ -13,4 +13,4 @@ export type SkillEntry = {
   shadowState: ShadowState;
 };
 
-export type FocusPane = 'list' | 'detail' | 'actions';
+export type FocusPane = 'list' | 'detail' | 'actions' | 'evidence';
