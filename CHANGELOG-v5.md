@@ -41,4 +41,29 @@
 - E2E flow tests: route → browser → evidence
 - Coverage: 99.1% statements, 97.0% branches
 
+# v5.1.2 - Evidence Capture Orchestrator & Remotion Render Pipeline
+
+## Evidence Capture Orchestrator
+- Unified `/capture <target> [--format mp4|cast|png|report]` command
+- Auto-routing: URL → agent-browser, TUI → tuistory, else → true-input
+- Automatic evidence validation against schema
+- Driver modules: browser.ts, tuistory.ts, true-input.ts
+- Results viewable in Skill Studio TUI evidence pane (key: `e`)
+
+## Remotion Video Render Pipeline
+- Programmatic `renderShowcase()` API in `remotion/src/render.ts`
+- `buildShowcasePropsFromRecipe()` auto-selects preset/layout/transition per recipe
+- CLI script: `remotion/scripts/render-showcase.ts`
+- New commands: `/showcase-preview <recipe>`, `/showcase-render <recipe>`
+- Recipe binding: capture path passed as clip source
+- `remotion.config.ts` with concurrency=4 and output paths
+- GitHub Action: `.github/workflows/showcase-render.yml` (manual dispatch)
+- npm script: `npm run showcase:render`
+
+## Tests
+- 177 tests passing across 23 test files
+- capture.test.ts: 16 tests for args parsing, routing, drivers, validation
+- render.test.ts: 6 tests for recipe-to-props mapping
+- EvidencePane.test.tsx: 3 tests for empty state, details, warnings
+
 Prepared by Code Legend 🔥

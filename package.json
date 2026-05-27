@@ -27,7 +27,9 @@
     "test:e2e": "bash scripts/test-e2e.sh",
     "lint": "tsc --noEmit",
     "lint:python": "ruff check . && ruff format --check .",
-    "pack:dry": "npm pack --dry-run"
+    "pack:dry": "npm pack --dry-run",
+    "showcase:render": "npx tsx remotion/scripts/render-showcase.ts",
+    "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'"
   },
   "pi": {
     "extensions": [
