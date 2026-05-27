@@ -5,6 +5,7 @@ import type { FocusPane } from '../model/skill.ts';
 const actions = [
   { key: 'x', label: 'toggle' },
   { key: 'o', label: 'override' },
+  { key: 'm', label: 'merge' },
   { key: 'd', label: 'diff' },
   { key: 'v', label: 'validate' },
   { key: 'r', label: 'reload' },

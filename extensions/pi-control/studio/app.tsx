@@ -13,6 +13,7 @@ import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { execSync } from 'node:child_process';
+import { mergeSkill, checkSkillUpdateConflict, type MergeResult } from '../skill-merge.ts';
 
 function doDiff(skill: SkillEntry) {
   if (!skill.shadowState) return 'No shadowed/overridden version found.';
@@ -188,6 +189,30 @@ export const SkillStudio: React.FC = () => {
       showToast(`Override created for ${current.name}`);
       return;
     }
+    if (input === 'm' && current) {
+      if (!current.shadowState) {
+        showToast('No shadow/overlap to merge');
+        return;
+      }
+      const result = mergeSkill(current.name);
+      if (result.hasConflicts) {
+        setDetailTitle('merge');
+        const lines = [
+          `Merged: ${result.merged ? 'clean' : 'conflicts'}`,
+          `Conflicts: ${result.conflicts.length}`,
+          ...result.conflicts.map((c) => `  L${c.line}: ${c.context}`),
+          '',
+          'Use /skill-merge <name> to resolve.',
+        ];
+        setDetailContent(lines.join('\n'));
+        showToast(`${current.name}: ${result.conflicts.length} conflicts`);
+      } else {
+        setDetailTitle('merge');
+        setDetailContent(`Clean merge for ${current.name}\nAuto-resolved all lines.`);
+        showToast(`${current.name} merged cleanly`);
+      }
+      return;
+    }
     if (input === 'd' && current) {
       setDetailTitle('diff');
       setDetailContent(doDiff(current));
@@ -255,6 +280,7 @@ export const SkillStudio: React.FC = () => {
             <Text><Text color="yellow" bold> g/G     </Text> Jump top/bottom</Text>
             <Text><Text color="yellow" bold> x       </Text> Toggle enable/disable</Text>
             <Text><Text color="yellow" bold> o       </Text> Create local override</Text>
+            <Text><Text color="yellow" bold> m       </Text> 3-way merge skill</Text>
             <Text><Text color="yellow" bold> d       </Text> Diff user vs PI</Text>
             <Text><Text color="yellow" bold> v       </Text> Validate SKILL.md</Text>
             <Text><Text color="yellow" bold> r       </Text> Reload all skills</Text>
@@ -328,7 +354,7 @@ export const SkillStudio: React.FC = () => {
           {'│Legend: ● on ○ off │ U=user P=pi │ ⇠shadowed ⇢overrides                    │'}
         </Text>
         <Text dimColor>
-          {'│Keys: j/k nav │ g/G jump │ x toggle │ o override │ d diff │ v validate       │'}
+          {'│Keys: j/k nav │ g/G jump │ x toggle │ o override │ m merge │ d diff │ v validate │'}
         </Text>
         <Text dimColor>
           {'│       r reload │ e evidence │ / filter │ ? help │ q quit │ PgUp/PgDn page      │'}

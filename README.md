@@ -36,6 +36,10 @@ Then start or reload a Pi session. The extension registers commands, tools, bund
 | `/capture <target> [--format mp4|cast|png|report]` | Unified evidence capture: auto-selects driver and format |
 | `/showcase-preview <recipe>` | Preview showcase render props for a recipe |
 | `/showcase-render <recipe>` | Render a Remotion showcase video from a recipe |
+| `/skill-merge <name>` | 3-way merge a user skill with its PI version |
+| `/merge-list` | List all recorded skill merge states |
+| `/bridge-start [--port]` | Start the remote agent WebSocket bridge |
+| `/bridge-status` | Show remote agent bridge status |
 | `/demo-control` | Shows the canonical tuistory capture recipe |
 | `/verify-control` | Shows the required verification and evidence schema |
 | `/qa-control` | Shows the QA report template |
@@ -72,6 +76,32 @@ Or from the shell:
 ```bash
 npm run showcase:render -- showcase-compose
 ```
+
+## Skill Merge
+
+When a user skill overrides a PI skill, resolve conflicts with a 3-way merge.
+
+```bash
+/skill-merge agent-browser
+/merge-list
+```
+
+Conflicts are shown with line-level context. Resolve with `--pi`, `--user`, or `--manual`. Merge state is persisted in `~/.config/devin/skill-studio.json`.
+
+In the Skill Studio TUI, press `m` on a selected skill to trigger merge.
+
+## Remote Agent Bridge
+
+Expose the extension as a WebSocket server so remote agents or CI systems can trigger captures and renders.
+
+```bash
+/bridge-start 8765
+/bridge-status
+```
+
+Connect with: `ws://localhost:8765?token=<TOKEN>`
+
+Message types: `ping`, `skill.list`, `capture.start`, `render.start`, `bridge.status`, `bridge.broadcast`.
 
 ## LLM tools
 
