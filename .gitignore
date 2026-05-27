@@ -10,3 +10,5 @@ artifacts/runs/*
 remotion/node_modules/
 remotion/package-lock.json
 /tmp/tctl-sessions/
+.factory/
+coverage/

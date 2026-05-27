@@ -1,6 +1,6 @@
 ---
 name: pi-agent-control
-description: Control Pi Coding Agent CLI terminal sessions, browser/Electron apps, QA proofs, demo recordings, and showcase artifacts with routed capture/compose/verify atoms.
+description: Main orchestrator for Pi agent control workflows — route tasks to the right driver, then chain capture, compose, and verify atoms. Use for any terminal/browser automation, demo recording, or QA evidence task. Examples: "record a demo", "automate this terminal app", "make a showcase video", "qa proof", "browser automation", "control workflow"
 ---
 # Pi Agent CLI Control
 
