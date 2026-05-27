@@ -15,7 +15,7 @@ const actions = [
 
 export const ActionBar: React.FC<{
   focus: FocusPane;
-}> = ({ focus }) => {
+}> = React.memo(({ focus }) => {
   const isFocused = focus === 'actions';
 
   return (
@@ -38,4 +38,5 @@ export const ActionBar: React.FC<{
       </Box>
     </Box>
   );
-};
+});
+ActionBar.displayName = 'ActionBar';

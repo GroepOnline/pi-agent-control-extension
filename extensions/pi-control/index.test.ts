@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { formatRouteMarkdown, formatUsageTable, recipeList } from "./index.ts";
+import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList } from "./index.ts";
 
 function buildExecArgs(p: { action: string; target?: string; args?: string[]; session?: string }) {
   const execArgs = [p.action];
@@ -47,6 +47,41 @@ describe("recipeList", () => {
     expect(result).toContain("browser-loop");
     expect(result).toContain("showcase-compose");
     expect(result).toContain("qa-report");
+  });
+});
+
+describe("skillSearch", () => {
+  it("returns usage message when no query provided", () => {
+    expect(skillSearch("")).toContain("Usage");
+  });
+
+  it("finds matching skills", () => {
+    const result = skillSearch("browser");
+    expect(result).toContain("Skill Search");
+  });
+});
+
+describe("skillInfo", () => {
+  it("returns usage message when no name provided", () => {
+    expect(skillInfo("")).toContain("Usage");
+  });
+});
+
+describe("presetList", () => {
+  it("lists all Remotion presets", () => {
+    const result = presetList();
+    expect(result).toContain("warm");
+    expect(result).toContain("neon");
+    expect(result).toContain("ocean");
+  });
+});
+
+describe("transitionList", () => {
+  it("lists all Remotion transitions", () => {
+    const result = transitionList();
+    expect(result).toContain("flash");
+    expect(result).toContain("mosaic");
+    expect(result).toContain("chromatic");
   });
 });
 

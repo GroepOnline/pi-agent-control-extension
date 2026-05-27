@@ -89,15 +89,15 @@ export const SkillStudio: React.FC = () => {
       let next = prev + delta;
       if (next < 0) next = 0;
       if (next > max) next = max;
+      // Sync scroll offset in the same batch
+      setScrollOffset((prevOffset) => {
+        if (next < prevOffset) return Math.max(0, next);
+        if (next >= prevOffset + listHeight) return Math.min(Math.max(0, filtered.length - listHeight), next - listHeight + 1);
+        return prevOffset;
+      });
       return next;
     });
-    setScrollOffset((prev) => {
-      const newIdx = selectedIndex + delta;
-      if (newIdx < prev) return Math.max(0, newIdx);
-      if (newIdx >= prev + listHeight) return Math.min(filtered.length - listHeight, newIdx - listHeight + 1);
-      return prev;
-    });
-  }, [filtered.length, listHeight, selectedIndex]);
+  }, [filtered.length, listHeight]);
 
   useInput((input, key) => {
     if (showHelp) {

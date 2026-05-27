@@ -5,7 +5,7 @@ import type { SkillEntry, FocusPane } from '../model/skill.ts';
 export const SkillDetail: React.FC<{
   skill: SkillEntry | null;
   focus: FocusPane;
-}> = ({ skill, focus }) => {
+}> = React.memo(({ skill, focus }) => {
   const isFocused = focus === 'detail';
 
   if (!skill) {
@@ -79,4 +79,5 @@ export const SkillDetail: React.FC<{
       </Box>
     </Box>
   );
-};
+});
+SkillDetail.displayName = 'SkillDetail';
