@@ -9,6 +9,7 @@ import { recipeFor } from "./recipes.ts";
 import { inspectToolCall } from "./guards.ts";
 import { browserControlGuidance } from "./tools/browser.ts";
 import { rootDir, listSkills, runValidator, buildUsageReport } from "./utils.ts";
+import { registerCapture } from "./capture.ts";
 import { registerTools } from "./tools/index.ts";
 
 const CONTROL_HUB = `# Control Hub
@@ -270,5 +271,6 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("preset-list", { description: "List all Remotion color presets", handler: show(presetList()) });
   pi.registerCommand("transition-list", { description: "List all Remotion transition styles", handler: show(transitionList()) });
 
+  registerCapture(pi);
   registerTools(pi);
 }
