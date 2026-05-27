@@ -27,6 +27,11 @@ export interface MergeState {
 }
 
 const MERGE_STATE_PATH = join(homedir(), ".config", "devin", "skill-studio.json");
+const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
+
+function isValidSkillName(name: string): boolean {
+  return VALID_SKILL_NAME.test(name) && !name.includes("..") && !name.startsWith("/");
+}
 
 function loadMergeState(): Map<string, MergeState> {
   try {
@@ -54,7 +59,7 @@ function saveMergeState(merges: Map<string, MergeState>) {
  * For well-structured SKILL.md files with frontmatter this works well.
  * Falls back to conflict markers when both sides diverged from base.
  */
-function threeWayMerge(baseLines: string[], piLines: string[], userLines: string[]): MergeResult {
+export function threeWayMerge(baseLines: string[], piLines: string[], userLines: string[]): MergeResult {
   const conflicts: MergeConflict[] = [];
   const output: string[] = [];
 
@@ -103,6 +108,15 @@ function threeWayMerge(baseLines: string[], piLines: string[], userLines: string
 }
 
 export function mergeSkill(name: string): MergeResult & { state: MergeState } {
+  if (!isValidSkillName(name)) {
+    return {
+      merged: false,
+      output: `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`,
+      conflicts: [],
+      hasConflicts: false,
+      state: { name, mergedAt: new Date().toISOString(), conflictCount: 0, autoResolved: 0, manualRequired: 0 },
+    };
+  }
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "skills", name, "SKILL.md");
   const userPaths = [
@@ -176,6 +190,9 @@ export function hasMergeState(name: string): boolean {
 }
 
 export function resolveMerge(name: string, resolution: "pi" | "user" | "manual", manualContent?: string): { saved: boolean; path: string; error?: string } {
+  if (!isValidSkillName(name)) {
+    return { saved: false, path: "", error: `Invalid skill name "${name}"` };
+  }
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "skills", name, "SKILL.md");
   const userPaths = [
@@ -216,6 +233,7 @@ export function listMergeStates(): MergeState[] {
 }
 
 export function checkSkillUpdateConflict(name: string): { changed: boolean; lastPiMtime: number; lastMergeMtime: string | null } {
+  if (!isValidSkillName(name)) return { changed: false, lastPiMtime: 0, lastMergeMtime: null };
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "skills", name, "SKILL.md");
   if (!existsSync(piPath)) return { changed: false, lastPiMtime: 0, lastMergeMtime: null };
