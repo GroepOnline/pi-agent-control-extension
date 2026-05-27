@@ -1,6 +1,6 @@
 ---
 name: pty-capture
-description: Capture ground-truth byte sequences from real terminal emulators.
+description: Capture ground-truth byte sequences from real terminal emulators for encoding analysis. Use when you need raw PTY bytes, escape sequences, or keyboard encoding verification. Examples: "capture bytes", "pty dump", "escape sequences", "keyboard encoding", "raw terminal output"
 ---
 # PTY Byte Capture
 

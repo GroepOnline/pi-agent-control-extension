@@ -1,6 +1,6 @@
 ---
 name: capture
-description: Recording lifecycle for terminal and browser sessions.
+description: Record terminal TUI sessions and browser interactions for demos, proofs, and QA evidence. Use when starting a new recording, capturing screenshots, or collecting terminal output. Examples: "record a demo", "capture terminal session", "start recording", "take screenshots", "collect evidence"
 ---
 # Capture
 
