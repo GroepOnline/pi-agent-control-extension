@@ -33,10 +33,25 @@ Then start or reload a Pi session. The extension registers commands, tools, bund
 |---|---|
 | `/skills-control` | Lists bundled skill atoms |
 | `/route-control <task>` | Routes a task to driver, skills, capture, deliverable, warnings, and recipe |
+| `/capture <target> [--format mp4|cast|png|report]` | Unified evidence capture: auto-selects driver and format |
 | `/demo-control` | Shows the canonical tuistory capture recipe |
 | `/verify-control` | Shows the required verification and evidence schema |
 | `/qa-control` | Shows the QA report template |
 | `/doctor-control` | Runs the package validator |
+
+## Capture & Showcase
+
+Capture evidence with a single command. The orchestrator inspects your target, picks the right driver (`agent-browser`, `tuistory`, or `true-input`), and generates the evidence artifact.
+
+```bash
+/capture https://example.com --format mp4
+/capture "npm run dev" --format cast
+/capture "tui-story login" --format report
+```
+
+Supported formats: `mp4`, `cast`, `png`, `report`.
+
+The result is validated against the evidence schema and can be viewed in the Skill Studio TUI evidence pane.
 
 ## LLM tools
 
