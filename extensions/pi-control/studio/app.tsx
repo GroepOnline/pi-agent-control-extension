@@ -13,7 +13,7 @@ import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { execSync } from 'node:child_process';
-import { mergeSkill, checkSkillUpdateConflict, type MergeResult } from '../skill-merge.ts';
+import { mergeSkill } from '../skill-merge.ts';
 
 function doDiff(skill: SkillEntry) {
   if (!skill.shadowState) return 'No shadowed/overridden version found.';
