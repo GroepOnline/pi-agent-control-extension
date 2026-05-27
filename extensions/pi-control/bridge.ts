@@ -29,6 +29,14 @@ export interface BridgeState {
   startTime: Date | null;
 }
 
+interface InternalBridgeState {
+  running: boolean;
+  port: number;
+  clients: BridgeClient[];
+  events: BridgeMessage[];
+  startTime: Date | null;
+}
+
 function ensureToken(): string {
   try {
     if (existsSync(BRIDGE_TOKEN_PATH)) {
@@ -48,7 +56,7 @@ function loadToken(): string | null {
   return null;
 }
 
-const bridgeState: BridgeState = {
+const bridgeState: InternalBridgeState = {
   running: false,
   port: 0,
   clients: [],
