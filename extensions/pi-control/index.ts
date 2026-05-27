@@ -286,6 +286,10 @@ export async function showcaseRender(args: string): Promise<string> {
     return `Unknown recipe "${recipe}". Known: ${recipes.join(", ")}`;
   }
 
+  const hasPathTraversal = (p: string) => p.includes("..") || p.startsWith("/");
+  if (capturePath && hasPathTraversal(capturePath)) return `Invalid capturePath: path traversal detected.`;
+  if (outPath && hasPathTraversal(outPath)) return `Invalid outPath: path traversal detected.`;
+
   const extraArgs: string[] = [];
   if (capturePath) extraArgs.push(capturePath);
   if (outPath) extraArgs.push(outPath);
@@ -354,6 +358,8 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("skill-merge", { description: "3-way merge a user skill with its PI version", handler: showFn((a) => {
     const name = a.trim();
     if (!name) return "Usage: /skill-merge <skill-name>";
+    const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
+    if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
     const result = mergeSkill(name);
     if (result.hasConflicts) {
       return [

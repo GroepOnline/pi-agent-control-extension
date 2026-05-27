@@ -129,6 +129,10 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
         bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
       });
 
+      socket.on("error", () => {
+        bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
+      });
+
       socket.on("pong", () => {
         client.lastPing = new Date();
       });
@@ -155,6 +159,11 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
     httpServer.on("error", (err) => {
       clearInterval(pingInterval);
+      bridgeState.running = false;
+      bridgeState.port = 0;
+      bridgeState.startTime = null;
+      try { wss.close(); } catch { /* ignore */ }
+      try { httpServer.close(); } catch { /* ignore */ }
       reject(err);
     });
   });

@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { routeControlTask } from "./routing.ts";
 import { browserControlGuidance } from "./tools/browser.ts";
 import { buildUsageReport } from "./utils.ts";
+import { capture, parseCaptureArgs, formatCaptureMarkdown, routeToDriver } from "./capture.ts";
+import { validateEvidence } from "./control_evidence_schema.ts";
 
 describe("E2E: Route → Browser → Evidence Flow", () => {
   it("routes tasks to an appropriate driver based on intent", () => {
@@ -38,5 +40,66 @@ describe("E2E: Route → Browser → Evidence Flow", () => {
     expect(route.deliverable).toBeTruthy();
     expect(Array.isArray(route.recipe)).toBe(true);
     expect(route.recipe.length).toBeGreaterThan(0);
+  });
+});
+
+describe("E2E: Capture → Evidence → Validation Flow", () => {
+  it("routes a URL to agent-browser driver", () => {
+    const decision = routeToDriver("https://example.com");
+    expect(decision.driver).toBe("agent-browser");
+  });
+
+  it("captures a URL and validates evidence", () => {
+    const result = capture("https://example.com", "png");
+    expect(result.driver).toBe("agent-browser");
+    expect(result.evidenceId).toMatch(/^capture-\d+$/);
+
+    const validation = validateEvidence({
+      evidenceId: result.evidenceId,
+      format: result.format,
+      path: result.path,
+      driver: result.driver,
+    });
+    expect(validation.valid).toBe(true);
+    expect(validation.errors).toEqual([]);
+  });
+
+  it("rejects invalid evidence input during validation", () => {
+    const validation = validateEvidence({
+      evidenceId: "x",
+      format: "exe",
+      path: "",
+      driver: "",
+    });
+    expect(validation.valid).toBe(false);
+    expect(validation.errors.length).toBeGreaterThan(0);
+    expect(validation.errors.some((e) => e.includes("evidenceId"))).toBe(true);
+    expect(validation.errors.some((e) => e.includes("format"))).toBe(true);
+  });
+
+  it("formats capture result as markdown", () => {
+    const result = capture("https://example.com", "report");
+    const md = formatCaptureMarkdown(result);
+    expect(md).toContain("Capture Result");
+    expect(md).toContain(result.evidenceId);
+    expect(md).toContain("agent-browser");
+  });
+
+  it("parses capture args with format flag", () => {
+    const parsed = parseCaptureArgs("https://example.com --format png");
+    expect(parsed.target).toBe("https://example.com");
+    expect(parsed.format).toBe("png");
+    expect(parsed.error).toBeUndefined();
+  });
+
+  it("returns error for empty capture args", () => {
+    const parsed = parseCaptureArgs("   ");
+    expect(parsed.error).toBe("No target provided");
+  });
+
+  it("handles unknown format gracefully", () => {
+    const parsed = parseCaptureArgs("cmd --format exe");
+    expect(parsed.format).toBe("mp4");
+    expect(parsed.target).toBe("cmd");
   });
 });

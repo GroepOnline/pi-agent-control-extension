@@ -35,7 +35,7 @@ Every control run should produce a run directory with:
 
 - run.json: task, target, driver, dimensions, branch/worktree, timestamps
 - transcript.md: human-readable action log
-- evidence/: snapshots, screenshots, casts, mp4s, logs
+- evidence/: snapshots, screenshots (png), casts, mp4s, logs
 - verification.md: commitments checked against visible evidence
 
 Minimum proof item:

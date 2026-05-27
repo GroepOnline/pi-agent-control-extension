@@ -55,7 +55,11 @@ export function capture(target: string, format: CaptureFormat = "mp4"): CaptureR
   const { driver, warnings } = routeToDriver(target);
   const evidenceId = `capture-${Date.now()}`;
   const evidenceDir = join(rootDir(), "artifacts", "runs", evidenceId, "evidence");
-  mkdirSync(evidenceDir, { recursive: true });
+  try {
+    mkdirSync(evidenceDir, { recursive: true });
+  } catch {
+    /* ignore — best-effort directory creation */
+  }
 
   let result: CaptureResult;
 
