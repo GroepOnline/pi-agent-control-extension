@@ -5,7 +5,7 @@ vi.mock("node:fs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs")>();
   return {
     ...actual,
-    readFileSync: vi.fn((path: string, encoding: string) => {
+    readFileSync: vi.fn((path: string, encoding: BufferEncoding) => {
       if (path.includes("skill-studio.json")) return "{\"merges\":{}}";
       if (path.includes("SKILL.md")) return "name: test\ndescription: test desc\n";
       return actual.readFileSync(path, encoding);

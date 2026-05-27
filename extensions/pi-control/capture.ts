@@ -109,12 +109,11 @@ export function registerCapture(pi: ExtensionAPI) {
       const parsed = parseCaptureArgs(args);
       if (parsed.error) {
         ctx.ui?.notify?.("Usage: /capture <url|command> [--format mp4|cast|png|report]", "error");
-        return { evidenceId: "", format: parsed.format, path: "", validated: false, error: parsed.error };
+        return;
       }
 
       const result = capture(parsed.target, parsed.format);
       ctx.ui?.notify?.(formatCaptureMarkdown(result), result.validated ? "info" : "warning");
-      return result;
     },
   });
 }
