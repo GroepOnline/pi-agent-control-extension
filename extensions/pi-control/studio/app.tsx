@@ -6,7 +6,9 @@ import { SkillList } from './panes/SkillList.tsx';
 import { SkillDetail } from './panes/SkillDetail.tsx';
 import { ActionBar } from './panes/ActionBar.tsx';
 import { StatusBar } from './panes/StatusBar.tsx';
+import { EvidencePane } from './panes/EvidencePane.tsx';
 import type { FocusPane, SkillEntry } from './model/skill.ts';
+import type { EvidenceItem } from './panes/EvidencePane.tsx';
 import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
@@ -59,6 +61,7 @@ export const SkillStudio: React.FC = () => {
   const [detailTitle, setDetailTitle] = useState<string>('detail');
   const [toast, setToast] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [evidenceItem, setEvidenceItem] = useState<EvidenceItem | null>(null);
 
   const { skills, toggle, reload } = useSkillRegistry(() => {
     showToast('Skills auto-reloaded');
@@ -77,7 +80,7 @@ export const SkillStudio: React.FC = () => {
 
   const cycleFocus = useCallback(() => {
     setFocus((prev) => {
-      const order: FocusPane[] = ['list', 'detail', 'actions'];
+      const order: FocusPane[] = ['list', 'detail', 'evidence', 'actions'];
       const idx = order.indexOf(prev);
       return order[(idx + 1) % order.length];
     });
@@ -202,6 +205,19 @@ export const SkillStudio: React.FC = () => {
       showToast('Skills reloaded');
       return;
     }
+    if (input === 'e') {
+      setEvidenceItem({
+        evidenceId: `demo-${Date.now()}`,
+        format: 'mp4',
+        path: '/tmp/demo-evidence',
+        validated: true,
+        driver: 'tuistory',
+        command: 'tctl launch "demo" --backend tuistory',
+        warnings: [],
+      });
+      showToast('Demo evidence loaded (press Tab to focus)');
+      return;
+    }
     if (input === '/') {
       setFilterMode(true);
       setFilterQuery('');
@@ -242,6 +258,7 @@ export const SkillStudio: React.FC = () => {
             <Text><Text color="yellow" bold> d       </Text> Diff user vs PI</Text>
             <Text><Text color="yellow" bold> v       </Text> Validate SKILL.md</Text>
             <Text><Text color="yellow" bold> r       </Text> Reload all skills</Text>
+            <Text><Text color="yellow" bold> e       </Text> Load demo evidence</Text>
             <Text><Text color="yellow" bold> /       </Text> Filter by name</Text>
             <Text><Text color="yellow" bold> Tab     </Text> Cycle focus pane</Text>
             <Text><Text color="yellow" bold> ?       </Text> Show this help</Text>
@@ -272,7 +289,9 @@ export const SkillStudio: React.FC = () => {
           scrollOffset={scrollOffset}
           filterQuery={filterQuery}
         />
-        {detailSkill ? (
+        {focus === 'evidence' ? (
+          <EvidencePane focus={focus} item={evidenceItem} />
+        ) : detailSkill ? (
           <SkillDetail skill={detailSkill} focus={focus} />
         ) : detailText ? (
           <Box flexDirection="column" width={42} borderStyle={focus === 'detail' ? 'bold' : 'single'} borderColor={focus === 'detail' ? 'cyan' : undefined} paddingY={0} paddingX={1}>
@@ -312,7 +331,7 @@ export const SkillStudio: React.FC = () => {
           {'│Keys: j/k nav │ g/G jump │ x toggle │ o override │ d diff │ v validate       │'}
         </Text>
         <Text dimColor>
-          {'│       r reload │ / filter │ ? help │ q quit │ PgUp/PgDn page                │'}
+          {'│       r reload │ e evidence │ / filter │ ? help │ q quit │ PgUp/PgDn page      │'}
         </Text>
         <Text dimColor>
           {'╰───────────────────────────────────────────────────────────────────────────────╯'}
