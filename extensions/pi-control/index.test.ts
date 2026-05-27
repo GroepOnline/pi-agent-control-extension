@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { formatRouteMarkdown, formatUsageTable, recipeList } from "./index.ts";
 
 function buildExecArgs(p: { action: string; target?: string; args?: string[]; session?: string }) {
   const execArgs = [p.action];
@@ -8,6 +9,46 @@ function buildExecArgs(p: { action: string; target?: string; args?: string[]; se
   return execArgs;
 }
 
+describe("formatRouteMarkdown", () => {
+  it("returns markdown table with route fields", () => {
+    const result = formatRouteMarkdown("open a website");
+    expect(result).toContain("## Route Decision");
+    expect(result).toContain("| Field | Value |");
+    expect(result).toContain("**Driver**");
+    expect(result).toContain("### Recipe");
+  });
+
+  it("includes warnings when present", () => {
+    const result = formatRouteMarkdown("rm -rf everything");
+    expect(result).toContain("⚠️");
+  });
+
+  it("includes recipe steps in output", () => {
+    const result = formatRouteMarkdown("navigate to example.com");
+    expect(result).toContain("1.");
+    expect(result).toContain("### Recipe");
+  });
+});
+
+describe("formatUsageTable", () => {
+  it("returns markdown table with usage metrics", () => {
+    const result = formatUsageTable();
+    expect(result).toContain("## Usage & Observability");
+    expect(result).toContain("| Metric | Value |");
+    expect(result).toContain("Prompt tokens");
+  });
+});
+
+describe("recipeList", () => {
+  it("returns markdown list of recipes", () => {
+    const result = recipeList();
+    expect(result).toContain("## Available Recipes");
+    expect(result).toContain("tuistory-launch");
+    expect(result).toContain("browser-loop");
+    expect(result).toContain("showcase-compose");
+    expect(result).toContain("qa-report");
+  });
+});
 
 describe("Browser Command Argument Construction", () => {
   it("constructs simple commands correctly", () => {
