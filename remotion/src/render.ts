@@ -28,6 +28,13 @@ export async function renderShowcase(options: RenderOptions): Promise<RenderResu
   const outputDir = join(process.cwd(), "artifacts", "showcases");
   mkdirSync(outputDir, { recursive: true });
 
+  // Security: restrict output to the showcases directory subtree
+  const absoluteOutPath = resolve(process.cwd(), outPath);
+  const allowedPrefix = resolve(process.cwd(), "artifacts", "showcases");
+  if (!absoluteOutPath.startsWith(allowedPrefix)) {
+    return { success: false, outputPath: outPath, sizeInBytes: 0, durationInFrames: 0, error: `Output path must be within ${allowedPrefix}` };
+  }
+
   const entry = resolve(process.cwd(), "remotion", "src", "index.ts");
   const bundled = await bundle(entry, {
     webpackOverride: (config) => config,
@@ -43,7 +50,6 @@ export async function renderShowcase(options: RenderOptions): Promise<RenderResu
   const durationInFrames = calculateShowcaseDuration(options.props, fps);
 
   try {
-    const absoluteOutPath = resolve(process.cwd(), outPath);
     await renderMedia({
       composition: { ...composition, durationInFrames },
       serveUrl: bundled,

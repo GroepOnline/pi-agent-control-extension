@@ -15,6 +15,7 @@ import {
   UsageInput,
   ParallelReport,
 } from "../utils.ts";
+import { telemetry } from "../telemetry.ts";
 
 const TOOLS = [
   {
@@ -135,4 +136,14 @@ export function registerTools(pi: ExtensionAPI) {
   for (const tool of TOOLS) {
     pi.registerTool(tool);
   }
+
+  pi.registerTool({
+    name: "control_telemetry",
+    label: "Telemetry Report",
+    description: "Return current telemetry snapshot: session count, tool calls, errors, and event log path.",
+    parameters: Type.Object({}),
+    async execute() {
+      return { content: [{ type: "text", text: telemetry.formatReport() }], details: telemetry.snapshot() };
+    },
+  });
 }

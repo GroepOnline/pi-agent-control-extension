@@ -152,17 +152,28 @@ export function useSkillRegistry(onAutoReload?: () => void) {
   // Auto-reload when skill directories change
   useEffect(() => {
     const dirs = getWatchedDirs();
-    const watchers = dirs.map((dir) =>
-      watch(dir, { recursive: true }, () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          setSkills(buildRegistry());
-          onAutoReload?.();
-        }, 500);
-      })
-    );
+    const watchers: ReturnType<typeof watch>[] = [];
+    for (const dir of dirs) {
+      try {
+        const w = watch(dir, { recursive: true }, () => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            setSkills(buildRegistry());
+            onAutoReload?.();
+          }, 500);
+        });
+        watchers.push(w);
+      } catch (e: any) {
+        // EMFILE / ENOSPC: inotify watcher limit reached; skip auto-reload for this dir
+        if (e?.code === "EMFILE" || e?.code === "ENOSPC") {
+          console.warn(`[SkillStudio] fs.watch limit reached for ${dir}: ${e.message}`);
+        } else {
+          throw e;
+        }
+      }
+    }
     return () => {
-      watchers.forEach((w) => w.close());
+      watchers.forEach((w) => { try { w.close(); } catch { /* ignore */ } });
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [onAutoReload]);
