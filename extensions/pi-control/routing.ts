@@ -16,101 +16,122 @@ function has(text: string, terms: string[]) {
   });
 }
 
+type RouteState = {
+  driver: RouteDecision["driver"];
+  capture: RouteDecision["capture"];
+  deliverable: RouteDecision["deliverable"];
+  skills: ControlSkillName[];
+  warnings: string[];
+};
+
+type Rule = {
+  keywords: string[];
+  apply: (state: RouteState) => void;
+};
+
+const ROUTE_RULES: Rule[] = [
+  {
+    keywords: ["browser", "web", "electron", "dom manipulation", "dom element", "screenshot", "visual qa"],
+    apply: (s) => { s.driver = "agent-browser"; s.skills.push("agent-browser"); s.capture = "screenshots"; s.deliverable = "browser-proof"; }
+  },
+  {
+    keywords: ["real terminal", "ghostty", "kitty", "wezterm", "key encoding", "escape sequence", "true input", "keyboard encoding"],
+    apply: (s) => { s.driver = "true-input"; s.skills.push("true-input", "pty-capture"); s.capture = "mp4"; }
+  },
+  {
+    keywords: ["tui", "terminal", "cli tool", "cli app", "tctl", "snapshot", "escape key", "ink framework"],
+    apply: (s) => {
+      if (s.driver !== "true-input" && s.driver !== "agent-browser") s.driver = "tuistory";
+      s.skills.push("tuistory", "capture");
+      s.capture = s.capture === "report" ? "cast" : s.capture;
+    }
+  },
+  {
+    keywords: ["video", "showcase", "demo", "before/after", "before after", "side-by-side", "side by side", "mp4"],
+    apply: (s) => {
+      s.deliverable = "showcase-video";
+      s.skills.push("showcase", "compose", "verify");
+      if (s.capture === "report") s.capture = "cast";
+    }
+  },
+  {
+    keywords: ["qa", "test matrix", "regression", "checklist"],
+    apply: (s) => { s.deliverable = "qa-report"; s.skills.push("verify"); }
+  },
+  {
+    keywords: ["tctl", "pi agent", "pi cli", "pi coding", "control cli"],
+    apply: (s) => { s.skills.push("pi-agent-cli"); }
+  },
+  {
+    keywords: ["initialize workspace", "setup workspace", "workspace init", "onboard", "scaffold"],
+    apply: (s) => { s.skills.push("init", "wiki"); s.driver = "mixed"; }
+  },
+  {
+    keywords: ["wiki", "document", "architecture map"],
+    apply: (s) => { s.skills.push("wiki"); s.driver = "mixed"; }
+  },
+  {
+    keywords: ["review", "audit", "guardrail", "safety"],
+    apply: (s) => { s.skills.push("review", "session-navigation"); s.driver = "mixed"; }
+  },
+  {
+    keywords: ["research", "optimize", "investigate", "subagent"],
+    apply: (s) => { s.skills.push("autoresearch", "session-navigation"); s.driver = "mixed"; }
+  },
+  {
+    keywords: ["analyze and improve", "full improvement", "chain skills"],
+    apply: (s) => { s.skills.push("init", "wiki", "review", "autoresearch"); s.driver = "mixed"; }
+  },
+  {
+    keywords: ["meta skill", "meta-skill", "chain", "pipeline", "workflow orchestrat"],
+    apply: (s) => { s.skills.push("meta-control", "background-pty"); s.driver = "mixed"; }
+  },
+  {
+    keywords: ["computer use", "os control", "os-control", "desktop automation", "x11", "wayland", "native input", "keyboard injection", "mouse injection"],
+    apply: (s) => {
+      s.driver = "agent-browser";
+      s.skills.push("agent-browser", "background-pty");
+      s.capture = "mp4";
+      s.warnings.push("OS-level computer use is experimental. Prefer agent-browser for web UI automation.");
+    }
+  },
+  {
+    keywords: ["background pty", "background-pty", "detached session", "long running", "async workflow"],
+    apply: (s) => {
+      s.skills.push("background-pty");
+      if (s.driver === "tuistory") s.capture = "cast";
+    }
+  }
+];
+
 export function routeControlTask(task: string, deliverableHint = ""): RouteDecision {
   const input = `${task} ${deliverableHint}`.toLowerCase();
-  const skills: ControlSkillName[] = ["pi-agent-control"];
-  const warnings: string[] = [];
-  let driver: RouteDecision["driver"] = "tuistory";
-  let capture: RouteDecision["capture"] = "report";
-  let deliverable: RouteDecision["deliverable"] = "proof-report";
 
-  if (has(input, ["browser", "web", "electron", "dom manipulation", "dom element", "screenshot", "visual qa"])) {
-    driver = "agent-browser";
-    skills.push("agent-browser");
-    capture = "screenshots";
-    deliverable = "browser-proof";
+  const state: RouteState = {
+    driver: "tuistory",
+    capture: "report",
+    deliverable: "proof-report",
+    skills: ["pi-agent-control"],
+    warnings: []
+  };
+
+  for (const rule of ROUTE_RULES) {
+    if (has(input, rule.keywords)) {
+      rule.apply(state);
+    }
   }
 
-  if (has(input, ["real terminal", "ghostty", "kitty", "wezterm", "key encoding", "escape sequence", "true input", "keyboard encoding"])) {
-    driver = "true-input";
-    skills.push("true-input", "pty-capture");
-    capture = "mp4";
-  }
-
-  if (has(input, ["tui", "terminal", "cli tool", "cli app", "tctl", "snapshot", "escape key", "ink framework"])) {
-    if (driver !== "true-input" && driver !== "agent-browser") driver = "tuistory";
-    skills.push("tuistory", "capture");
-    capture = capture === "report" ? "cast" : capture;
-  }
-
-  if (has(input, ["video", "showcase", "demo", "before/after", "before after", "side-by-side", "side by side", "mp4"])) {
-    deliverable = "showcase-video";
-    skills.push("showcase", "compose", "verify");
-    if (capture === "report") capture = "cast";
-  }
-
-  if (has(input, ["qa", "test matrix", "regression", "checklist"])) {
-    deliverable = "qa-report";
-    skills.push("verify");
-  }
-
-  if (has(input, ["tctl", "pi agent", "pi cli", "pi coding", "control cli"])) {
-    skills.push("pi-agent-cli");
-  }
-
-  if (has(input, ["initialize workspace", "setup workspace", "workspace init", "onboard", "scaffold"])) {
-    skills.push("init", "wiki");
-    driver = "mixed";
-  }
-
-  if (has(input, ["wiki", "document", "architecture map"])) {
-    skills.push("wiki");
-    driver = "mixed";
-  }
-
-  if (has(input, ["review", "audit", "guardrail", "safety"])) {
-    skills.push("review", "session-navigation");
-    driver = "mixed";
-  }
-
-  if (has(input, ["research", "optimize", "investigate", "subagent"])) {
-    skills.push("autoresearch", "session-navigation");
-    driver = "mixed";
-  }
-
-  if (has(input, ["analyze and improve", "full improvement", "chain skills"])) {
-    skills.push("init", "wiki", "review", "autoresearch");
-    driver = "mixed";
-  }
-
-  if (has(input, ["meta skill", "meta-skill", "chain", "pipeline", "workflow orchestrat"])) {
-    skills.push("meta-control", "background-pty");
-    driver = "mixed";
-  }
-
-  if (has(input, ["computer use", "os control", "os-control", "desktop automation", "x11", "wayland", "native input", "keyboard injection", "mouse injection"])) {
-    driver = "agent-browser";
-    skills.push("agent-browser", "background-pty");
-    capture = "mp4";
-    warnings.push("OS-level computer use is experimental. Prefer agent-browser for web UI automation.");
-  }
-
-  if (has(input, ["background pty", "background-pty", "detached session", "long running", "async workflow"])) {
-    skills.push("background-pty");
-    if (driver === "tuistory") capture = "cast";
-  }
-
-  if (driver === "tuistory" && !has(input, ["force_color", "colorterm", "truecolor"])) {
-    warnings.push("For tuistory captures, launch with FORCE_COLOR=3 and COLORTERM=truecolor so Ink/chalk output keeps color.");
+  if (state.driver === "tuistory" && !has(input, ["force_color", "colorterm", "truecolor"])) {
+    state.warnings.push("For tuistory captures, launch with FORCE_COLOR=3 and COLORTERM=truecolor so Ink/chalk output keeps color.");
   }
   if (has(input, ["tctl"]) && !has(input, ["repo-root", "worktree"])) {
-    warnings.push("tctl launches require --repo-root; sessions should refuse without it.");
+    state.warnings.push("tctl launches require --repo-root; sessions should refuse without it.");
   }
 
-  const uniqueSkills = Array.from(new Set(skills)).filter((s): s is ControlSkillName => (SKILL_NAMES as readonly string[]).includes(s));
-  const recipe = buildRecipe(driver, deliverable, capture);
+  const uniqueSkills = Array.from(new Set(state.skills)).filter((s): s is ControlSkillName => (SKILL_NAMES as readonly string[]).includes(s));
+  const recipe = buildRecipe(state.driver, state.deliverable, state.capture);
 
-  return { driver, skills: uniqueSkills, capture, deliverable, warnings, recipe };
+  return { driver: state.driver, skills: uniqueSkills, capture: state.capture, deliverable: state.deliverable, warnings: state.warnings, recipe };
 }
 
 function buildRecipe(driver: RouteDecision["driver"], deliverable: RouteDecision["deliverable"], capture: RouteDecision["capture"]): string[] {
