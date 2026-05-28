@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildShowcasePropsFromRecipe } from "./render.js";
+import { buildShowcasePropsFromRecipe } from "./lib/recipe-props.js";
 
 describe("buildShowcasePropsFromRecipe", () => {
   it("builds browser-loop props", () => {

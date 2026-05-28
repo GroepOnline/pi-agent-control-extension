@@ -29,7 +29,7 @@ export interface MergeState {
 const MERGE_STATE_PATH = join(homedir(), ".config", "devin", "skill-studio.json");
 const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
 
-export function isValidSkillName(name: string): boolean {
+function isValidSkillName(name: string): boolean {
   return VALID_SKILL_NAME.test(name) && !name.includes("..") && !name.startsWith("/");
 }
 

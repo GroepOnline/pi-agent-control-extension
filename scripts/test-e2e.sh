@@ -60,7 +60,7 @@ else
   echo "--- 2a. tctl tuistory --- SKIP: tuistory not installed"
 fi
 
-if command -v tmux >/dev/null 2>&1; then
+if command -v tmux >/dev/null 2>&1 && command -v tuistory >/dev/null 2>&1; then
   echo "--- 2b. tctl --background (tmux detached) ---"
   TEST_BG_SID="e2e-bg-$(date +%s)"
 
@@ -83,7 +83,7 @@ if command -v tmux >/dev/null 2>&1; then
     fail "tctl --background launch"
   fi
 else
-  echo "--- 2b. tctl --background --- SKIP: tmux not installed"
+  echo "--- 2b. tctl --background --- SKIP: tmux or tuistory not installed"
 fi
 
 echo ""
