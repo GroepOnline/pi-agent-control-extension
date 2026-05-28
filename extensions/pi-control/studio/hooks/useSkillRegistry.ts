@@ -35,7 +35,7 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
   if (!existsSync(dir)) return [];
   try {
     return readdirSync(dir, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && existsSync(join(dir, d.name, 'SKILL.md')))
+      .filter((d) => d.isDirectory() && !d.name.startsWith('.') && existsSync(join(dir, d.name, 'SKILL.md')))
       .map((d) => {
         const path = join(dir, d.name, 'SKILL.md');
         const text = readFileSync(path, 'utf8');

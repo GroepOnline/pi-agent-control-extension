@@ -4,7 +4,7 @@ Pi Agent Control Extension is a Pi extension package for terminal, CLI, browser-
 
 [![CI](https://github.com/OnlineChef/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
 [![Package](https://img.shields.io/badge/pi-extension-blue)](#)
-[![Version](https://img.shields.io/badge/version-5.1.1-informational)](#)
+[![Version](https://img.shields.io/badge/version-5.1.4-informational)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 
 ## Install
@@ -162,6 +162,19 @@ Each claim should map to a step, driver, evidence file, result, and reason. Do n
 ## Guardrails
 
 The extension inspects shell-style tool calls and blocks known unsafe patterns, including broad `rm -rf`, direct `.env` reads or edits, missing `--repo-root` in pi-agent launches, and tuistory launches that omit color-preserving environment variables.
+
+## Security Hardening
+
+The extension applies defense-in-depth across all modules that handle user input or network I/O:
+
+| Layer | Protection |
+|---|---|
+| **Path traversal** | Skill names are validated against `^[a-zA-Z0-9_-]+$` before any filesystem access (`mergeSkill`, `resolveMerge`, `checkSkillUpdateConflict`) |
+| **Path traversal** | `showcaseRender` rejects `../` and absolute paths in `capturePath` and `outPath` before spawning the render script |
+| **Memory leaks** | WebSocket bridge removes clients on both `close` and `error` events; server error resets state so restart is possible |
+| **Resilience** | `capture.ts` wraps `mkdirSync` in `try/catch` — directory creation is best-effort, not fatal |
+| **Input validation** | `validateEvidence()` checks evidence ID length, required fields, and known formats against the schema |
+| **Shell safety** | All driver modules generate command strings but never `exec` them directly; execution is delegated to the user's shell or Pi's tool system |
 
 ## Validate
 
