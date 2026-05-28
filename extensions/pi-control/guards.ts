@@ -35,7 +35,7 @@ export function inspectToolCall(event: any) {
     if (/169\.254\.169\.254/.test(lower)) {
       return { block: true, reason: "Blocked access to cloud metadata IP (169.254.169.254). Internal metadata retrieval is prohibited." };
     }
-    if (/(docker\s+run|docker\s+exec)\s+.*--(privileged|pid=host|network=host|volume\s+\/)/.test(lower)) {
+    if (/(docker\s+run|docker\s+exec)\s+.*(--privileged|--pid(=|\s+)host|--network(=|\s+)host|(-v|--volume)(=|\s+)\/)/.test(lower)) {
       return { block: true, reason: "Blocked privileged docker escape pattern. Use --cap-add for specific capabilities instead." };
     }
     if (/curl\s+.*\|\s*(bash|sh)\s*$/.test(lower) && /(bit\.ly|tinyurl|pastebin|raw\.githubusercontent)/.test(lower)) {
