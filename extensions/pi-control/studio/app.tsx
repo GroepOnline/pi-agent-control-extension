@@ -8,18 +8,18 @@ import { ActionBar } from './panes/ActionBar.tsx';
 import { StatusBar } from './panes/StatusBar.tsx';
 import type { FocusPane, SkillEntry } from './model/skill.ts';
 import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, basename } from 'node:path';
 import { homedir } from 'node:os';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 function doDiff(skill: SkillEntry) {
   if (!skill.shadowState) return 'No shadowed/overridden version found.';
   try {
     const repoRoot = process.cwd();
-    const piPath = join(repoRoot, 'skills', skill.name, 'SKILL.md');
+    const piPath = resolve(join(repoRoot, 'skills', skill.name, 'SKILL.md'));
     if (!existsSync(piPath)) return `PI skill not found at ${piPath}`;
-    const userPath = skill.path;
-    return execSync(`diff -u ${piPath} ${userPath}`, { encoding: 'utf8' });
+    const userPath = resolve(skill.path);
+    return execFileSync('diff', ['-u', piPath, userPath], { encoding: 'utf8', shell: false });
   } catch (e: any) {
     return e.stdout || e.message || 'diff failed';
   }
@@ -27,8 +27,19 @@ function doDiff(skill: SkillEntry) {
 
 function doOverride(skill: SkillEntry) {
   try {
-    const destDir = join(homedir(), '.devin', 'skills', skill.name);
+    // Sanitize skill name to prevent path traversal
+    const safeName = basename(skill.name).replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (!safeName || safeName !== skill.name) {
+      return `Invalid skill name: ${skill.name}`;
+    }
+    const baseDir = resolve(join(homedir(), '.devin', 'skills'));
+    const destDir = join(baseDir, safeName);
     const dest = join(destDir, 'SKILL.md');
+    // Validate resolved path is within base directory
+    const resolvedDest = resolve(dest);
+    if (!resolvedDest.startsWith(baseDir + '/') && resolvedDest !== baseDir) {
+      return `Path validation failed for ${skill.name}`;
+    }
     mkdirSync(destDir, { recursive: true });
     copyFileSync(skill.path, dest);
     return `Copied to ${dest}`;
