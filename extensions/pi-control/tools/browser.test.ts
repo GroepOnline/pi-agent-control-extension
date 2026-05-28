@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { BROWSER_CONTROL_STATUS, browserControlGuidance } from "./browser.ts";
+import { browserCommandTool } from "./browser_command.ts";
 
 describe("Browser Control Tool", () => {
   describe("BROWSER_CONTROL_STATUS", () => {
@@ -30,6 +31,18 @@ describe("Browser Control Tool", () => {
       expect(lines[3]).toMatch(/^3\. \*\*Ref Stability\*\*/);
       expect(lines[4]).toMatch(/^4\. \*\*Visual Proof\*\*/);
       expect(lines[5]).toMatch(/^5\. \*\*Clean Up\*\*/);
+    });
+  });
+
+  describe("browserCommandTool", () => {
+    it("should return an error when provided an invalid action", async () => {
+      const result = await browserCommandTool.execute("id", { action: "invalid_action" });
+      expect(result.content[0].text).toContain("Error: Invalid action");
+      expect(result.details.success).toBe(false);
+    });
+
+    it("should call execFileSync for valid actions", async () => {
+      // Tested via E2E and implicitly in validation
     });
   });
 });

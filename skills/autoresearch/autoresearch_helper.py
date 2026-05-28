@@ -70,7 +70,7 @@ def compute_mad(values):
     return statistics.median(deviations)
 
 
-def compute_confidence(results, segment, direction):
+def compute_confidence(results, segment, direction, best_kept=None):
     """
     Compute confidence score: |best_improvement| / MAD.
 
@@ -93,7 +93,8 @@ def compute_confidence(results, segment, direction):
     if baseline is None:
         return None
 
-    best_kept = find_best_kept(results, segment, direction)
+    if best_kept is None:
+        best_kept = find_best_kept(results, segment, direction)
 
     if best_kept is None or best_kept == baseline:
         return None
@@ -185,15 +186,14 @@ def cmd_log(args):
 
     results.append(entry)
 
-    confidence = compute_confidence(results, segment, direction)
+    baseline = find_baseline(results, segment)
+    best = find_best_kept(results, segment, direction)
+    confidence = compute_confidence(results, segment, direction, best_kept=best)
     entry["confidence"] = confidence
 
     with open(args.jsonl, "a") as f:
         out = {k: v for k, v in entry.items() if v is not None or k in ("confidence",)}
         f.write(json.dumps(out) + "\n")
-
-    baseline = find_baseline(results, segment)
-    best = find_best_kept(results, segment, direction)
 
     print(f"Logged #{entry['run']}: {args.status} — {args.description}")
     print(f"  Metric: {args.metric}")
@@ -236,7 +236,8 @@ def cmd_evaluate(args):
     improved = is_better(args.metric, compare_against, direction)
 
     results_with_new = results + [{"metric": args.metric, "status": "keep", "segment": segment}]
-    confidence = compute_confidence(results_with_new, segment, direction)
+    new_best = args.metric if improved else best
+    confidence = compute_confidence(results_with_new, segment, direction, best_kept=new_best)
 
     delta = args.metric - compare_against
     delta_pct = (delta / compare_against) * 100 if compare_against != 0 else 0
@@ -279,13 +280,21 @@ def cmd_summary(args):
     direction = config.get("bestDirection", "lower")
 
     total = len(cur)
-    kept = [r for r in cur if r.get("status") == "keep"]
-    discarded = [r for r in cur if r.get("status") == "discard"]
-    crashed = [r for r in cur if r.get("status") in ("crash", "checks_failed")]
+    kept = []
+    discarded = []
+    crashed = []
+    for r in cur:
+        status = r.get("status")
+        if status == "keep":
+            kept.append(r)
+        elif status == "discard":
+            discarded.append(r)
+        elif status in ("crash", "checks_failed"):
+            crashed.append(r)
 
     baseline = find_baseline(results, segment)
     best = find_best_kept(results, segment, direction)
-    confidence = compute_confidence(results, segment, direction)
+    confidence = compute_confidence(results, segment, direction, best_kept=best)
 
     print(f"Session: {config.get('name', 'unnamed')}")
     print(
@@ -344,7 +353,7 @@ def cmd_status(args):
 
     baseline = find_baseline(results, segment)
     best = find_best_kept(results, segment, direction)
-    confidence = compute_confidence(results, segment, direction)
+    confidence = compute_confidence(results, segment, direction, best_kept=best)
 
     status = {
         "name": config.get("name"),
@@ -362,7 +371,7 @@ def cmd_status(args):
     print(json.dumps(status, indent=2))
 
 
-def main():
+def create_parser():
     parser = argparse.ArgumentParser(description="Autoresearch experiment helper")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -405,6 +414,11 @@ def main():
     p_status = subparsers.add_parser("status", help="Print current status as JSON")
     p_status.add_argument("--jsonl", required=True, help="Path to autoresearch.jsonl")
 
+    return parser
+
+
+def main():
+    parser = create_parser()
     args = parser.parse_args()
 
     commands = {
