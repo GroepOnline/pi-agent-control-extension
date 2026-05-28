@@ -100,7 +100,8 @@ export function formatBrowserControl() {
   const guidance = browserControlGuidance();
   let installed = "❌ not found in PATH";
   try {
-    execFileSync("which", ["agent-browser"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 5000 });
+    const cmd = process.platform === "win32" ? "where" : "which";
+    execFileSync(cmd, ["agent-browser"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 5000 });
     installed = "✅ installed";
   } catch { /* not installed */ }
 
@@ -336,17 +337,17 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("demo-control", { description: "Show tuistory capture recipe", handler: show(recipeFor("tuistory-launch")) });
   pi.registerCommand("verify-control", { description: "Show verification/evidence schema", handler: show(EVIDENCE_SCHEMA) });
   pi.registerCommand("qa-control", { description: "Show QA report template", handler: show(recipeFor("qa-report")) });
-  pi.registerCommand("doctor-control", { description: "Run package validator", handler: show(formatDoctor()) });
-  pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: show(formatUsageTable()) });
+  pi.registerCommand("doctor-control", { description: "Run package validator", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(formatDoctor(), "info"); } });
+  pi.registerCommand("usage", { description: "Show usage and cost estimation guidance", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(formatUsageTable(), "info"); } });
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
-  pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: show(formatBrowserControl()) });
+  pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(formatBrowserControl(), "info"); } });
 
   // New commands
   pi.registerCommand("skill-studio", { description: "Launch the Skill Studio TUI (terminal dashboard)", handler: show("Run `bin/skill-studio` from the repo root to launch the interactive terminal UI for skill management.") });
-  pi.registerCommand("recipe-list", { description: "List all available control recipes", handler: show(recipeList()) });
-  pi.registerCommand("evidence-new", { description: "Generate a new evidence run directory", handler: show(evidenceNew()) });
-  pi.registerCommand("tctl-status", { description: "Show active tctl sessions", handler: show(tctlStatus()) });
+  pi.registerCommand("recipe-list", { description: "List all available control recipes", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(recipeList(), "info"); } });
+  pi.registerCommand("evidence-new", { description: "Generate a new evidence run directory", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(evidenceNew(), "info"); } });
+  pi.registerCommand("tctl-status", { description: "Show active tctl sessions", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(tctlStatus(), "info"); } });
   pi.registerCommand("skill-diff", { description: "Diff user vs PI version of a skill", handler: showFn((a) => skillDiff(a)) });
   pi.registerCommand("skill-search", { description: "Search skills by name or description", handler: showFn((a) => skillSearch(a)) });
   pi.registerCommand("skill-info", { description: "Show detailed info about a skill", handler: showFn((a) => skillInfo(a)) });

@@ -10,7 +10,7 @@ const pctBox = z.object({
 const keystrokeSchema = z.object({
   t: z.number(),
   label: z.string(),
-  dur: z.number().optional(),
+  dur: z.number().positive().optional(),
 });
 
 const sectionSchema = z.object({
@@ -21,7 +21,7 @@ const sectionSchema = z.object({
 const effectSchema = z.object({
   type: z.enum(['fade-in', 'fade-out', 'zoom', 'spotlight', 'callout', 'shake', 'pulse', 'border']).optional(),
   t: z.number(),
-  dur: z.number(),
+  dur: z.number().positive(),
   to: pctBox.optional(),
   on: pctBox.optional(),
   dim: z.number().optional(),
@@ -31,7 +31,7 @@ const effectSchema = z.object({
 
 const codeAnnotationSchema = z.object({
   t: z.number(),
-  dur: z.number(),
+  dur: z.number().positive(),
   code: z.string(),
   language: z.string().optional(),
   title: z.string().optional(),
@@ -52,7 +52,7 @@ export const showcaseSchema = z.object({
   keys: z.array(keystrokeSchema),
   sections: z.array(sectionSchema).optional(),
   effects: z.array(effectSchema),
-  clipDuration: z.number().optional(),
+  clipDuration: z.number().positive().optional(),
   speedNote: z.string().optional(),
   windowTitle: z.string().optional(),
   width: z.number().optional(),

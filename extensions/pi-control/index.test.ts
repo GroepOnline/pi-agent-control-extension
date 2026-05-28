@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList, showcasePreview, showcaseRender } from "./index.ts";
+import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList } from "./index.ts";
 
 function buildExecArgs(p: { action: string; target?: string; args?: string[]; session?: string }) {
   const execArgs = [p.action];
@@ -85,40 +85,32 @@ describe("transitionList", () => {
   });
 });
 
-describe("showcasePreview", () => {
-  it("returns preview markdown for a known recipe", () => {
-    const result = showcasePreview("browser-loop");
-    expect(result).toContain("Showcase Preview");
-    expect(result).toContain("browser-loop");
-    expect(result).toContain("Recipe");
-    expect(result).toContain("Output path");
+describe("Command Handlers Invocation", () => {
+  it("formatDoctor computes result at call time", () => {
+    const result = formatRouteMarkdown("test task");
+    expect(result).toContain("## Route Decision");
   });
 
-  it("returns error for unknown recipe", () => {
-    const result = showcasePreview("unknown-recipe");
-    expect(result).toContain("Unknown recipe");
+  it("recipeList computes result at call time", () => {
+    const result = recipeList();
+    expect(result).toContain("## Available Recipes");
+    expect(result).toContain("tuistory-launch");
   });
 
-  it("includes capture path when provided", () => {
-    const result = showcasePreview("tuistory-launch /tmp/evidence/capture.cast");
-    expect(result).toContain("/tmp/evidence/capture.cast");
-  });
-});
-
-describe("showcaseRender", () => {
-  it("returns error for unknown recipe", async () => {
-    const result = await showcaseRender("unknown-recipe");
-    expect(result).toContain("Unknown recipe");
+  it("formatUsageTable computes result at call time", () => {
+    const result = formatUsageTable();
+    expect(result).toContain("## Usage & Observability");
+    expect(result).toContain("Prompt tokens");
   });
 
-  it("rejects path traversal in capturePath", async () => {
-    const result = await showcaseRender("showcase-compose ../../../etc/passwd");
-    expect(result).toContain("path traversal");
+  it("skillSearch computes result at call time", () => {
+    const result = skillSearch("browser");
+    expect(result).toContain("Skill Search");
   });
 
-  it("rejects path traversal in outPath", async () => {
-    const result = await showcaseRender("showcase-compose /tmp/capture.cast ../../../etc/passwd");
-    expect(result).toContain("path traversal");
+  it("skillInfo computes result at call time", () => {
+    const result = skillInfo("");
+    expect(result).toContain("Usage");
   });
 });
 

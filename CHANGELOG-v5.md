@@ -9,6 +9,7 @@
 # v5.1.1 - Skill Studio, Remotion Effects & Comprehensive Tests
 
 ## Skill Studio TUI
+
 - Interactive terminal dashboard (`bin/skill-studio`) with 3-pane layout (LIST, DETAIL, ACTIONS)
 - File watching with auto-reload on skill directory changes
 - Persistent disabled state in `~/.config/devin/skill-studio.json`
@@ -17,12 +18,14 @@
 - Keybindings: j/k nav, g/G jump, x toggle, o override, d diff, v validate, r reload, / filter, ? help, q quit
 
 ## Remotion Showcase
+
 - 16 transition styles: motion-blur, flash, whip-pan, light-leak, glitch-lite, scan-line, vignette, grain, chromatic, ripple, pixelate, blur-zoom, split, radial-wipe, slide, mosaic
 - 8 effect types in EffectLayer: zoom, shake, pulse, border, plus fade-in/out, spotlight, callout
-- 12 color presets: warm, pi-warm, warm-hero, pi-hero, hero, macos, presentation, minimal, dark-pro, neon, paper, ocean
+- 12 color presets: warm, pi-warm, warm-hero, pi-hero, hero, macOS, presentation, minimal, dark-pro, neon, paper, ocean
 - Modular component architecture (10 components)
 
 ## CLI Commands
+
 - `/skill-studio` - Launch the Skill Studio TUI
 - `/recipe-list` - List available recipes
 - `/evidence-new` - Generate evidence run directory
@@ -34,6 +37,7 @@
 - `/transition-list` - List Remotion transition styles
 
 ## Tests
+
 - 148 tests passing across 20 test files
 - Studio component tests with ink-testing-library
 - App integration tests with stdin key simulation

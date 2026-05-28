@@ -54,6 +54,9 @@ export const ShowcaseComposition: React.FC<ShowcaseProps> = (props) => {
   // Progress (0-1) during clip
   const progress = isClip ? (frame - titleF) / clipF : isOutro ? 1 : 0;
 
+  // Compute phase-relative frame for transitions
+  const transitionFrame = isTitle ? frame : isOutro ? (frame - (titleF + clipF)) : 0;
+
   return (
     <AbsoluteFill
       style={{
@@ -76,7 +79,7 @@ export const ShowcaseComposition: React.FC<ShowcaseProps> = (props) => {
       <Keystrokes keys={props.keys} time={time} palette={palette} />
       <CodeAnnotations items={props.codeAnnotations} time={time} palette={palette} />
       <EffectLayer effects={props.effects} time={time} palette={palette} />
-      <TransitionLayer transitionStyle={props.transitionStyle} active={isTitle || isOutro} />
+      <TransitionLayer transitionStyle={props.transitionStyle} active={isTitle || isOutro} frame={transitionFrame} />
       <TitleCard props={props} palette={palette} visible={isTitle} />
       <Outro palette={palette} visible={isOutro} />
 

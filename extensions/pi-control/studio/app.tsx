@@ -6,23 +6,20 @@ import { SkillList } from './panes/SkillList.tsx';
 import { SkillDetail } from './panes/SkillDetail.tsx';
 import { ActionBar } from './panes/ActionBar.tsx';
 import { StatusBar } from './panes/StatusBar.tsx';
-import { EvidencePane } from './panes/EvidencePane.tsx';
 import type { FocusPane, SkillEntry } from './model/skill.ts';
-import type { EvidenceItem } from './panes/EvidencePane.tsx';
 import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, basename } from 'node:path';
 import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { mergeSkill } from '../skill-merge.ts';
 
 function doDiff(skill: SkillEntry) {
   if (!skill.shadowState) return 'No shadowed/overridden version found.';
   try {
     const repoRoot = process.cwd();
-    const piPath = join(repoRoot, 'skills', skill.name, 'SKILL.md');
+    const piPath = resolve(join(repoRoot, 'skills', skill.name, 'SKILL.md'));
     if (!existsSync(piPath)) return `PI skill not found at ${piPath}`;
-    const userPath = skill.path;
-    return execFileSync('diff', ['-u', piPath, userPath], { encoding: 'utf8' });
+    const userPath = resolve(skill.path);
+    return execFileSync('diff', ['-u', piPath, userPath], { encoding: 'utf8', shell: false });
   } catch (e: any) {
     return e.stdout || e.message || 'diff failed';
   }
@@ -30,8 +27,19 @@ function doDiff(skill: SkillEntry) {
 
 function doOverride(skill: SkillEntry) {
   try {
-    const destDir = join(homedir(), '.devin', 'skills', skill.name);
+    // Sanitize skill name to prevent path traversal
+    const safeName = basename(skill.name).replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (!safeName || safeName !== skill.name) {
+      return `Invalid skill name: ${skill.name}`;
+    }
+    const baseDir = resolve(join(homedir(), '.devin', 'skills'));
+    const destDir = join(baseDir, safeName);
     const dest = join(destDir, 'SKILL.md');
+    // Validate resolved path is within base directory
+    const resolvedDest = resolve(dest);
+    if (!resolvedDest.startsWith(baseDir + '/') && resolvedDest !== baseDir) {
+      return `Path validation failed for ${skill.name}`;
+    }
     mkdirSync(destDir, { recursive: true });
     copyFileSync(skill.path, dest);
     return `Copied to ${dest}`;
@@ -62,7 +70,6 @@ export const SkillStudio: React.FC = () => {
   const [detailTitle, setDetailTitle] = useState<string>('detail');
   const [toast, setToast] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
-  const [evidenceItem, setEvidenceItem] = useState<EvidenceItem | null>(null);
 
   const { skills, toggle, reload } = useSkillRegistry(() => {
     showToast('Skills auto-reloaded');
@@ -81,7 +88,7 @@ export const SkillStudio: React.FC = () => {
 
   const cycleFocus = useCallback(() => {
     setFocus((prev) => {
-      const order: FocusPane[] = ['list', 'detail', 'evidence', 'actions'];
+      const order: FocusPane[] = ['list', 'detail', 'actions'];
       const idx = order.indexOf(prev);
       return order[(idx + 1) % order.length];
     });
@@ -189,30 +196,6 @@ export const SkillStudio: React.FC = () => {
       showToast(`Override created for ${current.name}`);
       return;
     }
-    if (input === 'm' && current) {
-      if (!current.shadowState) {
-        showToast('No shadow/overlap to merge');
-        return;
-      }
-      const result = mergeSkill(current.name);
-      if (result.hasConflicts) {
-        setDetailTitle('merge');
-        const lines = [
-          `Merged: ${result.merged ? 'clean' : 'conflicts'}`,
-          `Conflicts: ${result.conflicts.length}`,
-          ...result.conflicts.map((c) => `  L${c.line}: ${c.context}`),
-          '',
-          'Use /skill-merge <name> to resolve.',
-        ];
-        setDetailContent(lines.join('\n'));
-        showToast(`${current.name}: ${result.conflicts.length} conflicts`);
-      } else {
-        setDetailTitle('merge');
-        setDetailContent(`Clean merge for ${current.name}\nAuto-resolved all lines.`);
-        showToast(`${current.name} merged cleanly`);
-      }
-      return;
-    }
     if (input === 'd' && current) {
       setDetailTitle('diff');
       setDetailContent(doDiff(current));
@@ -228,19 +211,6 @@ export const SkillStudio: React.FC = () => {
       setDetailTitle('detail');
       setDetailContent(null);
       showToast('Skills reloaded');
-      return;
-    }
-    if (input === 'e') {
-      setEvidenceItem({
-        evidenceId: `demo-${Date.now()}`,
-        format: 'mp4',
-        path: '/tmp/demo-evidence',
-        validated: true,
-        driver: 'tuistory',
-        command: 'tctl launch "demo" --backend tuistory',
-        warnings: [],
-      });
-      showToast('Demo evidence loaded (press Tab to focus)');
       return;
     }
     if (input === '/') {
@@ -280,11 +250,9 @@ export const SkillStudio: React.FC = () => {
             <Text><Text color="yellow" bold> g/G     </Text> Jump top/bottom</Text>
             <Text><Text color="yellow" bold> x       </Text> Toggle enable/disable</Text>
             <Text><Text color="yellow" bold> o       </Text> Create local override</Text>
-            <Text><Text color="yellow" bold> m       </Text> 3-way merge skill</Text>
             <Text><Text color="yellow" bold> d       </Text> Diff user vs PI</Text>
             <Text><Text color="yellow" bold> v       </Text> Validate SKILL.md</Text>
             <Text><Text color="yellow" bold> r       </Text> Reload all skills</Text>
-            <Text><Text color="yellow" bold> e       </Text> Load demo evidence</Text>
             <Text><Text color="yellow" bold> /       </Text> Filter by name</Text>
             <Text><Text color="yellow" bold> Tab     </Text> Cycle focus pane</Text>
             <Text><Text color="yellow" bold> ?       </Text> Show this help</Text>
@@ -315,9 +283,7 @@ export const SkillStudio: React.FC = () => {
           scrollOffset={scrollOffset}
           filterQuery={filterQuery}
         />
-        {focus === 'evidence' ? (
-          <EvidencePane focus={focus} item={evidenceItem} />
-        ) : detailSkill ? (
+        {detailSkill ? (
           <SkillDetail skill={detailSkill} focus={focus} />
         ) : detailText ? (
           <Box flexDirection="column" width={42} borderStyle={focus === 'detail' ? 'bold' : 'single'} borderColor={focus === 'detail' ? 'cyan' : undefined} paddingY={0} paddingX={1}>
@@ -354,10 +320,10 @@ export const SkillStudio: React.FC = () => {
           {'│Legend: ● on ○ off │ U=user P=pi │ ⇠shadowed ⇢overrides                    │'}
         </Text>
         <Text dimColor>
-          {'│Keys: j/k nav │ g/G jump │ x toggle │ o override │ m merge │ d diff │ v validate │'}
+          {'│Keys: j/k nav │ g/G jump │ x toggle │ o override │ d diff │ v validate       │'}
         </Text>
         <Text dimColor>
-          {'│       r reload │ e evidence │ / filter │ ? help │ q quit │ PgUp/PgDn page      │'}
+          {'│       r reload │ / filter │ ? help │ q quit │ PgUp/PgDn page                │'}
         </Text>
         <Text dimColor>
           {'╰───────────────────────────────────────────────────────────────────────────────╯'}
