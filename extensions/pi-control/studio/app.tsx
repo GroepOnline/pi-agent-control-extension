@@ -12,7 +12,7 @@ import type { EvidenceItem } from './panes/EvidencePane.tsx';
 import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { mergeSkill } from '../skill-merge.ts';
 
 function doDiff(skill: SkillEntry) {
@@ -22,7 +22,7 @@ function doDiff(skill: SkillEntry) {
     const piPath = join(repoRoot, 'skills', skill.name, 'SKILL.md');
     if (!existsSync(piPath)) return `PI skill not found at ${piPath}`;
     const userPath = skill.path;
-    return execSync(`diff -u ${piPath} ${userPath}`, { encoding: 'utf8' });
+    return execFileSync('diff', ['-u', piPath, userPath], { encoding: 'utf8' });
   } catch (e: any) {
     return e.stdout || e.message || 'diff failed';
   }

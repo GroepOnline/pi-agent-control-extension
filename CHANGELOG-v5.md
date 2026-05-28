@@ -92,4 +92,19 @@
 - skill-merge.test.ts: merge state, conflict detection, resolve paths
 - bridge.test.ts: bridge state, status markdown formatting
 
+# v5.1.4 - Security Hardening & Test Expansion
+
+## Security Fixes
+- **bridge.ts**: Added `socket.on("error")` handler to prevent memory leaks on unclean disconnects; `httpServer.on("error")` now resets `bridgeState` and closes `wss`/`httpServer` so the bridge can restart after a port conflict
+- **capture.ts**: `mkdirSync` wrapped in `try/catch` for best-effort resilience against permission errors
+- **skill-merge.ts**: Added `isValidSkillName()` regex guard (`^[a-zA-Z0-9_-]+$`) against path traversal (`../`, absolute paths) in `mergeSkill`, `resolveMerge`, and `checkSkillUpdateConflict`
+- **index.ts**: Skill-merge handler validates name before processing; `showcaseRender` rejects path traversal in `capturePath` and `outPath`
+- **schema.ts**: Evidence schema now mentions `png` so `validateEvidence()` accepts the `png` format
+
+## Test Expansion
+- **203 tests** passing across **25 test files** (+19 new tests)
+- `skill-merge.test.ts`: 6 `threeWayMerge` logic tests (clean merge, auto-resolve PI/user, conflict markers, different lengths, empty files) + 3 path traversal rejection tests
+- `e2e-flow.test.ts`: 7 end-to-end tests for Capture → Evidence → Validation flow
+- `index.test.ts`: 3 path traversal tests for `showcaseRender`
+
 Prepared by Code Legend 🔥

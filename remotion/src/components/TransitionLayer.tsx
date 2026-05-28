@@ -33,7 +33,7 @@ export const TransitionLayer: React.FC<{
       return <AbsoluteFill style={{ transform: `translateX(${progress}px)`, filter: `blur(${blur}px)`, opacity: 1, pointerEvents: 'none' }} />;
     }
     case 'glitch-lite': {
-      const flicker = Math.random() > 0.7 ? 0.7 : 1;
+      const flicker = ((frame * 31) % 97) > 67 ? 0.7 : 1;
       const offsetX = frame % 3 === 0 ? 3 : frame % 5 === 0 ? -2 : 0;
       return (
         <AbsoluteFill style={{ opacity: active ? flicker : 0, pointerEvents: 'none' }}>
@@ -67,7 +67,7 @@ export const TransitionLayer: React.FC<{
     }
     case 'grain': {
       const opacity = interpolate(frame, [0, durFrames / 2, durFrames], [0, 0.18, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-      const grain = Math.random() > 0.5 ? 0.08 : 0.15;
+      const grain = ((frame * 17) % 101) > 50 ? 0.08 : 0.15;
       return (
         <AbsoluteFill style={{ opacity, pointerEvents: 'none' }}>
           <div style={{ position: 'absolute', inset: 0, background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='${grain}'/%3E%3C/svg%3E")`, backgroundSize: '150px 150px' }} />
