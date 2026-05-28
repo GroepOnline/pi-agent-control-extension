@@ -50,8 +50,15 @@ describe("SkillStudio app", () => {
     const { lastFrame, stdin, unmount } = render(<SkillStudio />);
     const before = lastFrame() || "";
     stdin.write("j");
-    await new Promise((r) => setTimeout(r, 50));
-    const after = lastFrame() || "";
+    // Wait for frame to change
+    let after = lastFrame() || "";
+    let attempts = 0;
+    while (after === before && attempts < 20) {
+      await new Promise((r) => setTimeout(r, 10));
+      after = lastFrame() || "";
+      attempts++;
+    }
+    expect(after).not.toBe(before);
     expect(after.length).toBeGreaterThan(0);
     unmount();
   });

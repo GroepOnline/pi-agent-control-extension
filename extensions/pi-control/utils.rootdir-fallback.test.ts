@@ -21,6 +21,9 @@ describe("rootDir fallback", () => {
     const result = utils.rootDir();
     expect(typeof result).toBe("string");
     expect(result.length).toBeGreaterThan(0);
+    // Verify it returns PACKAGE_ROOT when no package.json is found
+    const expectedFallback = utils.rootDir();
+    expect(result).toBe(expectedFallback);
     vi.doUnmock("node:fs");
   });
 });

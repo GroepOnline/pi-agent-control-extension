@@ -152,15 +152,20 @@ export function useSkillRegistry(onAutoReload?: () => void) {
   // Auto-reload when skill directories change
   useEffect(() => {
     const dirs = getWatchedDirs();
-    const watchers = dirs.map((dir) =>
-      watch(dir, { recursive: true }, () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          setSkills(buildRegistry());
-          onAutoReload?.();
-        }, 500);
-      })
-    );
+    const watchers = dirs.map((dir) => {
+      try {
+        return watch(dir, { recursive: true }, () => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            setSkills(buildRegistry());
+            onAutoReload?.();
+          }, 500);
+        });
+      } catch (err) {
+        console.error(`Failed to watch directory ${dir}:`, err);
+        return null;
+      }
+    }).filter((w): w is NonNullable<typeof w> => w !== null);
     return () => {
       watchers.forEach((w) => w.close());
       if (debounceRef.current) clearTimeout(debounceRef.current);

@@ -19,8 +19,15 @@ function makeSkill(name: string, desc: string): SkillEntry {
   };
 }
 
-function TestFilter({ skills }: { skills: SkillEntry[] }) {
+function TestFilter({ skills, initialQuery }: { skills: SkillEntry[]; initialQuery?: string }) {
   const { query, setQuery, filtered } = useFilter(skills);
+  const [initialized, setInitialized] = useState(false);
+
+  if (!initialized && initialQuery) {
+    setQuery(initialQuery);
+    setInitialized(true);
+  }
+
   return (
     <Text>query={query} count={filtered.length} names={filtered.map((s) => s.name).join(",")}</Text>
   );
@@ -37,9 +44,11 @@ describe("useFilter", () => {
   });
 
   it("filters by name match", () => {
-    // We can't easily test setQuery via render output, but we verify the hook initializes
     const skills = [makeSkill("agent-browser", "Browser skill"), makeSkill("agent-git", "Git skill")];
-    const { lastFrame } = render(<TestFilter skills={skills} />);
-    expect(lastFrame()).toContain("count=2");
+    const { lastFrame } = render(<TestFilter skills={skills} initialQuery="browser" />);
+    const frame = lastFrame() || "";
+    expect(frame).toContain("count=1");
+    expect(frame).toContain("agent-browser");
+    expect(frame).not.toContain("agent-git");
   });
 });
