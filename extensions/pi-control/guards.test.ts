@@ -105,11 +105,25 @@ describe("Tool Guards", () => {
   });
 
   it("blocks privileged docker escape patterns", () => {
-    const event = { toolName: "bash", input: { command: "docker run --privileged -it ubuntu bash" } };
-    const result = inspectToolCall(event);
-    expect(result).not.toBeNull();
-    expect(result?.block).toBe(true);
-    expect(result?.reason).toContain("docker escape");
+    const dangerousCommands = [
+      "docker run --privileged -it ubuntu bash",
+      "docker run --pid=host -it ubuntu bash",
+      "docker run --pid host -it ubuntu bash",
+      "docker run --network=host -it ubuntu bash",
+      "docker run --network host -it ubuntu bash",
+      "docker run -v /:/host -it ubuntu bash",
+      "docker run --volume=/ -it ubuntu bash",
+      "docker exec -it mycontainer --privileged",
+      "docker exec -it mycontainer --network host"
+    ];
+
+    for (const cmd of dangerousCommands) {
+      const event = { toolName: "bash", input: { command: cmd } };
+      const result = inspectToolCall(event);
+      expect(result).not.toBeNull();
+      expect(result?.block).toBe(true);
+      expect(result?.reason).toContain("docker escape");
+    }
   });
 
   it("allows safe docker commands", () => {
