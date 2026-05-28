@@ -17,8 +17,6 @@ export interface CaptureResult {
   validated: boolean;
   driver: string;
   command: string;
-  /** Structured command tokens for safe execution (avoids shell injection from display strings) */
-  commandParts?: string[];
   warnings: string[];
 }
 
@@ -104,7 +102,6 @@ export function formatCaptureMarkdown(result: CaptureResult): string {
     `| **Path** | ${result.path} |`,
     `| **Validated** | ${result.validated ? "✅" : "❌"} |`,
     `| **Command** | \`${result.command}\` |`,
-    ...(result.commandParts ? [`| **Command (safe)** | \`${result.commandParts.join(" ")}\` |`] : []),
     ...(result.warnings.length ? [`| **Warnings** | ${result.warnings.join("; ")} |`] : []),
   ].join("\n");
 }

@@ -18,34 +18,22 @@ export function captureTrueInput(
   };
 
   switch (format) {
-    case "mp4": {
-      const out = join(evidenceDir, "capture.mp4");
-      result.commandParts = ["true-input", "record", "--out", out, "--", target];
-      result.command = `true-input record --out ${out} -- ${target}`;
+    case "mp4":
+      result.command = `true-input record --out ${join(evidenceDir, "capture.mp4")} -- ${target}`;
       result.validated = true;
       break;
-    }
-    case "cast": {
-      const out = join(evidenceDir, "capture.cast");
-      result.commandParts = ["true-input", "record", "--asciicast", "--out", out, "--", target];
-      result.command = `true-input record --asciicast --out ${out} -- ${target}`;
+    case "cast":
+      result.command = `true-input record --asciicast --out ${join(evidenceDir, "capture.cast")} -- ${target}`;
       result.validated = true;
       break;
-    }
-    case "png": {
-      const out = join(evidenceDir, "screenshot.png");
-      result.commandParts = ["true-input", "screenshot", "--out", out, "--", target];
-      result.command = `true-input screenshot --out ${out} -- ${target}`;
+    case "png":
+      result.command = `true-input screenshot --out ${join(evidenceDir, "screenshot.png")} -- ${target}`;
       result.warnings.push("png for true-input produces a PTY screenshot.");
       break;
-    }
-    case "report": {
-      const out = join(evidenceDir, "log.txt");
-      result.commandParts = ["true-input", "log", "--out", out, "--", target];
-      result.command = `true-input log --out ${out} -- ${target}`;
+    case "report":
+      result.command = `true-input log --out ${join(evidenceDir, "log.txt")} -- ${target}`;
       result.validated = true;
       break;
-    }
   }
 
   return result;

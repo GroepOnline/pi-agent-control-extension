@@ -32,7 +32,7 @@ jobs:
         # cache: 'pip'
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci && (cd remotion && npm install)
 
     - name: Run Ruff (Python Linter & Formatter)
       run: pip install ruff && npm run lint:python

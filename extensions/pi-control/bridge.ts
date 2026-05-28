@@ -97,11 +97,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
     const token = ensureToken();
     const httpServer = createServer();
-    const wss = new WebSocketServer({ server: httpServer, verifyClient: (info: { origin: string; secure: boolean; req: { headers: { host?: string } } }) => {
-      // Reject connections with suspicious or missing Origin/Host headers
-      const host = info.req.headers.host || "";
-      return host.startsWith("localhost:") || host.startsWith("127.0.0.1:") || host === "";
-    } });
+    const wss = new WebSocketServer({ server: httpServer });
 
     wss.on("connection", (socket, req) => {
       const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
@@ -121,14 +117,8 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
       bridgeState.clients.push(client);
 
       socket.on("message", (data) => {
-        // Reject oversized messages (> 1 MB) to prevent DoS
-        const buf = Buffer.isBuffer(data) ? data : Buffer.from(data as ArrayBuffer);
-        if (buf.length > 1024 * 1024) {
-          socket.close(1009, "Message too large");
-          return;
-        }
         try {
-          const msg: BridgeMessage = JSON.parse(buf.toString());
+          const msg: BridgeMessage = JSON.parse(data.toString());
           handleMessage(msg, client, pi, ctx);
         } catch {
           socket.send(JSON.stringify({ id: "", type: "error", payload: { message: "Invalid JSON" } }));
@@ -160,7 +150,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
       }
     }, 30000);
 
-    httpServer.listen(port, "127.0.0.1", () => {
+    httpServer.listen(port, () => {
       bridgeState.running = true;
       bridgeState.port = port;
       bridgeState.startTime = new Date();
@@ -272,7 +262,7 @@ export function registerBridge(pi: ExtensionAPI) {
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: *** (read from ${BRIDGE_TOKEN_PATH})\n- URL: ws://localhost:${actualPort}?token=<TOKEN>`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${token}\`\n- URL: ws://localhost:${actualPort}?token=${token}`,
           "info",
         );
       } catch (e: any) {

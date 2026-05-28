@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { mkdirSync, statSync } from "node:fs";
 import { calculateShowcaseDuration } from "./lib/duration.js";
 import type { ShowcaseProps } from "./schema/showcase.schema.js";
+import { buildShowcasePropsFromRecipe } from "./lib/recipe-props.js";
 
 export type RenderOptions = {
   props: ShowcaseProps;
@@ -28,13 +29,6 @@ export async function renderShowcase(options: RenderOptions): Promise<RenderResu
   const outputDir = join(process.cwd(), "artifacts", "showcases");
   mkdirSync(outputDir, { recursive: true });
 
-  // Security: restrict output to the showcases directory subtree
-  const absoluteOutPath = resolve(process.cwd(), outPath);
-  const allowedPrefix = resolve(process.cwd(), "artifacts", "showcases");
-  if (!absoluteOutPath.startsWith(allowedPrefix)) {
-    return { success: false, outputPath: outPath, sizeInBytes: 0, durationInFrames: 0, error: `Output path must be within ${allowedPrefix}` };
-  }
-
   const entry = resolve(process.cwd(), "remotion", "src", "index.ts");
   const bundled = await bundle(entry, {
     webpackOverride: (config) => config,
@@ -50,6 +44,7 @@ export async function renderShowcase(options: RenderOptions): Promise<RenderResu
   const durationInFrames = calculateShowcaseDuration(options.props, fps);
 
   try {
+    const absoluteOutPath = resolve(process.cwd(), outPath);
     await renderMedia({
       composition: { ...composition, durationInFrames },
       serveUrl: bundled,
@@ -79,28 +74,4 @@ export async function renderShowcase(options: RenderOptions): Promise<RenderResu
   }
 }
 
-export function buildShowcasePropsFromRecipe(recipe: string, capturePath?: string): ShowcaseProps {
-  const base: ShowcaseProps = {
-    clips: capturePath ? [capturePath] : [],
-    layout: "single",
-    labels: [recipe],
-    title: recipe,
-    subtitle: capturePath ? `Generated from ${capturePath}` : "",
-    preset: "warm",
-    keys: [],
-    effects: [],
-  };
-
-  switch (recipe) {
-    case "browser-loop":
-      return { ...base, preset: "macos", layout: "single", transitionStyle: "motion-blur" };
-    case "tuistory-launch":
-      return { ...base, preset: "dark-pro", layout: "single", transitionStyle: "scan-line", effects: [{ type: "fade-in", t: 0, dur: 0.5 }] };
-    case "showcase-compose":
-      return { ...base, preset: "neon", layout: "side-by-side", transitionStyle: "flash", effects: [{ type: "zoom", t: 1, dur: 2, to: { x: "20%", y: "20%", w: "60%", h: "60%" } }] };
-    case "qa-report":
-      return { ...base, preset: "presentation", layout: "single", transitionStyle: "slide", showProgress: true };
-    default:
-      return { ...base, preset: "warm", transitionStyle: "motion-blur" };
-  }
-}
+export { buildShowcasePropsFromRecipe } from "./lib/recipe-props.js";
