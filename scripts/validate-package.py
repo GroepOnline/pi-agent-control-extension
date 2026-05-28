@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from pathlib import Path
 
@@ -81,11 +82,18 @@ BINARIES = {
 }
 
 print("\nChecking system dependencies...")
+bin_errors = []
 for cmd, install in BINARIES.items():
     path = shutil.which(cmd)
-    check(f"Binary: {cmd}", path is not None)
-    if not path:
-        print(f"       To fix: {install}")
+    if path:
+        print(f"  [OK] Binary: {cmd}")
+    else:
+        print(f"  [WARN] Binary: {cmd} (optional — to fix: {install})")
+        bin_errors.append(cmd)
+
+# Only treat missing binaries as fatal when NOT in CI (dev machines should have them)
+if bin_errors and not os.environ.get("CI"):
+    errors.extend(f"Binary: {cmd}" for cmd in bin_errors)
 
 if errors:
     print(f"\n[FAIL] {len(errors)} check(s) failed")
