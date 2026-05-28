@@ -12,7 +12,7 @@ describe("ActionBar", () => {
     expect(frame).toContain("toggle");
   });
 
-  it("renders without bold border when not focused", () => {
+  it("renders actions and quit when focus is on list", () => {
     const { lastFrame } = render(<ActionBar focus="list" />);
     const frame = lastFrame();
     expect(frame).toContain("actions");

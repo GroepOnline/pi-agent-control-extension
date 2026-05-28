@@ -85,6 +85,35 @@ describe("transitionList", () => {
   });
 });
 
+describe("Command Handlers Invocation", () => {
+  it("formatDoctor computes result at call time", () => {
+    const result = formatRouteMarkdown("test task");
+    expect(result).toContain("## Route Decision");
+  });
+
+  it("recipeList computes result at call time", () => {
+    const result = recipeList();
+    expect(result).toContain("## Available Recipes");
+    expect(result).toContain("tuistory-launch");
+  });
+
+  it("formatUsageTable computes result at call time", () => {
+    const result = formatUsageTable();
+    expect(result).toContain("## Usage & Observability");
+    expect(result).toContain("Prompt tokens");
+  });
+
+  it("skillSearch computes result at call time", () => {
+    const result = skillSearch("browser");
+    expect(result).toContain("Skill Search");
+  });
+
+  it("skillInfo computes result at call time", () => {
+    const result = skillInfo("");
+    expect(result).toContain("Usage");
+  });
+});
+
 describe("Browser Command Argument Construction", () => {
   it("constructs simple commands correctly", () => {
     const args = buildExecArgs({ action: "open", target: "https://example.com" });

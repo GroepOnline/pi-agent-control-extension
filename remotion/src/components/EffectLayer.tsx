@@ -19,6 +19,7 @@ export const EffectLayer: React.FC<{ effects: ShowcaseProps['effects']; time: nu
         );
       }
       if (type === 'callout') {
+        if (!effect.text?.trim()) return null;
         return <div key={index} style={{ position: 'absolute', left: asCss(effect.at?.x, '50%'), top: asCss(effect.at?.y, '50%'), opacity, padding: '14px 18px', borderRadius: 16, background: palette.accent, color: '#111', fontSize: 24, fontWeight: 900 }}>{effect.text}</div>;
       }
       if (type === 'fade-in') return <AbsoluteFill key={index} style={{ background: '#000', opacity: 1 - opacity }} />;
@@ -38,7 +39,11 @@ export const EffectLayer: React.FC<{ effects: ShowcaseProps['effects']; time: nu
       }
       if (type === 'shake') {
         const shake = Math.sin(time * 1.5) * 4;
-        return <AbsoluteFill key={index} style={{ transform: `translateX(${shake}px)`, opacity }} />;
+        return (
+          <AbsoluteFill key={index} style={{ pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', inset: 0, transform: `translateX(${shake}px)`, opacity, border: `2px solid ${palette.accent}`, borderRadius: 8 }} />
+          </AbsoluteFill>
+        );
       }
       if (type === 'pulse') {
         const pulse = interpolate(time % fps, [0, fps / 2, fps], [1, 1.08, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
