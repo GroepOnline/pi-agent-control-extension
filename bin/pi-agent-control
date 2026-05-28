@@ -8,7 +8,7 @@ case "$cmd" in
   verify) prompt="$ROOT/prompts/verify.md" ;;
   qa-test|qa) prompt="$ROOT/prompts/qa-test.md" ;;
   doctor) exec "$ROOT/scripts/doctor.sh" ;;
-  skills) find "$ROOT/.agents/skills" -maxdepth 2 -name SKILL.md | sort ; exit 0 ;;
+  skills) exec npx tsx "$ROOT/extensions/pi-control/cli.ts" "$@" ;;
   help|-h|--help) echo "usage: $(basename "$0") demo|verify|qa-test|doctor|skills [arguments]"; exit 0 ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;
 esac
