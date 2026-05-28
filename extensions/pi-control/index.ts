@@ -11,11 +11,11 @@ import { browserControlGuidance } from "./tools/browser.ts";
 import { rootDir, listSkills, runValidator, buildUsageReport } from "./utils.ts";
 import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
-import { mergeSkill, listMergeStates } from "./skill-merge.ts";
+import { mergeSkill, listMergeStates, isValidSkillName } from "./skill-merge.ts";
 import { registerTools } from "./tools/index.ts";
 import { telemetry } from "./telemetry.ts";
 
-const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
+
 
 const CONTROL_HUB = `# Control Hub
 
@@ -165,7 +165,7 @@ function tctlStatus() {
 function skillDiff(args: string) {
   const name = args.trim();
   if (!name) return "Usage: /skill-diff <skill-name>";
-  if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
+  if (!isValidSkillName(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
 
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "skills", name, "SKILL.md");
@@ -204,7 +204,7 @@ export function skillSearch(args: string) {
 export function skillInfo(args: string) {
   const name = args.trim();
   if (!name) return "Usage: /skill-info <skill-name>";
-  if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
+  if (!isValidSkillName(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
   const repoRoot = rootDir();
   const paths = [
     join(repoRoot, "skills", name, "SKILL.md"),
@@ -379,8 +379,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("skill-merge", { description: "3-way merge a user skill with its PI version", handler: showFn((a) => {
     const name = a.trim();
     if (!name) return "Usage: /skill-merge <skill-name>";
-    const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
-    if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
+    if (!isValidSkillName(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
     const result = mergeSkill(name);
     if (result.hasConflicts) {
       return [

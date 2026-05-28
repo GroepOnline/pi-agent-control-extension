@@ -97,7 +97,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
     const token = ensureToken();
     const httpServer = createServer();
-    const wss = new WebSocketServer({ server: httpServer, verifyClient: (info: any) => {
+    const wss = new WebSocketServer({ server: httpServer, verifyClient: (info: { origin: string; secure: boolean; req: { headers: { host?: string } } }) => {
       // Reject connections with suspicious or missing Origin/Host headers
       const host = info.req.headers.host || "";
       return host.startsWith("localhost:") || host.startsWith("127.0.0.1:") || host === "";
@@ -122,12 +122,13 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
       socket.on("message", (data) => {
         // Reject oversized messages (> 1 MB) to prevent DoS
-        if (Buffer.isBuffer(data) ? data.length : Buffer.from(data as ArrayBuffer).length > 1024 * 1024) {
+        const buf = Buffer.isBuffer(data) ? data : Buffer.from(data as ArrayBuffer);
+        if (buf.length > 1024 * 1024) {
           socket.close(1009, "Message too large");
           return;
         }
         try {
-          const msg: BridgeMessage = JSON.parse(data.toString());
+          const msg: BridgeMessage = JSON.parse(buf.toString());
           handleMessage(msg, client, pi, ctx);
         } catch {
           socket.send(JSON.stringify({ id: "", type: "error", payload: { message: "Invalid JSON" } }));
