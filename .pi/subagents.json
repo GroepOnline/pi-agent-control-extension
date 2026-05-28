@@ -1,0 +1,11 @@
+{
+  "maxConcurrent": 5,
+  "defaultMaxTurns": 0,
+  "graceTurns": 5,
+  "defaultJoinMode": "async",
+  "schedulingEnabled": true,
+  "animationStyle": "braille",
+  "uiStyle": "premium",
+  "orchestrationMode": "auto",
+  "dashboardRefreshInterval": 750
+}

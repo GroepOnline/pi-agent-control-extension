@@ -97,7 +97,11 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
     const token = ensureToken();
     const httpServer = createServer();
-    const wss = new WebSocketServer({ server: httpServer });
+    const wss = new WebSocketServer({ server: httpServer, verifyClient: (info: any) => {
+      // Reject connections with suspicious or missing Origin/Host headers
+      const host = info.req.headers.host || "";
+      return host.startsWith("localhost:") || host.startsWith("127.0.0.1:") || host === "";
+    } });
 
     wss.on("connection", (socket, req) => {
       const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
@@ -117,6 +121,11 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
       bridgeState.clients.push(client);
 
       socket.on("message", (data) => {
+        // Reject oversized messages (> 1 MB) to prevent DoS
+        if (Buffer.isBuffer(data) ? data.length : Buffer.from(data as ArrayBuffer).length > 1024 * 1024) {
+          socket.close(1009, "Message too large");
+          return;
+        }
         try {
           const msg: BridgeMessage = JSON.parse(data.toString());
           handleMessage(msg, client, pi, ctx);
@@ -150,7 +159,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
       }
     }, 30000);
 
-    httpServer.listen(port, () => {
+    httpServer.listen(port, "127.0.0.1", () => {
       bridgeState.running = true;
       bridgeState.port = port;
       bridgeState.startTime = new Date();
@@ -262,7 +271,7 @@ export function registerBridge(pi: ExtensionAPI) {
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${token}\`\n- URL: ws://localhost:${actualPort}?token=${token}`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: *** (read from ${BRIDGE_TOKEN_PATH})\n- URL: ws://localhost:${actualPort}?token=<TOKEN>`,
           "info",
         );
       } catch (e: any) {

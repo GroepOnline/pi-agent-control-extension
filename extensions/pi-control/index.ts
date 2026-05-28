@@ -13,6 +13,9 @@ import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
 import { mergeSkill, listMergeStates } from "./skill-merge.ts";
 import { registerTools } from "./tools/index.ts";
+import { telemetry } from "./telemetry.ts";
+
+const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
 
 const CONTROL_HUB = `# Control Hub
 
@@ -162,6 +165,7 @@ function tctlStatus() {
 function skillDiff(args: string) {
   const name = args.trim();
   if (!name) return "Usage: /skill-diff <skill-name>";
+  if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
 
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "skills", name, "SKILL.md");
@@ -200,6 +204,7 @@ export function skillSearch(args: string) {
 export function skillInfo(args: string) {
   const name = args.trim();
   if (!name) return "Usage: /skill-info <skill-name>";
+  if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
   const repoRoot = rootDir();
   const paths = [
     join(repoRoot, "skills", name, "SKILL.md"),
@@ -243,8 +248,15 @@ export function transitionList() {
 function execAsync(cmd: string, args: string[], timeout = 120000): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     execFile(cmd, args, { encoding: "utf8", timeout }, (err, stdout, stderr) => {
-      if (err) reject({ ...err, stdout, stderr });
-      else resolve({ stdout, stderr });
+      if (err) {
+        const e = new Error(err.message);
+        (e as any).code = err.code;
+        (e as any).stdout = stdout;
+        (e as any).stderr = stderr;
+        reject(e);
+      } else {
+        resolve({ stdout, stderr });
+      }
     });
   });
 }
@@ -322,11 +334,19 @@ export async function showcaseRender(args: string): Promise<string> {
 
 export default function piControlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
+    telemetry.init();
+    telemetry.increment("session_start");
+    telemetry.record("session.start", { skillCount: listSkills(rootDir()).length });
     const n = listSkills(rootDir()).length;
     ctx.ui?.notify?.(`pi-agent-control loaded (${n} skills)`, "info");
   });
 
-  pi.on("tool_call", async (event: unknown, _ctx: unknown) => inspectToolCall(event) || undefined);
+  pi.on("tool_call", async (event: unknown, _ctx: unknown) => {
+    telemetry.increment("tool_call");
+    const name = (event as any)?.name ?? "unknown";
+    telemetry.record("tool.call", { tool: name });
+    return inspectToolCall(event) || undefined;
+  });
 
   const show = (text: string) => async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
   const showFn = (fn: (s: string) => string) => async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
@@ -341,6 +361,7 @@ export default function piControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
   pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: show(formatBrowserControl()) });
+  pi.registerCommand("telemetry", { description: "Show telemetry metrics and event log status", handler: show(telemetry.formatReport()) });
 
   // New commands
   pi.registerCommand("skill-studio", { description: "Launch the Skill Studio TUI (terminal dashboard)", handler: show("Run `bin/skill-studio` from the repo root to launch the interactive terminal UI for skill management.") });
