@@ -17,7 +17,7 @@
 interface LinearIssue {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   status: string;
   statusType: string;
   priority: { value: number; name: string };
@@ -48,6 +48,7 @@ const LINEAR_STATUS_MAP: Record<string, string> = {
   started: "In Progress",
   completed: "Done",
   canceled: "Archived",
+  duplicate: "Archived",
 };
 
 const LINEAR_PRIORITY_MAP: Record<number, string> = {
@@ -144,7 +145,7 @@ function buildLinearFetchCall(options: {
     tool: "list_issues",
     args: {
       team: "ChefSheesh",
-      state: options.state ?? "in_progress",
+      state: options.state ?? "started",
       updatedAt: options.updatedAfter,
       limit: options.limit ?? 50,
     },

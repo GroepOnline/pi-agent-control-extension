@@ -277,7 +277,7 @@
 {
   "action": "create",
   "name": "Notion-Linear Daily Sync",
-  "prompt": "Run the !notion-linear-sync playbook to sync all in-progress Linear issues to Notion Master Task Database and vice versa.",
+  "prompt": "Run the !notion-linear-sync playbook to sync all started Linear issues to Notion Master Task Database and vice versa.",
   "frequency": "0 9 * * 1-5",
   "notify_on": "failure"
 }
