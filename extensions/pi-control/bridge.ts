@@ -1,12 +1,25 @@
 import { WebSocketServer, WebSocket } from "ws";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
+
+function safeEqual(a: string, b: string): boolean {
+  const aBuffer = Buffer.from(a);
+  const bBuffer = Buffer.from(b);
+  if (aBuffer.length !== bBuffer.length) return false;
+  return timingSafeEqual(aBuffer, bBuffer);
+}
+
+function maskToken(token: string | null): string {
+  if (!token) return "N/A";
+  if (token.length <= 8) return "****";
+  return `${token.slice(0, 4)}…${token.slice(-4)}`;
+}
 
 export interface BridgeMessage {
   id: string;
@@ -40,12 +53,17 @@ interface InternalBridgeState {
 function ensureToken(): string {
   try {
     if (existsSync(BRIDGE_TOKEN_PATH)) {
+      try { chmodSync(BRIDGE_TOKEN_PATH, 0o600); } catch { /* ignore on filesystems without POSIX modes */ }
       return readFileSync(BRIDGE_TOKEN_PATH, "utf8").trim();
     }
   } catch { /* ignore */ }
   const token = randomUUID();
-  mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
-  writeFileSync(BRIDGE_TOKEN_PATH, token);
+  try {
+    mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
+    writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
+  } catch (err) {
+    console.warn(`[bridge] Failed to persist token to ${BRIDGE_TOKEN_PATH}: ${err instanceof Error ? err.message : String(err)}. Using in-memory token for this session.`);
+  }
   return token;
 }
 
@@ -64,6 +82,11 @@ const bridgeState: InternalBridgeState = {
   startTime: null,
 };
 
+let pingInterval: ReturnType<typeof setInterval> | null = null;
+let httpServer: ReturnType<typeof createServer> | null = null;
+let wss: WebSocketServer | null = null;
+let starting: Promise<{ port: number; token: string }> | null = null;
+
 function broadcast(msg: BridgeMessage, exclude?: string) {
   const payload = JSON.stringify(msg);
   for (const client of bridgeState.clients) {
@@ -78,6 +101,43 @@ function addEvent(msg: BridgeMessage) {
   if (bridgeState.events.length > 100) bridgeState.events.shift();
 }
 
+export async function stopBridge(): Promise<void> {
+  if (pingInterval !== null) {
+    clearInterval(pingInterval);
+    pingInterval = null;
+  }
+
+  for (const client of bridgeState.clients) {
+    try { client.socket.close(1001, "Bridge shutting down"); } catch { /* ignore */ }
+  }
+
+  if (wss !== null) {
+    await new Promise<void>((resolve) => {
+      wss!.close((err) => {
+        if (err) console.warn("[bridge] Error closing WebSocket server:", err.message);
+        resolve();
+      });
+    });
+    wss = null;
+  }
+
+  if (httpServer !== null) {
+    await new Promise<void>((resolve) => {
+      httpServer!.close((err) => {
+        if (err) console.warn("[bridge] Error closing HTTP server:", err.message);
+        resolve();
+      });
+    });
+    httpServer = null;
+  }
+
+  bridgeState.running = false;
+  bridgeState.port = 0;
+  bridgeState.clients = [];
+  bridgeState.events.length = 0;
+  bridgeState.startTime = null;
+}
+
 export function getBridgeState(): BridgeState {
   return {
     running: bridgeState.running,
@@ -89,87 +149,91 @@ export function getBridgeState(): BridgeState {
 }
 
 export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionContext): Promise<{ port: number; token: string }> {
-  return new Promise((resolve, reject) => {
-    if (bridgeState.running) {
-      resolve({ port: bridgeState.port, token: loadToken() ?? ensureToken() });
-      return;
+  if (starting) {
+    return starting;
+  }
+
+  starting = (async () => {
+    try {
+      await stopBridge();
+
+      const token = ensureToken();
+      httpServer = createServer();
+      wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
+
+      wss.on("connection", (socket, req) => {
+        const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
+        const providedToken = url.searchParams.get("token");
+        if (!providedToken || !safeEqual(providedToken, token)) {
+          socket.close(1008, "Invalid token");
+          return;
+        }
+
+        const clientId = randomUUID();
+        const client: BridgeClient = {
+          id: clientId,
+          socket,
+          connectedAt: new Date(),
+          lastPing: new Date(),
+        };
+        bridgeState.clients.push(client);
+
+        socket.on("message", (data) => {
+          try {
+            const msg: BridgeMessage = JSON.parse(data.toString());
+            handleMessage(msg, client, pi, ctx);
+          } catch {
+            socket.send(JSON.stringify({ id: "", type: "error", payload: { message: "Invalid JSON" } }));
+          }
+        });
+
+        socket.on("close", () => {
+          bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
+        });
+
+        socket.on("error", () => {
+          bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
+        });
+
+        socket.on("pong", () => {
+          client.lastPing = new Date();
+        });
+
+        socket.send(JSON.stringify({ id: "", type: "connected", payload: { clientId } }));
+        addEvent({ id: randomUUID(), type: "client.connected", payload: { clientId } });
+      });
+
+      // Ping clients every 30s
+      pingInterval = setInterval(() => {
+        for (const client of bridgeState.clients) {
+          if (client.socket.readyState === WebSocket.OPEN) {
+            client.socket.ping();
+          }
+        }
+      }, 30000);
+
+      return new Promise<{ port: number; token: string }>((resolve, reject) => {
+        httpServer!.listen(port, "127.0.0.1", () => {
+          bridgeState.running = true;
+          bridgeState.port = port;
+          bridgeState.startTime = new Date();
+          resolve({ port, token });
+        });
+
+        httpServer!.on("error", (err) => {
+          stopBridge();
+          reject(err);
+        });
+      });
+    } finally {
+      starting = null;
     }
+  })();
 
-    const token = ensureToken();
-    const httpServer = createServer();
-    const wss = new WebSocketServer({ server: httpServer });
-
-    wss.on("connection", (socket, req) => {
-      const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
-      const providedToken = url.searchParams.get("token");
-      if (providedToken !== token) {
-        socket.close(1008, "Invalid token");
-        return;
-      }
-
-      const clientId = randomUUID();
-      const client: BridgeClient = {
-        id: clientId,
-        socket,
-        connectedAt: new Date(),
-        lastPing: new Date(),
-      };
-      bridgeState.clients.push(client);
-
-      socket.on("message", (data) => {
-        try {
-          const msg: BridgeMessage = JSON.parse(data.toString());
-          handleMessage(msg, client, pi, ctx);
-        } catch {
-          socket.send(JSON.stringify({ id: "", type: "error", payload: { message: "Invalid JSON" } }));
-        }
-      });
-
-      socket.on("close", () => {
-        bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
-      });
-
-      socket.on("error", () => {
-        bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
-      });
-
-      socket.on("pong", () => {
-        client.lastPing = new Date();
-      });
-
-      socket.send(JSON.stringify({ id: "", type: "connected", payload: { clientId } }));
-      addEvent({ id: randomUUID(), type: "client.connected", payload: { clientId } });
-    });
-
-    // Ping clients every 30s
-    const pingInterval = setInterval(() => {
-      for (const client of bridgeState.clients) {
-        if (client.socket.readyState === WebSocket.OPEN) {
-          client.socket.ping();
-        }
-      }
-    }, 30000);
-
-    httpServer.listen(port, () => {
-      bridgeState.running = true;
-      bridgeState.port = port;
-      bridgeState.startTime = new Date();
-      resolve({ port, token });
-    });
-
-    httpServer.on("error", (err) => {
-      clearInterval(pingInterval);
-      bridgeState.running = false;
-      bridgeState.port = 0;
-      bridgeState.startTime = null;
-      try { wss.close(); } catch { /* ignore */ }
-      try { httpServer.close(); } catch { /* ignore */ }
-      reject(err);
-    });
-  });
+  return starting;
 }
 
-async function handleMessage(msg: BridgeMessage, client: BridgeClient, pi?: ExtensionAPI, ctx?: ExtensionContext) {
+async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: ExtensionAPI, _ctx?: ExtensionContext) {
   const reply = (payload: Record<string, unknown>) => {
     client.socket.send(JSON.stringify({ id: msg.id, type: `${msg.type}.response`, payload }));
   };
@@ -245,13 +309,9 @@ export function formatBridgeStatusMarkdown(): string {
     `| **Events** | ${s.events.length} |`,
     ``,
     s.running
-      ? `Token: \`${loadToken() ?? "N/A"}\``
+      ? `Token: \`${maskToken(loadToken())}\``
       : "Bridge not running. Start with `/bridge-start`.",
   ].join("\n");
-}
-
-function show(text: string) {
-  return async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
 }
 
 export function registerBridge(pi: ExtensionAPI) {
@@ -262,17 +322,19 @@ export function registerBridge(pi: ExtensionAPI) {
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${token}\`\n- URL: ws://localhost:${actualPort}?token=${token}`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${maskToken(token)}\`\n- URL: ws://localhost:${actualPort}?token=<stored-token>`,
           "info",
         );
-      } catch (e: any) {
-        ctx.ui?.notify?.(`Failed to start bridge: ${e.message}`, "error");
+      } catch (e: unknown) {
+        ctx.ui?.notify?.(`Failed to start bridge: ${String(e)}`, "error");
       }
     },
   });
 
   pi.registerCommand("bridge-status", {
     description: "Show remote agent bridge status",
-    handler: show(formatBridgeStatusMarkdown()),
+    handler: async (_args: string, ctx: ExtensionContext) => {
+      ctx.ui?.notify?.(formatBridgeStatusMarkdown(), "info");
+    },
   });
 }
