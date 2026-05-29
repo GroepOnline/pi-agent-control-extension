@@ -50,12 +50,8 @@ function ensureToken(): string {
     }
   } catch { /* ignore */ }
   const token = randomUUID();
-  try {
-    mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
-    writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
-  } catch (err) {
-    console.warn(`[bridge] Failed to persist token to ${BRIDGE_TOKEN_PATH}: ${err instanceof Error ? err.message : String(err)}. Using in-memory token for this session.`);
-  }
+  mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
+  writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
   return token;
 }
 
@@ -224,7 +220,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
     const token = ensureToken();
     const httpServer = createServer();
-    const wss = new WebSocketServer({ server: httpServer });
+    const wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
 
     wss.on("connection", (socket, req) => {
       const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
@@ -277,7 +273,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
       }
     }, 30000);
 
-    httpServer.listen(port, () => {
+    httpServer.listen(port, "127.0.0.1", () => {
       bridgeState.running = true;
       bridgeState.port = port;
       bridgeState.startTime = new Date();
@@ -384,8 +380,9 @@ export function registerBridge(pi: ExtensionAPI) {
       const port = parseInt(args.trim()) || 8765;
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
+        const masked = token.slice(0, 4) + "..." + token.slice(-4);
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${maskToken(token)}\`\n- URL: ws://localhost:${actualPort}?token=<stored-token>`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${masked}\` (full token in ~/.config/devin/bridge-token)\n- URL: ws://127.0.0.1:${actualPort}?token=<see token file>`,
           "info",
         );
       } catch (e: unknown) {
