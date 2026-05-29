@@ -1,0 +1,22 @@
+This door:
+- Executed a full tuistory recipe proof-report capture demonstrating the official wired render on-ramp (iter26) per the exact supplied recipe.
+- Created RUN_DIR artifacts/runs/2026-05-28T12-08-37-tuistory-official-render-iter26 with commitments.md recorded before any capture.
+- Performed pre-invocation and post-invocation recipe-compliant PTY captures (FORCE_COLOR=3 + COLORTERM=truecolor + 120x36), including a dedicated invocation capture of the exact command constructed by the iter20 official wired render logic in bin/control-narrate, against the iter21-expanded NarratorShowcase + real 4-feature props from the 2026-05-28T07-00-46 bundle.
+- The invocation exercised the expansion (Keystrokes now active for the "keystroke-pills" effect in the props; CodeAnnotations for the guard rule) via the official entrypoint's logic.
+- Produced pre/invocation/post snapshots + .casts + guards-diff-iter26.txt (0 bytes vs iter25) + proof-report.md with 4x PROVEN + gate PASS (emphasizing bin/control-narrate as the official on-ramp).
+- Appended iter26 line to evidence/10door-index.txt and extended the Feature 1 guard enforcement proofs cross-ref.
+
+Strongest new material:
+- Clear proof that the official `bin/control-narrate` (with its iter20 --render logic defaulting to NarratorShowcase) is the governed on-ramp that successfully drives the expanded (iter21) composition with real loop-generated props under the exact tuistory recipe.
+- Complete before/during/after evidence under the recipe (pre = post-iter25 state; invocation = official wired logic + expanded code paths active; post = no kernel change).
+- Another 0-byte guards diff confirming the kernel stayed immutable while highlighting the official tool surface.
+
+Next door options (prioritized):
+1. Re-run the exact still/render commands (now with the expanded NarratorShowcase containing Keystrokes/CodeAnnotations) via the official wired `bin/control-narrate --render` in an environment where Remotion produces actual PNG/MP4 output from real 4-chapter props.
+2. Further expand NarratorShowcase (more EffectLayer/TransitionLayer/TitleCard reuse, consume real props keystrokes/codeAnnotations fields, better chapter body content).
+3. Polish the iter20 wiring (props path detection, video vs still, integration tests against real verification bundles).
+4. More recipe captures of the official entrypoint surface (e.g. `bin/control-narrate --render --help`), updated skills list, or expanded composition.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved in all transcripts.
+
+Loop continues.

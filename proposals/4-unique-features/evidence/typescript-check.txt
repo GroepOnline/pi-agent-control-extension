@@ -1,0 +1,4 @@
+
+> pi-agent-control-extension@5.1.1 lint
+> tsc --noEmit
+

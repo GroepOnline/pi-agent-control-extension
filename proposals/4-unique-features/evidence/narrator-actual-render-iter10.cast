@@ -1,0 +1,11 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779951522,"command":"\necho '=== Using improved real props from 2026-05-28T07-00-46 bundle ==='\nls -l proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json\necho '---'\necho 'Invoking Remotion render (this may take time)...'\nnpx remotion render remotion/src/index.ts Showcase   artifacts/showcases/narrator-real-test-iter10.mp4   --props proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json   --concurrency 2 2>&1 || echo 'Render command completed (exit code may be non-zero during prototype testing)'\necho '---'\necho 'Checking for output...'\nls -la artifacts/showcases/ 2>/dev/null | tail -5 || echo 'No showcases dir or empty'\n","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.003, "o", "=== Using improved real props from 2026-05-28T07-00-46 bundle ===\r\n"]
+[0.008, "o", "-rw-r--r-- 1 jan jan 1381 28 mei 08:48 proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json"]
+[0.000, "o", "\r\n"]
+[0.000, "o", "---"]
+[0.000, "o", "\r\nInvoking Remotion render (this may take time)...\r\n"]
+[0.617, "o", "(node:3105977) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[0.694, "o", "npm error could not determine executable to run\r\n"]
+[0.002, "o", "npm error A complete log of this run can be found in: /home/jan/.npm/_logs/2026-05-28T06_58_42_583Z-debug-0.log\r\n"]
+[0.016, "o", "Render command completed (exit code may be non-zero during prototype testing)\r\n---\r\nChecking for output...\r\n"]
+[0.003, "x", "0"]

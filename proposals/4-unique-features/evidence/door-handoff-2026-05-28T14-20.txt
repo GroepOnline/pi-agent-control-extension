@@ -1,0 +1,21 @@
+This door (fresh 10 door / iter35):
+
+- Created RUN_DIR artifacts/runs/2026-05-28T14-15-00-tuistory-official-onramp-testing-iter35 with commitments pre-touch.
+- Pre-invocation + comprehensive end-to-end testing PTY captures (still, render, different outs, error cases) under full recipe.
+- Minor refinement: help text in bin/control-narrate updated to document --props and the recommended pattern for reliable NarratorShowcase video with real props.
+- Updated help captured in PTY.
+- 0-byte guards-diff-iter35.txt vs iter34 baseline.
+- 4x PROVEN proof-report.
+- Final verification clean.
+- Index + Feature 1 cross-ref updated.
+
+Key result: The official governed on-ramp has been systematically tested across formats and cases under the recipe PTY and is now properly documented in --help.
+
+Next door options (updated):
+1. Full production readiness validation and any final minor polish now that the official on-ramp is tested and documented.
+2. Polish / expand the NarratorShowcase using the proven pipeline.
+3-4. Wiring polish and more official surface captures.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved.
+
+Loop continues.

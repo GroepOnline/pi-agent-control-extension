@@ -1,0 +1,15 @@
+This door:
+- Substantially fleshed out the dedicated NarratorShowcase composition (v0.2): proper title card, sequenced chapters with visual treatment, basic effects (spotlight + callout), provenance footer, and full palette support.
+- Created supporting progress note (narrator-composition-progress-iter17.md).
+- Captured the work with the exact recipe env (iter17).
+
+Strongest new material:
+- We now have a genuinely usable, renderable NarratorShowcase composition that can turn real narrator props from the prototype into a coherent cinematic piece — without depending on agg + ffmpeg.
+
+Next door options (prioritized):
+1. Test rendering the composition with npx remotion still / render using one of the real narrator props files.
+2. Wire bin/control-narrate (or a thin layer) to target "NarratorShowcase" directly.
+3. Expand the composition further (reuse more existing components: Keystrokes, CodeAnnotations, richer effects, actual terminal window embeds if desired).
+4. Revisit Option A (clip-stager + video output) on an environment that has agg + ffmpeg.
+
+All under exact recipe env. Kernel untouched. Loop continues.

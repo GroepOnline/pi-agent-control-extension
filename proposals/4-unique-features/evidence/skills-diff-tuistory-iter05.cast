@@ -1,0 +1,8 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779948534,"command":"./bin/pi-agent-control skills diff tuistory 2>&1 || true","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.639, "o", "(node:3053084) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[0.239, "o", "(node:3053102) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[0.494, "o", "(node:3053113) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[0.005, "o", "(node:3053113) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[0.112, "o", "\r\n\u001b[1m\u001b[38;5;45m🔍 Diffing user vs bundled versions of \"tuistory\"...\u001b[0m\r\n\r\n"]
+[0.011, "o", "\r\n"]
+[0.039, "x", "0"]

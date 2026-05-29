@@ -1,0 +1,15 @@
+This door:
+- Ingested the strong Feature 1 guard enforcement proofs consolidation + skills diff capture from previous door.
+- Delivered the top-priority item from the prior handoff: feature4-narrator-sketch-minimal.md — clean, lightweight rule-based narrator heuristic (preset selection table based on claim types/driver/duration, chaptering, overlays) that directly references the recent remotion preset/recipe captures and stays 100% additive to the existing pipeline + guard kernel.
+- Supporting capture: compose-showcase-entrypoints-iter06.cast (the actual surfaces the sketched narrator would call).
+
+Strongest new material:
+- The narrator sketch gives Feature 4 a concrete, low-risk v0.1 implementation path that can be prototyped immediately against real verification runs from this loop.
+- The Feature 1 proofs doc from the previous door remains the highest-leverage recent artifact for any security or one-pager work.
+
+Next door options:
+- Prototype the narrator sketch (small reference script that reads a verified run dir and emits props.json).
+- Expand the Feature 1 proofs with more cross-references or turn it into an appendix for the main proposal.
+- Fresh capture round (skill merge in action, or an actual compose invocation on one of the proof runs).
+
+All under exact recipe env. Kernel untouched. Loop continues.

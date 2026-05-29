@@ -29,7 +29,8 @@
     "lint:python": "ruff check . && ruff format --check .",
     "pack:dry": "npm pack --dry-run",
     "showcase:render": "npx tsx remotion/scripts/render-showcase.ts",
-    "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'"
+    "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'",
+    "clean": "rm -rf coverage reports artifacts/telemetry/*.jsonl remotion/node_modules/.cache remotion/node_modules/.remotion && echo 'Caches en tijdelijke bestanden succesvol opgeruimd!'"
   },
   "pi": {
     "extensions": [

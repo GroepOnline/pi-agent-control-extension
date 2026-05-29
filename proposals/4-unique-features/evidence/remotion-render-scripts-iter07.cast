@@ -1,0 +1,10 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779949757,"command":"ls -la remotion/scripts/ 2>/dev/null || true && echo '---' && ls -1 remotion/scripts/ 2>/dev/null || true","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.006, "o", "totaal 12\r\n"]
+[0.000, "o", "drwxr-xr-x 2 jan jan 4096 28 mei 04:55 .\r\n"]
+[0.000, "o", "drwxr-xr-x 6 jan jan 4096 28 mei 06:01 .."]
+[0.000, "o", "\r\n"]
+[0.000, "o", "-rw-r--r-- 1 jan jan  977 28 mei 04:55 render-showcase.ts"]
+[0.000, "o", "\r\n"]
+[0.001, "o", "---\r\n"]
+[0.003, "o", "render-showcase.ts\r\n"]
+[0.001, "x", "0"]

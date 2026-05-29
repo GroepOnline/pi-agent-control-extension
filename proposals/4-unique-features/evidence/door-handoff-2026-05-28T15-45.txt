@@ -1,0 +1,20 @@
+This door (fresh 10 door / iter43):
+
+- Created RUN_DIR artifacts/runs/2026-05-28T15-40-00-tuistory-narrator-showcase-further-iter43/ with commitments.md pre-touch (4 claims focused on further NarratorShowcase work per handoff priority 1, more official captures, wiring edges, original atoms, guards reference, color rule, verification gate).
+- Recipe-compliant PTY captures (asciinema recovery with exact 120x36 + FORCE_COLOR=3 + COLORTERM=truecolor; tctl --backend tuistory syntax tested and matching recipe but relay skew as prior): doctor, skills list (original atoms preserved), control-narrate --help, official on-ramp paths (further-updated NarratorShowcase + props-only), guards baseline + color rule.
+- Further NarratorShowcase work (minimal high-leverage, post-commitments): richer chapter body now notes "keystrokes/codeAnnotations active" from real-props context; provenance footer with iter. Pre/post .tsx snapshots + diff in evidence/. Exercised via official bin/control-narrate --render --props with real 4-chapter props under full recipe env (official-onramp-further-narrator.cast).
+- proof-report.md: 4x PROVEN (ties to pre/post + diff, further casts showing bypass + corrected syntax + color envs + updated composition, additional surface casts, recovery.md, guards 0-diff, real props).
+- Final verification: npm run validate / doctor / lint all EXIT 0 (11/17 contract clean); guards-diff.txt 0 bytes vs baseline (all 8 sacred blocks incl. tuistory color rule at 28-33 pristine).
+- Updated 10door-index.txt + extended feature1-guard-enforcement-proofs.md with cross-ref (iter43 further real-props overlays/keystrokes work in NarratorShowcase, official on-ramp exercise, 0-diff, color rule fidelity, Feature 1/4 relationship).
+- recovery.md (tctl attempt + skew + proven recovery), prior handoff copy, real props copy, bin pre-capture, verify/ outputs self-contained in RUN_DIR.
+
+Key result: NarratorShowcase (Feature 4) further advanced with richer chapter body noting keystrokes/codeAnnotations from real-props (directly addressing handoff priority 1) while the 8 sacred guards (especially tuistory color at 28-33) and full contract remain 0-delta. All official surfaces exercised under exact tuistory recipe env. Official on-ramp continues to serve as the governed, kernel-protected entrypoint.
+
+Next door options (updated):
+1. More NarratorShowcase work (further TitleCard/TransitionLayer/EffectLayer reuse, richer chapter body content from real-props fields like transitions/overlays/keystrokes/codeAnnotations, better provenance or chapter transitions for the 4 features).
+2-3. Additional official surface captures (more tuistory/other driver traces on bin/control-narrate + skill-studio TUI + pi-agent-control subcommands under recipe; more guard cross-ref updates).
+4. Wiring polish / edge cases for the on-ramp (full MP4 render variant via official path, better Remotion error surfacing, integration against fresh verify bundles).
+
+All under exact recipe env. Kernel untouched (0-byte guards diffs every door). Original skill atom names preserved in all transcripts.
+
+Loop continues.

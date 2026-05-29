@@ -1,0 +1,5 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779949133,"command":"./bin/pi-agent-control compose --help 2>&1 || true; echo '---'; ./bin/pi-agent-control showcase --help 2>&1 || true","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.019, "o", "unknown command: compose\r\n"]
+[0.001, "o", "---\r\n"]
+[0.008, "o", "unknown command: showcase\r\n"]
+[0.000, "x", "0"]

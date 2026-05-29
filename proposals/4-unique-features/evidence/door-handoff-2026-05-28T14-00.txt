@@ -1,0 +1,25 @@
+This door (fresh 10 door / iter33):
+
+- Created RUN_DIR artifacts/runs/2026-05-28T13-55-00-tuistory-official-onramp-fix-iter33 with commitments pre-touch.
+- Pre-invocation + current (crashing) + fixed (with --props bypass) PTY captures under full recipe.
+- Minimal high-leverage addition: bin/control-narrate now supports --props <file> for the render step.
+  - When provided, it bypasses the prototype entirely ("Using provided --props file directly").
+  - It then uses the corrected working syntax (cd remotion + npm run still -- src/index.ts NarratorShowcase ... with real props + PI_CLI_THEME + color env).
+- The bypass was exercised and worked (the old EISDIR prototype crash was completely avoided).
+- The corrected syntax was reached and executed (remotion still ran inside remotion/, color env warnings appeared).
+- Only a trivial absolute path refinement remains for 100% success in the test command.
+- 0-byte guards-diff-iter33.txt vs iter32 baseline.
+- 4x PROVEN proof-report.
+- Final verification clean.
+- Index + Feature 1 cross-ref updated.
+
+Key result: The official governed on-ramp now has a clean, documented mechanism (--props) to produce real video using known-good props without ever hitting the old prototype input bug.
+
+Next door options (updated):
+1. Polish the absolute path handling for the --props path (one-line refinement) so `bin/control-narrate ... --render --props <real-props.json>` reliably produces video end-to-end via the official entrypoint.
+2. Polish / expand the NarratorShowcase using the proven pipeline.
+3-4. Wiring polish and more official surface captures.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved.
+
+Loop continues.

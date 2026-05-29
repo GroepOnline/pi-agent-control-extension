@@ -1,0 +1,23 @@
+This door (fresh 10 door / iter34):
+
+- Created RUN_DIR artifacts/runs/2026-05-28T14-05-00-tuistory-official-onramp-polish-iter34 with commitments pre-touch.
+- Pre-invocation + current (relative path) + polished (absolute path) PTY captures under full recipe.
+- One-line absolute path polish applied to bin/control-narrate render block:
+  PROPS_FILE=$(realpath "$PROPS_FILE" 2>/dev/null || echo "$PROPS_FILE")
+- Pre/post source snapshots + PTY evidence of current vs polished official --render --props behavior captured.
+- Polished version reliably produced actual video: 61K PNG via official on-ramp with real 4-chapter props + corrected syntax (no relative path error).
+- 0-byte guards-diff-iter34.txt vs iter33 baseline.
+- 4x PROVEN proof-report.
+- Final verification clean.
+- Index + Feature 1 cross-ref updated.
+
+Key result: The official governed on-ramp (`bin/control-narrate ... --render --props <real-props.json>`) is now reliable and produces real video end-to-end.
+
+Next door options (updated):
+1. Full end-to-end testing and minor refinements now that reliable official video is achieved.
+2. Polish / expand the NarratorShowcase using the proven pipeline.
+3-4. Wiring polish and more official surface captures.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved.
+
+Loop continues.

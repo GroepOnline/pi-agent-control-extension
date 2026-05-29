@@ -1,0 +1,53 @@
+{
+  "preset": "pi-hero",
+  "fidelity": "standard",
+  "clips": [
+    {
+      "id": "clip-1",
+      "source": "example.cast",
+      "duration": 12,
+      "fidelity": "standard"
+    },
+    {
+      "id": "clip-2",
+      "source": "example2.cast",
+      "duration": 18,
+      "fidelity": "standard"
+    }
+  ],
+  "narrator": {
+    "version": "0.1-clip-stager",
+    "originalProps": "proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json",
+    "chapters": [
+      {
+        "id": "chapter-1",
+        "title": "Native Skill Atom Lifecycle Governance (tuistory)",
+        "durationHintSec": 30
+      },
+      {
+        "id": "chapter-2",
+        "title": "In-Process Multi-Modal Control & Safety Router (tuistory)",
+        "durationHintSec": 30
+      },
+      {
+        "id": "chapter-3",
+        "title": "Evidence & Verification Contract (mixed)",
+        "durationHintSec": 30
+      },
+      {
+        "id": "chapter-4",
+        "title": "Reproducibility & Auditability (tuistory)",
+        "durationHintSec": 30
+      }
+    ],
+    "effects": [
+      "keystroke-pills",
+      "spotlight"
+    ],
+    "overlays": {
+      "provenanceFooter": true,
+      "commitmentHighlights": true
+    }
+  },
+  "clipDuration": 30
+}

@@ -3,9 +3,33 @@ import { SKILL_NAMES, type RouteDecision, type ControlSkillName } from "./schema
 // ⚡ Bolt Optimization: Cache word-boundary regular expressions so they are only compiled once per session.
 const regexCache = new Map<string, RegExp>();
 
+// RULE PRIORITY (order matters - later rules can override earlier ones):
+// 1. High-specificity drivers (browser, true-input) - checked first
+// 2. Generic terminal/tui - checked second, overridden by (1)
+// 3. Deliverable types (video, qa) - modify deliverable regardless of driver
+// 4. Target-specific (pi-agent-cli, init, wiki) - add skills
+// 5. Meta operations (review, research, meta-control) - override driver to "mixed"
+// 6. Catch-all - ensures minimal skills are loaded for generic inputs
+//
+// NEGATIVE KEYWORDS: Prefix a keyword with "!" to exclude it.
+// Example: keywords: ["terminal", "!browser"] matches "terminal" but NOT if "browser" is present.
+// This is for rule authors to define exclusions, not for user input parsing.
+
 function has(text: string, terms: string[]) {
   const t = text.toLowerCase();
   return terms.some((term) => {
+    // Negative keyword support: !term means "must NOT contain term"
+    if (term.startsWith("!")) {
+      const negTerm = term.slice(1);
+      if (negTerm.includes(" ")) return !t.includes(negTerm);
+      let re = regexCache.get(negTerm);
+      if (!re) {
+        re = new RegExp(`\\b${negTerm}\\b`);
+        regexCache.set(negTerm, re);
+      }
+      return !re.test(t);
+    }
+    // Positive keyword
     if (term.includes(" ")) return t.includes(term);
     let re = regexCache.get(term);
     if (!re) {
@@ -39,7 +63,7 @@ const ROUTE_RULES: Rule[] = [
     apply: (s) => { s.driver = "true-input"; s.skills.push("true-input", "pty-capture"); s.capture = "mp4"; }
   },
   {
-    keywords: ["tui", "terminal", "cli tool", "cli app", "tctl", "snapshot", "escape key", "ink framework"],
+    keywords: ["tui", "terminal", "cli tool", "cli app", "tctl", "snapshot", "escape key", "ink framework", "command", "shell", "bash", "script", "!browser", "!web"],
     apply: (s) => {
       if (s.driver !== "true-input" && s.driver !== "agent-browser") s.driver = "tuistory";
       s.skills.push("tuistory", "capture");
@@ -101,6 +125,57 @@ const ROUTE_RULES: Rule[] = [
       s.skills.push("background-pty");
       if (s.driver === "tuistory") s.capture = "cast";
     }
+  },
+  {
+    keywords: ["e2e", "end-to-end", "end to end", "integration test", "user journey", "cross-service", "workflow test"],
+    apply: (s) => {
+      s.skills.push("e2e-tester");
+      s.driver = "mixed";
+    }
+  },
+  {
+    keywords: ["ralph", "consensus", "ralplan", "review plan", "hardening review", "plan review"],
+    apply: (s) => {
+      s.skills.push("ralph", "agent-planner", "agent-architect", "agent-critic", "agent-security-reviewer");
+      s.driver = "mixed";
+    }
+  },
+  {
+    keywords: ["create a plan", "plan this task", "break down this work", "implementation plan"],
+    apply: (s) => {
+      s.skills.push("agent-planner");
+      s.driver = "mixed";
+    }
+  },
+  {
+    keywords: ["architect review", "technical feasibility", "dependency analysis", "scalability assessment"],
+    apply: (s) => {
+      s.skills.push("agent-architect");
+      s.driver = "mixed";
+    }
+  },
+  {
+    keywords: ["critic review", "adversarial review", "challenge assumptions", "find weak spots"],
+    apply: (s) => {
+      s.skills.push("agent-critic");
+      s.driver = "mixed";
+    }
+  },
+  {
+    keywords: ["security review", "security check", "OWASP review", "security audit"],
+    apply: (s) => {
+      s.skills.push("agent-security-reviewer");
+      s.driver = "mixed";
+    }
+  },
+  {
+    keywords: ["run", "execute", "task", "do", "start", "launch"],
+    apply: (s) => {
+      // Catch-all: ensure default driver has its skills loaded for generic inputs
+      if (s.driver === "tuistory" && !s.skills.includes("tuistory")) {
+        s.skills.push("tuistory", "capture");
+      }
+    }
   }
 ];
 
@@ -129,12 +204,12 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
   }
 
   const uniqueSkills = Array.from(new Set(state.skills)).filter((s): s is ControlSkillName => (SKILL_NAMES as readonly string[]).includes(s));
-  const recipe = buildRecipe(state.driver, state.deliverable, state.capture);
+  const recipe = buildRecipe(state.driver, state.deliverable, state.capture, uniqueSkills);
 
   return { driver: state.driver, skills: uniqueSkills, capture: state.capture, deliverable: state.deliverable, warnings: state.warnings, recipe };
 }
 
-function buildRecipe(driver: RouteDecision["driver"], deliverable: RouteDecision["deliverable"], capture: RouteDecision["capture"]): string[] {
+function buildRecipe(driver: RouteDecision["driver"], deliverable: RouteDecision["deliverable"], capture: RouteDecision["capture"], skills: ControlSkillName[]): string[] {
   const steps = [
     "Create a run directory: RUN_DIR=artifacts/runs/<timestamp>-<slug> and record commitments before touching the target.",
     "Load the routed skill atoms and keep the original skill names in the transcript for auditability.",
@@ -147,7 +222,21 @@ function buildRecipe(driver: RouteDecision["driver"], deliverable: RouteDecision
     steps.push("Use true-input when the claim depends on real terminal keyboard encoding or terminal emulator behavior.");
     steps.push("Collect PTY bytes or VM screenshots and preserve raw logs under evidence/.");
   } else if (driver === "mixed") {
-    steps.push("Use subagents and chained orchestration (e.g., init -> wiki -> review -> autoresearch) to complete complex logical goals.");
+    if (skills.includes("ralph")) {
+      steps.push("Use the ralph skill to orchestrate the Review-Approve Loop Protocol: load agent-planner to create/refine plan, then run agent-architect, agent-critic, and agent-security-reviewer for adversarial hardening, iterate until consensus or max 3 cycles.");
+    } else if (skills.includes("e2e-tester")) {
+      steps.push("Use the e2e-tester skill to orchestrate end-to-end testing: identify user journeys, map workflows, design test scenarios, implement tests with proper isolation, execute and report results.");
+    } else if (skills.includes("agent-planner")) {
+      steps.push("Use the agent-planner skill to create a structured work plan: interview user (max 3 rounds), break down work into actionable steps, identify dependencies and risks, save to ~/.omc/plans/{name}.md.");
+    } else if (skills.includes("agent-architect")) {
+      steps.push("Use the agent-architect skill for architectural analysis: evaluate technical feasibility, check dependency conflicts, assess scalability, identify integration risks, provide specific recommendations.");
+    } else if (skills.includes("agent-critic")) {
+      steps.push("Use the agent-critic skill for adversarial review: challenge assumptions, find weak spots, check error handling, evaluate over/under-engineering, identify failure modes.");
+    } else if (skills.includes("agent-security-reviewer")) {
+      steps.push("Use the agent-security-reviewer skill for security analysis: check OWASP vulnerabilities, secrets exposure, auth bypass, CSRF/XSS, insecure defaults, provide specific mitigations.");
+    } else {
+      steps.push("Use subagents and chained orchestration (e.g., init -> wiki -> review -> autoresearch) to complete complex logical goals.");
+    }
   } else {
     steps.push("Use tctl with backend tuistory for deterministic TUI automation and text snapshots.");
     steps.push("Launch with --cols 120 --rows 36 plus --env FORCE_COLOR=3 --env COLORTERM=truecolor.");

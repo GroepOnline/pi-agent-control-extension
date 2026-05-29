@@ -322,11 +322,17 @@ Each `--session` spawns a separate Chromium process (~300 MB). Prefer navigating
 | `--headed` | Show browser window |
 | `--cdp <port>` | Connect via CDP |
 | `--auto-connect` | Auto-discover running Chrome |
-| `--proxy <url>` | Use proxy server |
+| `--proxy <url>` | Use proxy server (e.g., `socks5://127.0.0.1:9050`) |
 | `--color-scheme dark` | Force dark/light mode |
 | `--ignore-https-errors` | Accept self-signed certs |
 | `--allow-file-access` | Enable `file://` URLs |
 | `--json` | JSON output for parsing |
+
+### Tor Proxy Routing (Optimized)
+
+The tool has native integration with a 5-port Tor circuit load-balancing pool (`9050`-`9054`). When executing via `control_browser_command` tool, you can pass:
+- `useTor: true`: Rotates traffic across random SOCKS ports `9050`-`9054` for independent circuit paths (highly recommended for parallel scraping).
+- `proxyPort: 905x`: Target a specific Tor circuit group directly (e.g., `9053` for SessionGroup 1).
 
 ## Debugging
 

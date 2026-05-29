@@ -1,0 +1,9 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779947361,"command":"ls -la remotion/ && echo '--- presets ---' && ls -1 remotion/src/ 2>/dev/null | head -20 || true","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.006, "o", "totaal 240\r\n"]
+[0.001, "o", "drwxr-xr-x   6 jan jan   4096 28 mei 06:01 .\r\ndrwxr-xr-x  21 jan jan   4096 28 mei 06:59 ..\r\ndrwxr-xr-x 242 jan jan  12288 27 mei 22:17 node_modules\r\n-rw-r--r--   1 jan jan    799 28 mei 06:01 package.json\r\n"]
+[0.000, "o", "-rw-r--r--   1 jan jan 199161 28 mei 04:55 package-lock.json\r\n"]
+[0.000, "o", "drwxr-xr-x   2 jan jan   4096 27 mei 21:01 public\r\n-rw-r--r--   1 jan jan    197 28 mei 04:55 remotion.config.ts\r\ndrwxr-xr-x   2 jan jan   4096 28 mei 04:55 scripts\r\ndrwxr-xr-x   6 jan jan   4096 28 mei 06:58 src\r\n-rw-r--r--   1 jan jan    422 28 mei 04:55 tsconfig.json\r\n"]
+[0.000, "o", "--- presets ---\r\n"]
+[0.003, "o", "components\r\ncompositions\r\nindex.test.ts\r\nindex.ts\r\nlib\r\nrender.test.ts\r\nrender.ts\r\nRoot.tsx\r\nschema"]
+[0.000, "o", "\r\n"]
+[0.001, "x", "0"]

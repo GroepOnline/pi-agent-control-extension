@@ -1,0 +1,15 @@
+This door delivered:
+- Ingestion of iter-03 captures (confirmed rich content: original "tuistory" skill atom + detailed tctl/tuistory guidance including the exact FORCE_COLOR + COLORTERM rule; remotion src structure).
+- New deeper capture: remotion-presets-recipes-iter04.cast (actual preset files + recipes.ts visibility).
+- feature4-narrator-inputs-iter03-04.md — concrete consolidation of Remotion input material for the autonomous narrator (Feature 4).
+
+Strongest new material:
+- The two remotion casts + the new addendum give a narrator implementation real, reproducible examples of what presets and recipes look like on disk.
+- The skills-view cast continues the audit trail of original atom names under the mandated color env.
+
+Next door options:
+- Small narrator sketch one-pager (rule-based preset selection from verification claims).
+- Another capture round (perhaps actual compose/showcase invocation or skill merge).
+- Consolidate all guard enforcement + color rule proofs from iter-02/03/04 into one Feature 1 evidence summary.
+
+All under exact recipe env. Kernel untouched.

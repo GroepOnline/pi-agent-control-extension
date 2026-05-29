@@ -1,0 +1,6 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779946801,"command":"./bin/pi-agent-control verify 'artifacts/runs/2026-05-28T07-00-46-tuistory-4-unique-features-proof' 2>&1 || true","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.011, "o", "cat: /home/jan/OrgChefgroep/pi-agent-control-extension/prompts/verify.md"]
+[0.001, "o", ": Bestand of map bestaat niet\r\n"]
+[6.136, "o", "(node:3021298) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[186.400, "o", "Created verification artifact:\r\n\r\n- `artifacts/runs/2026-05-28T07-00-46-tuistory-4-unique-features-proof/verification.md` — independent verification report marking the proof run **FAIL / incomplete** because visible tuistory evidence is missing or failed (`Session \"default\" not found`), and required schema files (`run.json`, `transcript.md`) are absent.\r\n"]
+[364.052, "x", "143"]
