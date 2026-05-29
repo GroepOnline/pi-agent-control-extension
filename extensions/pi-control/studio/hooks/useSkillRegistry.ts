@@ -42,8 +42,10 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
         const path = join(dir, d.name, 'SKILL.md');
         const fd = openSync(path, 'r');
         let parsed;
+        let mtime: Date;
         try {
           const stat = fstatSync(fd);
+          mtime = stat.mtime;
           const cached = skillCache.get(path);
           if (cached && cached.mtimeMs === stat.mtimeMs) {
             parsed = cached.parsed;
@@ -67,7 +69,7 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
           sourceDir: sourceLabel,
           enabled: true,
           valid: hasName && hasDesc ? 'ok' : hasName || hasDesc ? 'warn' : 'error',
-          mtime: stat.mtime,
+          mtime,
           shadowState: null,
         };
       });
