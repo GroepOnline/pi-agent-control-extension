@@ -55,6 +55,11 @@ export function rootDir() {
 // This prevents 17+ blocking readFileSync calls every time the skill index is checked.
 const cachedSkills = new Map<string, { name: string; description: string }[]>();
 
+export function clearSkillsCache() {
+  cachedSkills.clear();
+  cachedRootDir = null;
+}
+
 export function listSkills(base: string) {
   if (cachedSkills.has(base)) return cachedSkills.get(base)!;
   const dir = join(base, "skills");
