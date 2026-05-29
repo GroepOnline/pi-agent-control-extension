@@ -6,15 +6,15 @@ import { buildUsageReport, buildParallelVerifyReport, listSkills, runValidator, 
 
 describe("shellEscape", () => {
   it("single-quotes POSIX shell metacharacters", () => {
-    expect(shellEscape("https://example.com?a=1&b=2", "linux")).toBe("'https://example.com?a=1&b=2'");
+    expect(shellEscape("https://example.com?a=1&b=2")).toBe("'https://example.com?a=1&b=2'");
   });
 
-  it("uses Windows-safe quoting for cmd metacharacters", () => {
-    expect(shellEscape("https://example.com & calc", "win32")).toBe('"https://example.com ^& calc"');
+  it("uses safe escaping for strings with spaces", () => {
+    expect(shellEscape("https://example.com & calc")).toBe("'https://example.com & calc'");
   });
 
   it("leaves simple arguments unchanged", () => {
-    expect(shellEscape("https://example.com/path", "linux")).toBe("https://example.com/path");
+    expect(shellEscape("https://example.com/path")).toBe("https://example.com/path");
   });
 });
 
