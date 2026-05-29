@@ -40,3 +40,11 @@ jobs:
         uses: github/codeql-action/analyze@dc73d59c2d7bd4f8194098a91219eeee6d8a1719 # v4
         with:
           category: "/language:${{ matrix.language }}"
+          upload: false
+          output: sarif-results
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@dc73d59c2d7bd4f8194098a91219eeee6d8a1719 # v4
+        continue-on-error: true
+        with:
+          sarif_file: sarif-results
