@@ -13,6 +13,11 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
+function maskToken(token: string): string {
+  if (token.length <= 8) return "***";
+  return token.slice(0, 4) + "..." + token.slice(-4);
+}
+
 export interface BridgeMessage {
   id: string;
   type: string;
@@ -283,11 +288,6 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
   }
 }
 
-function maskToken(token: string | null): string {
-  if (!token || token.length < 8) return "****";
-  return token.slice(0, 4) + "..." + token.slice(-4);
-}
-
 export function formatBridgeStatusMarkdown(): string {
   const s = getBridgeState();
   return [
@@ -302,7 +302,7 @@ export function formatBridgeStatusMarkdown(): string {
     `| **Events** | ${s.events.length} |`,
     ``,
     s.running
-      ? `Token: \`${maskToken(loadToken())}\``
+      ? `Token: \`${maskToken(loadToken() || "")}\``
       : "Bridge not running. Start with `/bridge-start`.",
   ].join("\n");
 }
