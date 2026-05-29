@@ -9,16 +9,8 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
 
 function safeEqual(a: string, b: string): boolean {
-  const aBuffer = Buffer.from(a);
-  const bBuffer = Buffer.from(b);
-  if (aBuffer.length !== bBuffer.length) return false;
-  return timingSafeEqual(aBuffer, bBuffer);
-}
-
-function maskToken(token: string | null): string {
-  if (!token) return "N/A";
-  if (token.length <= 8) return "****";
-  return `${token.slice(0, 4)}…${token.slice(-4)}`;
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
 export interface BridgeMessage {
@@ -230,7 +222,78 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
     }
   })();
 
-  return starting;
+    const token = ensureToken();
+    const httpServer = createServer();
+    const wss = new WebSocketServer({ server: httpServer });
+
+    wss.on("connection", (socket, req) => {
+      const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
+      const providedToken = url.searchParams.get("token");
+      if (!providedToken || !safeEqual(providedToken, token)) {
+        socket.close(1008, "Invalid token");
+        return;
+      }
+
+      const clientId = randomUUID();
+      const client: BridgeClient = {
+        id: clientId,
+        socket,
+        connectedAt: new Date(),
+        lastPing: new Date(),
+      };
+      bridgeState.clients.push(client);
+
+      socket.on("message", (data) => {
+        try {
+          const msg: BridgeMessage = JSON.parse(data.toString());
+          handleMessage(msg, client, pi, ctx);
+        } catch {
+          socket.send(JSON.stringify({ id: "", type: "error", payload: { message: "Invalid JSON" } }));
+        }
+      });
+
+      socket.on("close", () => {
+        bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
+      });
+
+      socket.on("error", () => {
+        bridgeState.clients = bridgeState.clients.filter((c) => c.id !== clientId);
+      });
+
+      socket.on("pong", () => {
+        client.lastPing = new Date();
+      });
+
+      socket.send(JSON.stringify({ id: "", type: "connected", payload: { clientId } }));
+      addEvent({ id: randomUUID(), type: "client.connected", payload: { clientId } });
+    });
+
+    // Ping clients every 30s
+    const pingInterval = setInterval(() => {
+      for (const client of bridgeState.clients) {
+        if (client.socket.readyState === WebSocket.OPEN) {
+          client.socket.ping();
+        }
+      }
+    }, 30000);
+
+    httpServer.listen(port, () => {
+      bridgeState.running = true;
+      bridgeState.port = port;
+      bridgeState.startTime = new Date();
+      resolve({ port, token });
+    });
+
+    httpServer.on("error", (err) => {
+      clearInterval(pingInterval);
+      bridgeState.running = false;
+      bridgeState.port = 0;
+      bridgeState.startTime = null;
+      try { wss.close(); } catch { /* ignore */ }
+      try { httpServer.close(); } catch { /* ignore */ }
+      reject(err);
+    });
+  });
 }
 
 async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: ExtensionAPI, _ctx?: ExtensionContext) {
