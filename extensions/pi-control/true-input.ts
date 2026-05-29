@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import type { CaptureResult, CaptureFormat } from "./capture.ts";
+import { shellEscape } from "./utils.ts";
 
 export function captureTrueInput(
   target: string,
@@ -17,21 +18,23 @@ export function captureTrueInput(
     warnings: [],
   };
 
+  const safeTarget = shellEscape(target);
+
   switch (format) {
     case "mp4":
-      result.command = `true-input record --out ${join(evidenceDir, "capture.mp4")} -- ${target}`;
+      result.command = `true-input record --out ${shellEscape(join(evidenceDir, "capture.mp4"))} -- ${safeTarget}`;
       result.validated = true;
       break;
     case "cast":
-      result.command = `true-input record --asciicast --out ${join(evidenceDir, "capture.cast")} -- ${target}`;
+      result.command = `true-input record --asciicast --out ${shellEscape(join(evidenceDir, "capture.cast"))} -- ${safeTarget}`;
       result.validated = true;
       break;
     case "png":
-      result.command = `true-input screenshot --out ${join(evidenceDir, "screenshot.png")} -- ${target}`;
+      result.command = `true-input screenshot --out ${shellEscape(join(evidenceDir, "screenshot.png"))} -- ${safeTarget}`;
       result.warnings.push("png for true-input produces a PTY screenshot.");
       break;
     case "report":
-      result.command = `true-input log --out ${join(evidenceDir, "log.txt")} -- ${target}`;
+      result.command = `true-input log --out ${shellEscape(join(evidenceDir, "log.txt"))} -- ${safeTarget}`;
       result.validated = true;
       break;
   }

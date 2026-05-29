@@ -7,6 +7,14 @@ import { verifyCommitments } from "./recipes.ts";
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DEFAULT_CURRENCY = "USD";
 
+export function shellEscape(arg: string, platform: NodeJS.Platform = process.platform): string {
+  if (/^[a-zA-Z0-9_/:.@-]+$/.test(arg)) return arg;
+  if (platform === "win32") {
+    return `"${arg.replace(/(["^&|<>()%!])/g, "^$1").replace(/\r?\n/g, " ")}"`;
+  }
+  return `'${arg.replace(/'/g, "'\\''")}'`;
+}
+
 export type UsageInput = {
   model?: string;
   promptTokens?: number;

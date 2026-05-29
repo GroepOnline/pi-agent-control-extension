@@ -1,7 +1,7 @@
 function getCommand(input: unknown): string {
   if (!input || typeof input !== "object") return "";
   const obj = input as Record<string, unknown>;
-  for (const key of ["command", "cmd", "script"]) {
+  for (const key of ["command", "cmd", "script", "code", "expression", "args", "input", "payload", "data", "body"]) {
     if (typeof obj[key] === "string") return obj[key] as string;
   }
   return "";
@@ -14,12 +14,12 @@ export function inspectToolCall(event: any) {
   if (!command) return null;
 
   if (["bash", "shell", "terminal", "exec"].some((t) => toolName.includes(t))) {
-    // ⚡ Bolt Optimization: Defer toLowerCase() until we verify this is a shell tool, saving string allocations for other tools.
     const lower = command.toLowerCase();
-    if (/rm\s+-rf\s+(\/|~|\.\.|\*|\.\/?(\s|$))/.test(lower)) {
+    if (/rm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r|--recursive|--force)\s/.test(lower) ||
+        /rm\s+-rf?\s+(\/|~|\.\.|\*|\.\/?(\s|$))/.test(lower)) {
       return { block: true, reason: "Blocked destructive rm -rf pattern. Narrow the target path and explain why deletion is required." };
     }
-    if (/\.env(\s|$)/.test(lower) && /(cat|sed|grep|cp|mv|rm|>|tee)/.test(lower)) {
+    if (/\.env[\w.]*(\s|$|\/)/.test(lower) && /(cat|sed|grep|cp|mv|rm|>|tee|head|tail|base64|diff|less|more|nano|vi|vim)/.test(lower)) {
       return { block: true, reason: "Blocked direct .env manipulation/read. Use a redacted config example instead." };
     }
     if (lower.includes("tctl launch") && !lower.includes("--repo-root")) {
@@ -38,11 +38,32 @@ export function inspectToolCall(event: any) {
     if (/(docker\s+run|docker\s+exec)\s+.*(--privileged|--pid(=|\s+)host|--network(=|\s+)host|(-v|--volume)(=|\s+)\/)/.test(lower)) {
       return { block: true, reason: "Blocked privileged docker escape pattern. Use --cap-add for specific capabilities instead." };
     }
-    if (/curl\s+.*\|\s*(bash|sh)\s*$/.test(lower) && /(bit\.ly|tinyurl|pastebin|raw\.githubusercontent)/.test(lower)) {
-      return { block: true, reason: "Blocked curl-pipe-to-shell from URL shortener or raw content host. Download and verify the script first." };
+    if (/(curl|wget|fetch)\s.*\|\s*(bash|sh|zsh|python3?|node|perl|ruby|php)\b/.test(lower)) {
+      return { block: true, reason: "Blocked curl/wget-pipe-to-shell. Download and verify the script before execution." };
     }
     if (/(export|set)\s+\w+=\$\(.*\)/.test(lower) && /(cat|curl|wget|nc|ncat)/.test(lower)) {
       return { block: true, reason: "Blocked inline env-var exfiltration via command substitution. Set env vars from known values only." };
+    }
+    if (/\b(wget|nc|ncat|socat)\b/.test(lower) && !lower.includes("wget -q") && !lower.includes("--spider")) {
+      return { block: true, reason: "Blocked network utility (wget/nc/ncat/socat). Use approved download methods instead." };
+    }
+    if (/\b(chmod|chown|chgrp)\s+/.test(lower) && /(777|666|\+s|a\+w)/.test(lower)) {
+      return { block: true, reason: "Blocked dangerous permission change (777/setuid/world-writable). Use least-privilege permissions." };
+    }
+    if (/\bdd\s+/.test(lower) && /(of=\/dev|if=\/dev|bs=)/.test(lower)) {
+      return { block: true, reason: "Blocked raw disk operation (dd). Direct disk access is prohibited." };
+    }
+    if (/\b(python3?\s+-c|node\s+-e|perl\s+-e|ruby\s+-e|php\s+-r)\b/.test(lower)) {
+      return { block: true, reason: "Blocked inline code execution. Write to a file and execute the file instead." };
+    }
+    if (/\b(bash\s+-i|\/dev\/(tcp|udp)|mkfifo|nc\s+-e|ncat\s+-e|socat\s+.*exec)\b/.test(lower)) {
+      return { block: true, reason: "Blocked reverse shell pattern. Use approved remote access methods." };
+    }
+    if (/base64\s+(-d|--decode)\s*\|\s*(sh|bash|zsh|python|node|perl|ruby|php)\b/.test(lower)) {
+      return { block: true, reason: "Blocked base64-decoded execution. Decode to a file and review before running." };
+    }
+    if (/\beval\s+/.test(lower) && /(\$|`|\\)/.test(lower)) {
+      return { block: true, reason: "Blocked eval with dynamic content. Use explicit function calls instead." };
     }
   }
 

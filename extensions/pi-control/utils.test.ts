@@ -2,7 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildUsageReport, buildParallelVerifyReport, listSkills, runValidator, rootDir } from "./utils.ts";
+import { buildUsageReport, buildParallelVerifyReport, listSkills, runValidator, rootDir, shellEscape } from "./utils.ts";
+
+describe("shellEscape", () => {
+  it("single-quotes POSIX shell metacharacters", () => {
+    expect(shellEscape("https://example.com?a=1&b=2", "linux")).toBe("'https://example.com?a=1&b=2'");
+  });
+
+  it("uses Windows-safe quoting for cmd metacharacters", () => {
+    expect(shellEscape("https://example.com & calc", "win32")).toBe('"https://example.com ^& calc"');
+  });
+
+  it("leaves simple arguments unchanged", () => {
+    expect(shellEscape("https://example.com/path", "linux")).toBe("https://example.com/path");
+  });
+});
 
 describe("buildUsageReport", () => {
   it("returns default text when no input given", () => {

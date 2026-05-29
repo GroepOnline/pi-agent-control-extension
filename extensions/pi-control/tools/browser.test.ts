@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
+import { execFileSync } from "node:child_process";
 import { BROWSER_CONTROL_STATUS, browserControlGuidance } from "./browser.ts";
 import { browserCommandTool } from "./browser_command.ts";
+
+vi.mock("node:child_process", () => ({
+  execFileSync: vi.fn(() => "snapshot output"),
+}));
 
 describe("Browser Control Tool", () => {
   describe("BROWSER_CONTROL_STATUS", () => {
@@ -42,7 +47,16 @@ describe("Browser Control Tool", () => {
     });
 
     it("should call execFileSync for valid actions", async () => {
-      // Tested via E2E and implicitly in validation
+      vi.mocked(execFileSync).mockReturnValue("snapshot output");
+      const result = await browserCommandTool.execute("id", { action: "snapshot" });
+
+      expect(execFileSync).toHaveBeenCalledWith(
+        "agent-browser",
+        ["snapshot"],
+        expect.objectContaining({ encoding: "utf8", timeout: 30000 }),
+      );
+      expect(result.content[0].text).toBe("snapshot output");
+      expect(result.details.success).toBe(true);
     });
   });
 });

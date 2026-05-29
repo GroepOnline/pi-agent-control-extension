@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, watch } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { SkillEntry, SkillSource, ShadowState } from '../model/skill.ts';
@@ -112,9 +112,6 @@ function buildRegistry(): SkillEntry[] {
 
   return all;
 }
-
-// Simple writeFileSync polyfill for the hook (imported above)
-import { writeFileSync } from 'node:fs';
 
 function getWatchedDirs(): string[] {
   const repoRoot = getRepoRoot();
