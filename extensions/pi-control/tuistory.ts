@@ -19,9 +19,9 @@ export function captureTuiStory(
   };
 
   const safeTarget = shellEscape(target);
-  const castPath = shellEscape(join(evidenceDir, "capture.cast"));
-  const snapshotPath = shellEscape(join(evidenceDir, "snapshot.txt"));
-  const mp4Path = shellEscape(join(evidenceDir, "capture.mp4"));
+  const safeDir = shellEscape(evidenceDir);
+  const castPath = `${safeDir}/capture.cast`;
+  const snapshotPath = `${safeDir}/snapshot.txt`;
 
   switch (format) {
     case "cast":
@@ -29,7 +29,7 @@ export function captureTuiStory(
       result.validated = true;
       break;
     case "mp4":
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && cast2gif ${castPath} ${mp4Path}`;
+      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && cast2gif ${castPath} ${safeDir}/capture.mp4`;
       break;
     case "png":
       result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && tctl snapshot --out ${snapshotPath}`;

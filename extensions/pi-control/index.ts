@@ -160,9 +160,12 @@ function tctlStatus() {
   }
 }
 
+const VALID_SKILL_NAME = /^[a-zA-Z0-9_-]+$/;
+
 function skillDiff(args: string) {
   const name = args.trim();
   if (!name) return "Usage: /skill-diff <skill-name>";
+  if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
 
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "skills", name, "SKILL.md");
@@ -201,6 +204,7 @@ export function skillSearch(args: string) {
 export function skillInfo(args: string) {
   const name = args.trim();
   if (!name) return "Usage: /skill-info <skill-name>";
+  if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
   const repoRoot = rootDir();
   const paths = [
     join(repoRoot, "skills", name, "SKILL.md"),

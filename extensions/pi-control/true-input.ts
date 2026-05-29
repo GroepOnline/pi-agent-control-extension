@@ -19,22 +19,23 @@ export function captureTrueInput(
   };
 
   const safeTarget = shellEscape(target);
+  const safeOut = shellEscape(evidenceDir);
 
   switch (format) {
     case "mp4":
-      result.command = `true-input record --out ${shellEscape(join(evidenceDir, "capture.mp4"))} -- ${safeTarget}`;
+      result.command = `true-input record --out ${safeOut}/capture.mp4 -- ${safeTarget}`;
       result.validated = true;
       break;
     case "cast":
-      result.command = `true-input record --asciicast --out ${shellEscape(join(evidenceDir, "capture.cast"))} -- ${safeTarget}`;
+      result.command = `true-input record --asciicast --out ${safeOut}/capture.cast -- ${safeTarget}`;
       result.validated = true;
       break;
     case "png":
-      result.command = `true-input screenshot --out ${shellEscape(join(evidenceDir, "screenshot.png"))} -- ${safeTarget}`;
+      result.command = `true-input screenshot --out ${safeOut}/screenshot.png -- ${safeTarget}`;
       result.warnings.push("png for true-input produces a PTY screenshot.");
       break;
     case "report":
-      result.command = `true-input log --out ${shellEscape(join(evidenceDir, "log.txt"))} -- ${safeTarget}`;
+      result.command = `true-input log --out ${safeOut}/log.txt -- ${safeTarget}`;
       result.validated = true;
       break;
   }
