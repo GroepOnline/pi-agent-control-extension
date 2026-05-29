@@ -73,7 +73,7 @@ describe("capture", () => {
 
   it("returns a capture result for browser target", () => {
     const result = capture("https://example.com", "png");
-    expect(result.evidenceId).toMatch(/^capture-\d+$/);
+    expect(result.evidenceId).toMatch(/^capture-\d+-[a-f0-9]{8}$/);
     expect(result.driver).toBe("agent-browser");
     expect(result.format).toBe("png");
     expect(result.path).toContain("artifacts/runs/");

@@ -1,4 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { routeControlTask } from "./routing.ts";
@@ -53,7 +54,7 @@ export function parseCaptureArgs(args: string): { target: string; format: Captur
 
 export function capture(target: string, format: CaptureFormat = "mp4"): CaptureResult {
   const { driver, warnings } = routeToDriver(target);
-  const evidenceId = `capture-${Date.now()}`;
+  const evidenceId = `capture-${Date.now()}-${randomUUID().slice(0, 8)}`;
   const evidenceDir = join(rootDir(), "artifacts", "runs", evidenceId, "evidence");
   try {
     mkdirSync(evidenceDir, { recursive: true });

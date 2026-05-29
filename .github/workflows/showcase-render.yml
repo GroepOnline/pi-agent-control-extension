@@ -40,11 +40,15 @@ jobs:
         run: mkdir -p artifacts/showcases
 
       - name: Render showcase
+        env:
+          RECIPE: ${{ github.event.inputs.recipe }}
+          CAPTURE_PATH: ${{ github.event.inputs.capture_path }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path }}
         run: |
           npx tsx remotion/scripts/render-showcase.ts \
-            "${{ github.event.inputs.recipe }}" \
-            "${{ github.event.inputs.capture_path }}" \
-            "${{ github.event.inputs.output_path }}"
+            "$RECIPE" \
+            "$CAPTURE_PATH" \
+            "$OUTPUT_PATH"
 
       - name: Upload showcase artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

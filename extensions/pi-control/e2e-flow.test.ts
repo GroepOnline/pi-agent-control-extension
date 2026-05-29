@@ -52,7 +52,7 @@ describe("E2E: Capture → Evidence → Validation Flow", () => {
   it("captures a URL and validates evidence", () => {
     const result = capture("https://example.com", "png");
     expect(result.driver).toBe("agent-browser");
-    expect(result.evidenceId).toMatch(/^capture-\d+$/);
+    expect(result.evidenceId).toMatch(/^capture-\d+-[a-f0-9]{8}$/);
 
     const validation = validateEvidence({
       evidenceId: result.evidenceId,
