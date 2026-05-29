@@ -42,4 +42,12 @@ if [ $MISSING_DEPS -ne 0 ]; then
     echo "Please install the missing tools listed above."
 fi
 
+# Apply extension-skills priority patch (package skills override local skills)
+echo "==> Applying Pi extension priority patch..."
+if node "$(dirname "$0")/priority-extension-skills.mjs"; then
+    echo "  [OK] Extension skills priority set"
+else
+    echo "  [WARN] Could not apply priority patch"
+fi
+
 echo "==> Dependency check complete."
