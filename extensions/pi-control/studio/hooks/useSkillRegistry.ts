@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, watch } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, fstatSync, openSync, closeSync, mkdirSync, writeFileSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { SkillEntry, SkillSource, ShadowState } from '../model/skill.ts';
@@ -40,15 +40,21 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
       .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
       .flatMap((d) => {
         const path = join(dir, d.name, 'SKILL.md');
+        let fd: number;
         try {
-          const stat = statSync(path);
+          fd = openSync(path, 'r');
+        } catch {
+          return [];
+        }
+        try {
+          const stat = fstatSync(fd);
 
           let parsed;
           const cached = skillCache.get(path);
           if (cached && cached.mtimeMs === stat.mtimeMs) {
             parsed = cached.parsed;
           } else {
-            const text = readFileSync(path, 'utf8');
+            const text = readFileSync(fd, 'utf8');
             parsed = parseSkillMd(text);
             skillCache.set(path, { mtimeMs: stat.mtimeMs, parsed });
           }
@@ -68,6 +74,8 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
           }];
         } catch {
           return [];
+        } finally {
+          closeSync(fd);
         }
       });
   } catch {
