@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, watch } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, openSync, fstatSync, readSync, closeSync, mkdirSync, writeFileSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { SkillEntry, SkillSource, ShadowState } from '../model/skill.ts';
@@ -40,16 +40,21 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
       .filter((d) => d.isDirectory() && !d.name.startsWith('.') && existsSync(join(dir, d.name, 'SKILL.md')))
       .map((d) => {
         const path = join(dir, d.name, 'SKILL.md');
-        const stat = statSync(path);
-
+        const fd = openSync(path, 'r');
         let parsed;
-        const cached = skillCache.get(path);
-        if (cached && cached.mtimeMs === stat.mtimeMs) {
-          parsed = cached.parsed;
-        } else {
-          const text = readFileSync(path, 'utf8');
-          parsed = parseSkillMd(text);
-          skillCache.set(path, { mtimeMs: stat.mtimeMs, parsed });
+        try {
+          const stat = fstatSync(fd);
+          const cached = skillCache.get(path);
+          if (cached && cached.mtimeMs === stat.mtimeMs) {
+            parsed = cached.parsed;
+          } else {
+            const buf = Buffer.alloc(stat.size);
+            readSync(fd, buf, 0, stat.size, 0);
+            parsed = parseSkillMd(buf.toString('utf8'));
+            skillCache.set(path, { mtimeMs: stat.mtimeMs, parsed });
+          }
+        } finally {
+          closeSync(fd);
         }
 
         const hasName = parsed.name.length > 0;
