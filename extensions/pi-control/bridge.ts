@@ -1,12 +1,25 @@
 import { WebSocketServer, WebSocket } from "ws";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
+
+function safeEqual(a: string, b: string): boolean {
+  const aBuffer = Buffer.from(a);
+  const bBuffer = Buffer.from(b);
+  if (aBuffer.length !== bBuffer.length) return false;
+  return timingSafeEqual(aBuffer, bBuffer);
+}
+
+function maskToken(token: string | null): string {
+  if (!token) return "N/A";
+  if (token.length <= 8) return "****";
+  return `${token.slice(0, 4)}…${token.slice(-4)}`;
+}
 
 export interface BridgeMessage {
   id: string;
@@ -40,13 +53,14 @@ interface InternalBridgeState {
 function ensureToken(): string {
   try {
     if (existsSync(BRIDGE_TOKEN_PATH)) {
+      try { chmodSync(BRIDGE_TOKEN_PATH, 0o600); } catch { /* ignore on filesystems without POSIX modes */ }
       return readFileSync(BRIDGE_TOKEN_PATH, "utf8").trim();
     }
   } catch { /* ignore */ }
   const token = randomUUID();
   try {
     mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
-    writeFileSync(BRIDGE_TOKEN_PATH, token);
+    writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
   } catch (err) {
     console.warn(`[bridge] Failed to persist token to ${BRIDGE_TOKEN_PATH}: ${err instanceof Error ? err.message : String(err)}. Using in-memory token for this session.`);
   }
@@ -145,12 +159,12 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
       const token = ensureToken();
       httpServer = createServer();
-      wss = new WebSocketServer({ server: httpServer });
+      wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
 
       wss.on("connection", (socket, req) => {
         const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
         const providedToken = url.searchParams.get("token");
-        if (providedToken !== token) {
+        if (!providedToken || !safeEqual(providedToken, token)) {
           socket.close(1008, "Invalid token");
           return;
         }
@@ -199,7 +213,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
       }, 30000);
 
       return new Promise<{ port: number; token: string }>((resolve, reject) => {
-        httpServer!.listen(port, () => {
+        httpServer!.listen(port, "127.0.0.1", () => {
           bridgeState.running = true;
           bridgeState.port = port;
           bridgeState.startTime = new Date();
@@ -295,13 +309,9 @@ export function formatBridgeStatusMarkdown(): string {
     `| **Events** | ${s.events.length} |`,
     ``,
     s.running
-      ? `Token: \`${loadToken() ?? "N/A"}\``
+      ? `Token: \`${maskToken(loadToken())}\``
       : "Bridge not running. Start with `/bridge-start`.",
   ].join("\n");
-}
-
-function show(text: string) {
-  return async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
 }
 
 export function registerBridge(pi: ExtensionAPI) {
@@ -312,7 +322,7 @@ export function registerBridge(pi: ExtensionAPI) {
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${token}\`\n- URL: ws://localhost:${actualPort}?token=${token}`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${maskToken(token)}\`\n- URL: ws://localhost:${actualPort}?token=<stored-token>`,
           "info",
         );
       } catch (e: unknown) {
@@ -323,6 +333,8 @@ export function registerBridge(pi: ExtensionAPI) {
 
   pi.registerCommand("bridge-status", {
     description: "Show remote agent bridge status",
-    handler: show(formatBridgeStatusMarkdown()),
+    handler: async (_args: string, ctx: ExtensionContext) => {
+      ctx.ui?.notify?.(formatBridgeStatusMarkdown(), "info");
+    },
   });
 }

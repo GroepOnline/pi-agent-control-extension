@@ -1,10 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import type { CaptureResult, CaptureFormat } from "./capture.ts";
-
-/** Escape a value for safe inclusion in a shell command string. */
-const shellEscape = (s: string): string =>
-  `'${s.replace(/'/g, "'\\''")}'`;
+import { shellEscape } from "./utils.ts";
 
 export function captureBrowser(
   target: string,

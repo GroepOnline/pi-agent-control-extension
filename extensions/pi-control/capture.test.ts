@@ -14,6 +14,7 @@ vi.mock("node:fs", () => ({
 
 vi.mock("./utils.ts", () => ({
   rootDir: vi.fn(() => "/mock/root"),
+  shellEscape: vi.fn((s: string) => `'${s}'`),
 }));
 
 describe("parseCaptureArgs", () => {
