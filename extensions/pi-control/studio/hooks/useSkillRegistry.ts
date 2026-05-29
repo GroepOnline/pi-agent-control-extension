@@ -31,6 +31,8 @@ function parseSkillMd(text: string): { name: string; description: string } {
   };
 }
 
+const skillCache = new Map<string, { mtimeMs: number; parsed: ReturnType<typeof parseSkillMd> }>();
+
 function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEntry[] {
   if (!existsSync(dir)) return [];
   try {
@@ -38,9 +40,18 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
       .filter((d) => d.isDirectory() && !d.name.startsWith('.') && existsSync(join(dir, d.name, 'SKILL.md')))
       .map((d) => {
         const path = join(dir, d.name, 'SKILL.md');
-        const text = readFileSync(path, 'utf8');
-        const parsed = parseSkillMd(text);
         const stat = statSync(path);
+
+        let parsed;
+        const cached = skillCache.get(path);
+        if (cached && cached.mtimeMs === stat.mtimeMs) {
+          parsed = cached.parsed;
+        } else {
+          const text = readFileSync(path, 'utf8');
+          parsed = parseSkillMd(text);
+          skillCache.set(path, { mtimeMs: stat.mtimeMs, parsed });
+        }
+
         const hasName = parsed.name.length > 0;
         const hasDesc = parsed.description.length > 0;
         return {
