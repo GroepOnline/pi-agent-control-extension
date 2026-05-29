@@ -8,14 +8,15 @@ const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", ".."
 const DEFAULT_CURRENCY = "USD";
 
 /**
- * POSIX shell escaping: wraps in single quotes and escapes any embedded single quotes.
- * Safe for use in command strings that will be interpreted by a shell.
+ * Shell escaping: wraps in quotes appropriate for the target platform.
+ * On win32 uses double quotes with ^-escaping of cmd metacharacters;
+ * otherwise uses POSIX single quotes with embedded single-quote escaping.
  */
 export function shellEscape(arg: string, platform?: string): string {
   const plat = platform ?? process.platform;
   if (plat === "win32") {
     if (/^[a-zA-Z0-9_/:.@\\-]+$/.test(arg)) return arg;
-    return '"' + arg.replace(/([&|<>^%])/g, "^$1") + '"';
+    return '"' + arg.replace(/[&|<>^%]/g, "^$&") + '"';
   }
   if (/^[a-zA-Z0-9_/:.@-]+$/.test(arg)) return arg;
   return "'" + arg.replace(/'/g, "'\\''") + "'";
