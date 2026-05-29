@@ -6,7 +6,7 @@
 
 ## 1. Linear: List Issues
 
-```json
+```jsonc
 // Tool: linear.list_issues
 // Args:
 {
@@ -43,7 +43,7 @@
 
 ## 2. Linear: List Projects
 
-```json
+```jsonc
 // Tool: linear.list_projects
 // Args:
 {
@@ -82,7 +82,7 @@
 
 ## 3. Notion: Search Workspace
 
-```json
+```jsonc
 // Tool: notion.notion-search
 // Args:
 {
@@ -115,7 +115,7 @@
 
 ## 4. Notion: Fetch Command Center Page
 
-```json
+```jsonc
 // Tool: notion.notion-fetch
 // Args:
 {
@@ -146,7 +146,7 @@
 
 ## 5. Notion: Fetch Master Task Database Schema
 
-```json
+```jsonc
 // Tool: notion.notion-fetch
 // Args:
 {
@@ -190,7 +190,7 @@
 
 ## 6. Notion: Create Task from Linear Issue
 
-```json
+```jsonc
 // Tool: notion.notion-create-pages
 // Args:
 {
@@ -214,7 +214,7 @@
 
 ## 7. Linear: Create Issue from Notion Task
 
-```json
+```jsonc
 // Tool: linear.save_issue
 // Args:
 {
@@ -231,7 +231,7 @@
 
 ## 8. Linear: Create Sprint Report Document
 
-```json
+```jsonc
 // Tool: linear.save_document
 // Args:
 {
@@ -245,7 +245,7 @@
 
 ## 9. Sentry: Find Organizations
 
-```json
+```jsonc
 // Tool: sentry.find_organizations
 // Args: {}
 
@@ -256,7 +256,7 @@
 
 ## 10. DeepWiki: Ask About Repository
 
-```json
+```jsonc
 // Tool: deepwiki.ask_question
 // Args:
 {
@@ -271,7 +271,7 @@
 
 ## 11. Devin: Create Scheduled Sync
 
-```json
+```jsonc
 // Tool: devin_mcp.devin_schedule_manage
 // Args:
 {
@@ -287,7 +287,7 @@
 
 ## 12. Devin: Create Playbook
 
-```json
+```jsonc
 // Tool: devin_mcp.devin_playbook_manage
 // Args:
 {
