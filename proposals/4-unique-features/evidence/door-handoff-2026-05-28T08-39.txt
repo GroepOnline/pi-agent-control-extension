@@ -1,0 +1,19 @@
+This door:
+- Ingested the narrator prototype v0.1 and previous capture.
+- Delivered the #1 handoff item in full: real evidence test against an actual loop proof bundle (2026-05-28T07-00-46).
+  - convert-real-verification.cjs (bridge)
+  - REAL-EVIDENCE-TEST.md (documentation + analysis)
+  - real input JSON derived from the real verification.md
+  - Generated real-2026-05-28T07-00-46-props.json (concrete output from the prototype)
+- New supporting capture: remotion-render-entrypoint-iter08.cast (deeper view of the render target surface).
+
+Strongest new material:
+- The real evidence test proves the narrator prototype already works end-to-end on artifacts produced by this perpetual loop. This is the clearest demonstration yet of Feature 4's viability.
+
+Next door options:
+- Improve the converter to fully auto-parse real verification.md + proof-report pairs.
+- Run the prototype + actual Remotion render on the generated props from a real bundle.
+- Turn the prototype into the first version of a `control_narrate` skill (Feature 2 governance).
+- Expand the Feature 1 guard proofs consolidation with references to the narrator test.
+
+All under exact recipe env. Kernel untouched. Loop continues.

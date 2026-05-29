@@ -1,0 +1,14 @@
+This door:
+- Significantly improved bin/control-narrate (real help text, error handling, usage examples, explicit current limitations and status).
+- Delivered the cross-reference handoff item: appended a dedicated "Narrator / control-narrate Cross-Reference (iter-12+)" section to feature1-guard-enforcement-proofs.md that explicitly ties the recent Feature 4 work (prototype, bin tool, render attempts, new skill) back to the sacred 8-block kernel (especially the tuistory color rule and --repo-root reproducibility).
+
+Strongest new material:
+- The Feature 1 guard proofs document now contains a living, updated cross-reference showing that even substantial new capability (autonomous cinematic output) continues to operate strictly inside the immutable kernel.
+
+Next door options (prioritized):
+1. Achieve actual video/image output from one of the real props files (still the top technical blocker).
+2. Further harden bin/control-narrate (direct render integration once output path is solved, better pi-agent-control CLI integration).
+3. Another capture round focused on successful render output or skill merge.
+4. One-pager or appendix work for the main 4-unique-features proposal.
+
+All under exact recipe env. Kernel untouched. Loop continues.

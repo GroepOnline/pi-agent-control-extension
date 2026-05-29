@@ -1,0 +1,15 @@
+This door:
+- Ingested previous door's Feature 4 narrator inputs + deeper remotion capture.
+- Created feature1-guard-enforcement-proofs.md — major consolidation pulling the iter-02 guards.ts.txt (exact 8 sacred blocks + tuistory color rule at 28-33), the pattern of 100% recipe-compliant captures across multiple doors, and proof that the kernel is actively protecting the evidence work itself.
+- New capture: skills-diff-tuistory-iter05.cast (governance diff surface under exact env) for Feature 2 depth.
+
+Strongest new material:
+- The Feature 1 consolidation document is high-leverage for any future security pass or one-pager on the guardrails kernel.
+- The new diff capture adds to the growing body of original-atom governance evidence.
+
+Next door options (per prior handoffs):
+- Small narrator sketch one-pager (rule-based preset selection).
+- Capture round on actual compose/showcase or skill merge.
+- Expand the Feature 1 proofs doc with more cross-references.
+
+All captures under exact recipe env. Kernel untouched. Loop continues.

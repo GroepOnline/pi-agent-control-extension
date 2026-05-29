@@ -1,0 +1,9 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779955744,"command":"\necho '=== Running enhanced stager on 2026-05-28T07-00-46 bundle + real-improved props ==='\nnode proposals/4-unique-features/evidence/narrator-prototype-v0.1/narrator-clip-stager.cjs   --narrator-props proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json   --run-dir artifacts/runs/2026-05-28T07-00-46-tuistory-4-unique-features-proof   --output proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-fully-staged-iter14.props.json 2>&1\necho '---'\necho 'Checking staged output...'\nls -lh artifacts/narrator-staged/ 2>/dev/null | tail -10 || echo 'No staged dir or empty'\necho '---'\necho 'Final props:'\nls -l proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-fully-staged-iter14.props.json 2>/dev/null || echo 'No final props'\n","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.016, "o", "=== Running enhanced stager on 2026-05-28T07-00-46 bundle + real-improved props ===\r\n"]
+[0.081, "o", "{\r\n  \"ok\": true,\r\n  \"output\": \"proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-fully-staged-iter14.props.json\",\r\n  \"clips\": 2,\r\n  \"realVideoClips\": 0,\r\n  \"stagingDir\": \"/home/jan/OrgChefgroep/pi-agent-control-extension/artifacts/narrator-staged\",\r\n  \"note\": \"Real video clips generated where possible. You can now try scripts/render-showcase.sh --props <this-file> <the-mp4s...>\"\r\n}\r\n"]
+[0.019, "o", "---\r\nChecking staged output...\r\n"]
+[0.004, "o", "totaal 0\r\n"]
+[0.001, "o", "---\r\nFinal props:"]
+[0.000, "o", "\r\n"]
+[0.002, "o", "-rw-r--r-- 1 jan jan 1261 28 mei 10:09 proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-fully-staged-iter14.props.json\r\n"]
+[0.001, "x", "0"]

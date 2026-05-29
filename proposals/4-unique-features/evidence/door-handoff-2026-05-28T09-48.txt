@@ -1,0 +1,15 @@
+This door:
+- Used the improved bin/control-narrate on a real proof bundle (captured).
+- Directly tested feeding narrator-generated props into the project's production render path (scripts/render-showcase.sh) and captured the exact behavior.
+- Created narrator-to-showcase-bridge.md — the clearest, most actionable documentation yet of the current incompatibility + concrete options to close the gap (extend prototype for clip staging, new composition, or hybrid).
+
+Strongest new material:
+- We now have explicit, evidence-backed documentation of exactly why narrator props don't yet produce video through the main pipeline, plus prioritized paths forward.
+
+Next door options (prioritized):
+1. Close the gap (top priority): implement clip-staging support in the prototype or a dedicated narrator composition so real video output becomes possible.
+2. Harden bin/control-narrate with direct render invocation (once a working path exists).
+3. Cross-reference the bridge work back into the Feature 1 proofs if useful.
+4. Another capture round once a successful render path is available.
+
+All under exact recipe env. Kernel untouched. Loop continues.

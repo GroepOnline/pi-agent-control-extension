@@ -1,0 +1,22 @@
+This door (fresh 10 door / iter30):
+- Executed the full tuistory recipe with strong focus on handoff priority 1 (actual video output from real 4-chapter props via official wired bin/control-narrate --render + recovery variants against the expanded NarratorShowcase).
+- Created RUN_DIR artifacts/runs/2026-05-28T13-25-42-tuistory-official-render-iter30 with commitments.md recorded before any capture.
+- Pre-invocation + multi-attempt invocation PTY captures (120x36 + FORCE_COLOR=3 + COLORTERM=truecolor) of the official surface and the 3 video strategies (official path + cd remotion + npm run still + npm run render with PI_CLI_THEME + real props).
+- Produced rich diagnostic evidence: bundling now reaches 100% when cwd is inside remotion/ (solved iter29 resolution error); color env respected during real Remotion execution; precise remaining CLI syntax issue identified (composition ID misparse when "remotion/src/index.ts" is passed).
+- No actual PNG/MP4 emitted (one syntax fix away), but substantial progress on the loop's top priority.
+- 0-byte guards-diff-iter30.txt vs iter29 baseline + full proof-report with 4x PROVEN (Claim 1 framed as diagnostic advancement).
+- Final verification clean (validate/doctor/lint + 0-byte diff).
+- Appended iter30 to 10door-index.txt and extended Feature 1 guard proofs cross-ref.
+
+Strongest new material:
+- Concrete, reproducible path to first narrator video output: from inside remotion/, use `npx remotion still src/index.ts NarratorShowcase <out> --props <real-improved-...-props.json>` (plus PI_CLI_THEME + color env).
+- Full PTY evidence of the official on-ramp + expanded composition + real 4-feature props under the exact recipe.
+- 0-byte guards diff maintained.
+
+Next door options (updated with this door's diagnosis):
+1. Apply the corrected command form (`npx remotion still src/index.ts NarratorShowcase ...` when cwd is inside remotion/, with real 4-chapter props) via the official wired path or direct to finally produce actual PNG/MP4 output.
+2-4. (Carried forward) Further expand NarratorShowcase, polish wiring, more official entrypoint captures.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved.
+
+Loop continues.

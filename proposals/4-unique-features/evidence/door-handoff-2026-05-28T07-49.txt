@@ -1,0 +1,11 @@
+This door:
+- Ingested (and cleaned) the long-running verify attempt from previous door.
+- Produced two new high-fidelity captures under exact recipe env (remotion surface + skills view tuistory with original atom).
+- Added iter-03-evidence-addendum.md tying them to the 4 features.
+- Confirmed asciinema method remains fast and reliable.
+
+Strongest new material for next door:
+- remotion-surface-iter03.cast → direct fodder for Feature 4 narrator one-pager.
+- skills-view-tuistory-iter03.cast → fresh audit trail of original skill name under color env.
+
+Next logical moves: small narrator sketch one-pager, deeper Feature 1 evidence consolidation, or another recipe-style run.

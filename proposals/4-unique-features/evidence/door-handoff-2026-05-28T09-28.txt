@@ -1,0 +1,15 @@
+This door:
+- Promoted the control-narrate work to a proper first-class bin/ tool: bin/control-narrate (thin bash wrapper in the exact style of bin/skill-studio and other tools).
+- Updated the official SKILL.md and the prototype README to document the new official entrypoint.
+- The narrator capability now has a clean, invocable CLI surface while the heavy research logic remains in the prototype dir (for rapid iteration).
+
+Strongest new material:
+- bin/control-narrate is now the official on-ramp for the Autonomous Cinematic Narrator (Feature 4). This is a major step toward making it a real, usable tool.
+
+Next door options (prioritized):
+1. Achieve actual video/image output from one of the real props files (still the top technical blocker).
+2. Flesh out bin/control-narrate further (better error handling, direct render invocation once output is solved, integration with pi-agent-control CLI).
+3. Cross-reference the narrator + control-narrate work into the Feature 1 guard proofs document.
+4. Another capture round focused on successful render output.
+
+All under exact recipe env. Kernel untouched. Loop continues.

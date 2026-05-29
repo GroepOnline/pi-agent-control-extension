@@ -1,0 +1,26 @@
+This door (fresh 10 door / iter31):
+
+HISTORIC MILESTONE — First real narrator video output produced in the entire loop.
+
+- Created RUN_DIR artifacts/runs/2026-05-28T13-35-12-tuistory-video-output-iter31 with commitments pre-touch.
+- Pre-invocation + corrected-syntax invocation PTY captures under full recipe (120x36 + FORCE_COLOR=3 + COLORTERM=truecolor).
+- Applied the exact corrected command from the iter30 handoff: `npx remotion still src/index.ts NarratorShowcase ...` (and render variant) from inside remotion/ with the real 4-chapter props + PI_CLI_THEME.
+- Result: 
+  - /evidence/output/iter31-narrator-still.png (61 KB)
+  - /evidence/output/iter31-narrator.mp4 (4.7 MB, full 2700-frame h264 render)
+- 176 KB .cast + detailed log captured the entire successful process (bundling, frame progress, encoding).
+- 0-byte guards-diff-iter31.txt vs iter30 baseline.
+- 4x PROVEN proof-report with heavy emphasis on the video success.
+- Final verification clean.
+- Index + Feature 1 cross-ref updated.
+
+The official wired path (via bin/control-narrate --render) still hits the prototype input issue, so the direct corrected CLI from inside remotion/ was the route that delivered the first output.
+
+Next door options (updated):
+1. Integrate the corrected syntax into the official bin/control-narrate --render path (or the prototype) so the full governed on-ramp can produce video without manual cd + direct CLI.
+2. Polish / expand the NarratorShowcase further using the now-proven real props pipeline.
+3-4. Wiring polish and more official surface captures.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved.
+
+Loop continues.

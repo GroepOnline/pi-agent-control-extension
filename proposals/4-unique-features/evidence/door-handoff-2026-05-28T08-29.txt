@@ -1,0 +1,14 @@
+This door:
+- Ingested the narrator sketch + supporting capture from previous door.
+- Delivered the top handoff item: a real runnable narrator prototype v0.1 (generate-props.cjs + example files in narrator-prototype-v0.1/). It implements the preset selection table, effects, chapters, and overlays from the sketch, produces a concrete showcase-props.json, and is grounded in the actual remotion captures and verification structures from the loop.
+- New supporting capture: remotion-render-scripts-iter07.cast (the real render entrypoints the prototype would target).
+
+Strongest new material:
+- The full self-contained prototype reference is now the clearest, most actionable artifact for Feature 4. It can be run immediately and extended into a real post-verify step.
+
+Next door options:
+- Run the prototype against a real verification.md from one of the proof runs and produce a render.
+- Turn the prototype into a proper skill atom or control tool (respecting Feature 2 governance).
+- Expand the Feature 1 guard proofs doc or add a small narrator test using one of the iter-02/03 proof bundles.
+
+All under exact recipe env. Kernel untouched. Loop continues.

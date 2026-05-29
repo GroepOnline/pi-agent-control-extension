@@ -12,3 +12,9 @@ remotion/package-lock.json
 /tmp/tctl-sessions/
 .factory/
 coverage/
+
+# Local agent config
+.claude/
+
+# Remotion build artifacts
+remotion/artifacts/

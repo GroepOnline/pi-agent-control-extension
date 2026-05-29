@@ -1,0 +1,50 @@
+{
+  "version": "0.1-narrator-prototype",
+  "runId": "real-improved-2026-05-28T07-00-46",
+  "preset": "pi-hero",
+  "transitions": [
+    "motion-blur"
+  ],
+  "effects": [
+    "keystroke-pills",
+    "spotlight"
+  ],
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "Native Skill Atom Lifecycle Governance (tuistory)",
+      "durationHintSec": 30
+    },
+    {
+      "id": "chapter-2",
+      "title": "In-Process Multi-Modal Control & Safety Router (tuistory)",
+      "durationHintSec": 30
+    },
+    {
+      "id": "chapter-3",
+      "title": "Evidence & Verification Contract (mixed)",
+      "durationHintSec": 30
+    },
+    {
+      "id": "chapter-4",
+      "title": "Reproducibility & Auditability (tuistory)",
+      "durationHintSec": 30
+    }
+  ],
+  "overlays": {
+    "provenanceFooter": true,
+    "commitmentHighlights": true
+  },
+  "durationTargetSec": 90,
+  "source": {
+    "verification": "representative-from-loop-proof-work",
+    "remotionCatalog": [
+      "remotion-presets-recipes-iter04.cast",
+      "remotion-surface-iter03.cast"
+    ]
+  },
+  "invocation": {
+    "note": "In production this would call the existing Remotion render pipeline (confirmed via compose-showcase-entrypoints-iter06.cast that top-level subcommands are reached via skills or direct scripts).",
+    "suggestedCommand": "node remotion/scripts/render.js --props showcase-props.json"
+  }
+}

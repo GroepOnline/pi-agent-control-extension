@@ -1,0 +1,15 @@
+This door:
+- Confirmed that previous render attempts (iter09) did not produce video output (environment limitations).
+- Launched a new deliberate render attempt (iter10) using the improved real props from the 2026-05-28T07-00-46 bundle.
+- Created narrator-progress-iter10.md — clean synthesis of the entire recent Feature 4 arc (sketch → prototype → converter improvements → real evidence tests → actual render pipeline exercises) with honest gaps and next steps.
+
+Strongest new material:
+- Clear, consolidated view of exactly where the narrator prototype stands after several doors of focused work.
+
+Next door options (prioritized):
+1. Achieve actual video render output (may require environment tweaks, additional Remotion flags, or running on a machine with display).
+2. Promote the improved prototype + converter into a proper `control_narrate` skill (Feature 2 governance).
+3. Cross-reference the narrator work into the Feature 1 guard proofs document.
+4. Another capture round or one-pager expansion.
+
+All under exact recipe env. Kernel untouched. Loop continues.

@@ -1,0 +1,2 @@
+cat: /home/jan/OrgChefgroep/pi-agent-control-extension/prompts/verify.md: Bestand of map bestaat niet
+I’m ready. Please provide the task or arguments you want me to run with.

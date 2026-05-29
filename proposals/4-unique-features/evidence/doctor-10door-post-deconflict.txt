@@ -1,0 +1,29 @@
+Validating pi-agent-control-extension...
+  [OK] Required file: package.json
+  [OK] Required file: extensions/pi-control/index.ts
+  [OK] Required file: extensions/pi-control/routing.ts
+  [OK] Required file: extensions/pi-control/guards.ts
+  [OK] Required file: extensions/pi-control/recipes.ts
+  [OK] Required file: extensions/pi-control/schema.ts
+  [OK] Required file: scripts/validate-package.py
+  [OK] Required file: bin/tctl
+  [OK] Required file: scripts/render-showcase.sh
+  [OK] Required file: remotion/package.json
+  [OK] Required file: README.md
+  [OK] PI manifest: extensions
+  [OK] PI manifest: skills
+  [OK] Keyword: pi-package
+  [OK] All 17 skills present
+  [OK] README exists
+  [OK] Demo GIF exists
+
+Checking system dependencies...
+  [OK] Binary: python3
+  [OK] Binary: ruff
+  [OK] Binary: tuistory
+  [OK] Binary: asciinema
+  [OK] Binary: ffmpeg
+  [OK] Binary: cage
+  [OK] Binary: wtype
+
+[OK] pi-agent-control-extension 5.1.1: clean package with 17 skills + extension + demo

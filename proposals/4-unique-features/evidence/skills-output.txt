@@ -1,0 +1,21 @@
+
+[1m[38;5;45m⚡ Pi Skills CLI — Best of the Best Skill Atom Control[0m
+===================================================
+
+[1mUsage:[0m
+  pi-agent-control skills <command> [arguments]
+
+[1mCommands:[0m
+  [1m[38;5;120mlist[0m [--json] [--source pi|user]   List all bundled and user skill atoms with status.
+  [1m[38;5;120mview <name>[0m                      View a beautifully formatted rendering of the skill.
+  [1m[38;5;120menable <name>[0m                    Enable a specific skill atom.
+  [1m[38;5;120mdisable <name>[0m                   Disable a specific skill atom.
+  [1m[38;5;120mvalidate [<name>][0m              Run structural and frontmatter audits on skill atoms.
+  [1m[38;5;120mdiff <name>[0m                      Show differences between user-level and PI-bundled versions.
+  [1m[38;5;120mmerge <name>[0m                     Perform a three-way merge to consolidate shadowed overrides.
+  [1m[38;5;120mhelp[0m                           Show this help menu.
+
+[1mOptions:[0m
+  --json                             Output results in structured JSON format.
+  --source pi|user                   Filter listed skills by their origin source.
+

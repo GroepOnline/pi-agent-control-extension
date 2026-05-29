@@ -1,0 +1,15 @@
+This door:
+- Ingested the control-narrate skill skeleton and previous render attempts.
+- Discovered the real production render path: `scripts/render-showcase.sh` + `remotion/src/render.ts` (renderShowcase + buildShowcasePropsFromRecipe).
+- Created the first concrete implementation artifact: `control-narrate.cjs` inside the prototype directory. It takes a real run directory and wires it through the improved converter + prototype to produce usable props.
+
+Strongest new material:
+- We now have a clear picture of the architectural gap (narrator high-level props vs. clip-staging props expected by the main showcase pipeline) and the first real code that starts bridging a verified run dir to the narrator.
+
+Next door options (prioritized):
+1. Achieve actual video/image output (top blocker — may require extending the prototype to produce clip-staged props compatible with render-showcase.sh, or a dedicated narrator composition).
+2. Flesh out control-narrate.cjs into a proper bin/ tool or integrate it into the skill.
+3. Cross-reference the narrator + control-narrate work into the Feature 1 guard proofs document.
+4. Another capture round focused on successful render output or skill merge.
+
+All under exact recipe env. Kernel untouched. Loop continues.

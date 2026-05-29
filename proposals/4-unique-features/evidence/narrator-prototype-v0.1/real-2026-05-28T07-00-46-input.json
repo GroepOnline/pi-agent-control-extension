@@ -1,0 +1,14 @@
+{
+  "runId": "real-2026-05-28T07-00-46-tuistory-4-unique-features-proof",
+  "primaryDriver": "tuistory",
+  "durationSec": 82,
+  "claims": [
+    { "step": "Native Skill Atom Lifecycle Governance", "driver": "tuistory", "evidenceType": "terminal-snapshot", "hasVisuals": true, "hasKeystrokes": true },
+    { "step": "In-Process Multi-Modal Control & Safety Router", "driver": "tuistory", "evidenceType": "terminal-snapshot", "hasVisuals": true, "hasKeystrokes": true },
+    { "step": "Evidence & Verification Contract", "driver": "mixed", "evidenceType": "structured-report", "hasVisuals": false, "hasKeystrokes": false },
+    { "step": "Reproducibility & Auditability", "driver": "tuistory", "evidenceType": "terminal-snapshot", "hasVisuals": true, "hasKeystrokes": true }
+  ],
+  "hasManyBeforeAfter": false,
+  "isLongMixed": true,
+  "isHighVisualTerminalDemo": true
+}

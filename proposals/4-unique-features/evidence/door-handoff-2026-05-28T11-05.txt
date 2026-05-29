@@ -1,0 +1,21 @@
+This door:
+- Executed a full tuistory recipe proof-report capture (iter19) per the exact supplied recipe (Driver: tuistory / Deliverable: proof-report / Capture: report / Skills: pi-agent-control).
+- Created RUN_DIR artifacts/runs/2026-05-28T11-00-39-tuistory-narrator-proof-iter19 with commitments.md recorded before any target touch.
+- Produced high-fidelity evidence: narrator-iter19-proof-a.cast (PTY under FORCE_COLOR=3 + COLORTERM=truecolor + 120x36), narrator-showcase-snapshot.txt (composition v0.2 source), guards.ts.txt + guards-color-rule.txt (verbatim 8-block kernel + exact lines 28-33 color rule), control-narrate-help.txt, render-invocation-iter19.txt (exact iter18 still command re-run against real 4-chapter narrator props from the 2026-05-28T07-00-46 bundle).
+- Wrote proof-report.md with 4x PROVEN + gate PASS (all commitments tied to concrete snapshots/.cast; render path exercised under recipe env; kernel integrity confirmed).
+- Appended iter19 line to evidence/10door-index.txt and extended the Feature 1 guard enforcement proofs cross-ref section with the new guards snapshot + render attempt.
+
+Strongest new material:
+- A complete, recipe-compliant proof-report RUN_DIR focused on the current Feature 4 state (NarratorShowcase v0.2 + bin/control-narrate dispatcher + real props + guards enforcement during narrator work).
+- Fresh guards.ts.txt captured at this timestamp (reinforces that the color rule and all 8 blocks remain immutable while the loop advances the narrator).
+- The render re-invocation (same command + same real props as iter18) now has its own dedicated RUN_DIR artifacts for future comparison when a working Remotion output environment is available.
+
+Next door options (prioritized):
+1. Re-run the exact still/render commands from iter18/iter19 in an environment where Remotion can actually produce PNG/MP4 output from the NarratorShowcase composition (using the same real-improved-2026-05-28T07-00-46-props.json or newer).
+2. Fully wire bin/control-narrate (or a thin additional layer) to target "NarratorShowcase" by default after props generation and invoke the npx remotion still/render step (handle --composition, output paths, fidelity profiles).
+3. Expand NarratorShowcase.tsx further with richer visuals (import and use existing Keystrokes, CodeAnnotation, WindowChrome, EffectLayer components from the remotion library; make effects handling declarative; consume more fields from real props like transitions/overlays/source).
+4. Optional: revisit the clip-stager path or add a thin bridge that can feed PTY .cast assets into the dedicated composition when agg/ffmpeg become available.
+
+All under exact recipe env (FORCE_COLOR=3 + COLORTERM=truecolor + 120x36 for any tctl/tuistory work). Kernel untouched. Original skill atom names preserved in all transcripts.
+
+Loop continues.

@@ -1,0 +1,23 @@
+This door (fresh 10 door / iter32):
+
+- Created RUN_DIR artifacts/runs/2026-05-28T13-45-00-tuistory-official-onramp-iter32 with commitments pre-touch.
+- Pre-invocation + current behavior + updated behavior PTY captures under full recipe.
+- Minimal targeted integration edit made to the render block in the official bin/control-narrate: now uses the corrected working syntax proven in iter31 (cd remotion + npm run still/render -- src/index.ts NarratorShowcase ... with real props + PI_CLI_THEME + color env).
+- Pre/post source snapshots + PTY evidence of the before/after official --render behavior captured.
+- 0-byte guards-diff-iter32.txt vs iter31 baseline.
+- 4x PROVEN proof-report.
+- Final verification clean.
+- Index + Feature 1 cross-ref updated.
+
+Key result: The official governed on-ramp (bin/control-narrate --render) now contains the corrected invocation that produces real video. When exercised, it still hit the known upstream prototype input issue (EISDIR) before reaching the new render logic.
+
+This is precise, actionable progress on handoff priority 1.
+
+Next door options (updated):
+1. Fix the prototype input handling (or choose compatible run dirs / pass --output props explicitly) so that the now-integrated official `bin/control-narrate --render` can deliver full end-to-end video without manual steps.
+2. Polish / expand the NarratorShowcase using the proven pipeline.
+3-4. Wiring polish and more official surface captures.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved.
+
+Loop continues.

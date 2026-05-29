@@ -1,0 +1,5 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779947925,"command":"echo '=== Remotion presets ===' && ls -1 remotion/src/presets 2>/dev/null || true && echo '=== Sample preset content (first 80 lines) ===' && cat remotion/src/presets/*.ts 2>/dev/null | head -80 || true && echo '=== Recipes file exists ===' && ls -l remotion/src/recipes.ts 2>/dev/null || true","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.003, "o", "=== Remotion presets ===\r\n"]
+[0.005, "o", "=== Sample preset content (first 80 lines) ===\r\n"]
+[0.004, "o", "=== Recipes file exists ===\r\n"]
+[0.007, "x", "0"]

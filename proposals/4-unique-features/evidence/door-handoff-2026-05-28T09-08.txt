@@ -1,0 +1,15 @@
+This door:
+- Ingested the narrator progress synthesis and previous render attempts.
+- Launched another improved render/still attempt (iter11) using swiftshader flag on the best real props.
+- Delivered the second-highest priority handoff item: initial `control_narrate` skill skeleton at `skills/control-narrate/SKILL.md`. It properly references the prototype, the real evidence tests, the guard kernel (Feature 1), and skill governance (Feature 2).
+
+Strongest new material:
+- The project now has an official (even if early) skill atom for the Autonomous Cinematic Narrator capability. This is a major step toward making Feature 4 first-class.
+
+Next door options (prioritized):
+1. Achieve actual video/image output from one of the real props files (still the top technical blocker).
+2. Flesh out the control-narrate skill with actual implementation that calls the prototype + render.
+3. Cross-reference the narrator work (including this new skill) into the Feature 1 guard proofs document.
+4. Another capture round or one-pager work.
+
+All under exact recipe env. Kernel untouched. Loop continues.

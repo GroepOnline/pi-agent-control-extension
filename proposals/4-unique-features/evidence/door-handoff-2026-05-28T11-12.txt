@@ -1,0 +1,22 @@
+This door:
+- Executed a full tuistory recipe proof-report capture + wiring advance (iter20) per the exact supplied recipe.
+- Created RUN_DIR artifacts/runs/2026-05-28T11-08-44-tuistory-narrator-wiring-iter20 with commitments.md recorded before any edit.
+- Performed pre-edit and post-edit recipe-compliant PTY captures (FORCE_COLOR=3 + COLORTERM=truecolor + 120x36) of the bin/control-narrate state.
+- Made a minimal, safe enhancement to bin/control-narrate: added --render / --composition / --out flag support and the conditional npx remotion still invocation for NarratorShowcase (or chosen composition) after props generation. The prototype .cjs already defaulted to NarratorShowcase; the official wrapper now surfaces and drives it.
+- Produced pre/post snapshots + .casts + guards-diff-iter20.txt (0 bytes) + proof-report.md with 4x PROVEN + gate PASS.
+- Appended iter20 line to evidence/10door-index.txt (and the wiring now appears in the updated --help and source).
+
+Strongest new material:
+- The official `bin/control-narrate` (and `control-narrate` skill atom) now has first-class support for turning a verified run directory into a NarratorShowcase cinematic via the dedicated composition + real loop-generated props.
+- Complete before/after evidence under the recipe (pre = thin dispatcher from iter19; post = wired render step).
+- Another 0-byte guards diff confirming the kernel stayed immutable while adding this Feature 4 capability.
+
+Next door options (prioritized):
+1. Re-run the exact still/render commands (now constructible via the wired `bin/control-narrate --render`) in an environment where Remotion produces actual PNG/MP4 output from NarratorShowcase using real props.
+2. Expand NarratorShowcase.tsx with richer visuals (Keystrokes, CodeAnnotation, WindowChrome, EffectLayer reuse; consume more real-props fields).
+3. Further polish the wiring (better props path detection, support for short video render vs still, integration tests against real verification bundles).
+4. Optional: more tuistory captures of the new `bin/control-narrate --render --help` surface or skills list showing the updated control-narrate atom.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved in all transcripts.
+
+Loop continues.

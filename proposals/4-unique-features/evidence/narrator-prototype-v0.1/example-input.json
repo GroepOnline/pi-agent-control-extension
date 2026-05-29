@@ -1,0 +1,14 @@
+{
+  "runId": "2026-05-28-tuistory-4-unique-features-demo",
+  "primaryDriver": "tuistory",
+  "durationSec": 68,
+  "claims": [
+    { "step": "Launch Skill Studio", "driver": "tuistory", "evidenceType": "terminal-snapshot", "hasVisuals": true, "hasKeystrokes": true },
+    { "step": "skills view + diff on tuistory atom", "driver": "tuistory", "evidenceType": "terminal-snapshot", "hasVisuals": true, "hasKeystrokes": true },
+    { "step": "Verify commitments", "driver": "mixed", "evidenceType": "structured-report", "hasVisuals": false, "hasKeystrokes": false },
+    { "step": "Remotion source exploration", "driver": "terminal", "evidenceType": "directory-listing", "hasVisuals": true, "hasKeystrokes": false }
+  ],
+  "hasManyBeforeAfter": false,
+  "isLongMixed": false,
+  "isHighVisualTerminalDemo": true
+}

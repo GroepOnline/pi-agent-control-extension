@@ -1,0 +1,14 @@
+This door:
+- Created the first real code artifact for closing the narrator-to-showcase gap: narrator-clip-stager.cjs (implements Option A from the bridge note).
+- Successfully ran it on real loop data (captured as iter13) and produced the first example of narrator output transformed into a clip-staged shape (real-as-clip-staged-iter13.props.json).
+
+Strongest new material:
+- Concrete starting point for making the narrator prototype produce output that the existing production render pipeline can consume.
+
+Next door options (prioritized):
+1. Mature the clip-stager (add real .cast → video conversion using the project's agg + ffmpeg logic, better duration handling, integration with render-showcase.sh).
+2. Wire the stager into bin/control-narrate so a single command can go from run-dir → narrator props → clip-staged props → (eventually) video.
+3. Create a dedicated "NarratorShowcase" composition as an alternative path (Option B).
+4. Cross-reference this implementation work back into the Feature 1 proofs if it adds value.
+
+All under exact recipe env. Kernel untouched. Loop continues.

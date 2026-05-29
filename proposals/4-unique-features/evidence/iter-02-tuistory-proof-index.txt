@@ -1,0 +1,1 @@
+2026-05-28T07-28-47-tuistory-4-unique-features-proof-iter-02 | 4 claims PROVEN | skills-list-iter02.cast (53KB, 17+ original names) | guards.ts.txt (exact color rule) | proof-report.md + commitments.md + recovery.md | tctl/tuistory attempted with full recipe flags (relay skew recovered via asciinema+script, same env) | doctor clean | ready for next 10 door / 15m cycle

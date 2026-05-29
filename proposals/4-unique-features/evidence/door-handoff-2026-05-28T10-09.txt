@@ -1,0 +1,14 @@
+This door:
+- Extended narrator-clip-stager.cjs with the actual .cast → video conversion logic (agg + ffmpeg, modeled on render-showcase.sh).
+- Tested the enhanced stager on real loop data (captured as iter14). It ran cleanly, produced the expected clip-staged structure + preserved all narrator metadata. No video clips were generated in this particular run because the bundle's discovered assets led to the fallback path (valuable data point).
+
+Strongest new material:
+- The stager now contains the real conversion code. The next iteration (find bundles with clear .cast files or explicitly pass them) should produce actual video.
+
+Next door options (prioritized):
+1. Re-test the stager on a proof bundle that has strong .cast files in evidence/snapshots (or explicitly pass good .cast paths). Capture successful video output.
+2. Wire the stager output directly into scripts/render-showcase.sh as a single flow (via bin/control-narrate or a new end-to-end script).
+3. Cross-reference the stager implementation into the Feature 1 proofs or the main proposal.
+4. Another capture round once video output is demonstrated.
+
+All under exact recipe env. Kernel untouched. Loop continues.

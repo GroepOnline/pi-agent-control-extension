@@ -1,0 +1,10 @@
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1779952119,"command":"\necho '=== Using best improved real props ==='\nls -l proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json\necho '---'\necho 'Trying npx remotion still (lighter, more reliable in headless)...'\nnpx remotion still remotion/src/index.ts Showcase   artifacts/showcases/narrator-still-iter11.png   --props proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json   --gl=swiftshader 2>&1 || echo 'Still command exited'\necho '---'\necho 'Checking output...'\nls -lh artifacts/showcases/ 2>/dev/null | tail -5 || echo 'No output yet'\n","env":{"SHELL":"/home/linuxbrew/.linuxbrew/bin/fish"}}
+[0.002, "o", "=== Using best improved real props ===\r\n"]
+[0.009, "o", "-rw-r--r-- 1 jan jan 1381 28 mei 08:48 proposals/4-unique-features/evidence/narrator-prototype-v0.1/real-improved-2026-05-28T07-00-46-props.json\r\n"]
+[0.000, "o", "---\r\nTrying npx remotion still (lighter, more reliable in headless)..."]
+[0.000, "o", "\r\n"]
+[0.627, "o", "(node:3116673) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\r\n(Use `node --trace-warnings ...` to show where the warning was created)\r\n"]
+[0.611, "o", "npm error could not determine executable to run\r\n"]
+[0.003, "o", "npm error A complete log of this run can be found in: /home/jan/.npm/_logs/2026-05-28T07_08_40_040Z-debug-0.log\r\n"]
+[0.012, "o", "Still command exited\r\n---\r\nChecking output...\r\n"]
+[0.004, "x", "0"]

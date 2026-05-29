@@ -1,0 +1,22 @@
+This door:
+- Executed a full tuistory recipe proof-report capture + composition expansion (iter21) per the exact supplied recipe.
+- Created RUN_DIR artifacts/runs/2026-05-28T11-18-35-tuistory-narrator-expansion-iter21 with commitments.md recorded before any edit.
+- Performed pre-expansion and post-expansion recipe-compliant PTY captures (FORCE_COLOR=3 + COLORTERM=truecolor + 120x36) of the NarratorShowcase state.
+- Made a minimal, safe expansion to remotion/src/compositions/NarratorShowcase.tsx: added imports for Keystrokes and CodeAnnotations (existing components), rendered demo keystrokes (tuistory/guards/evidence/router — directly for the 4 unique features), added a CodeAnnotation example for the guard rule, updated footer to v0.2 with note. Component remains registered and renderable via the iter20-wired bin/control-narrate.
+- Produced pre/post snapshots + .casts + guards-diff-iter21.txt (0 bytes vs iter20) + proof-report.md with 4x PROVEN + gate PASS.
+- Appended iter21 line to evidence/10door-index.txt and extended the Feature 1 guard enforcement proofs cross-ref.
+
+Strongest new material:
+- NarratorShowcase (Feature 4 dedicated composition) now has visible richer visuals reusing the project's existing Remotion component library (Keystrokes + CodeAnnotations), with content directly referencing the 4 unique features and the sacred guard rule.
+- Complete before/after evidence under the recipe (pre = v0.2 basic from iter20; post = expanded with keystroke pills and code annotation).
+- Another 0-byte guards diff confirming the kernel stayed immutable while enhancing the narrator output.
+
+Next door options (prioritized):
+1. Re-run the exact still/render commands (now with the expanded NarratorShowcase containing Keystrokes/CodeAnnotations) via the wired `bin/control-narrate --render` in an environment where Remotion produces actual PNG/MP4 output from real 4-chapter props.
+2. Further expand NarratorShowcase (more EffectLayer/TransitionLayer/TitleCard reuse, consume real props keystrokes/codeAnnotations fields, better chapter body content).
+3. Polish the iter20 wiring (props path detection, video vs still, integration tests).
+4. More recipe captures of the expanded surface, updated skills list, or `bin/control-narrate --render --help`.
+
+All under exact recipe env. Kernel untouched. Original skill atom names preserved in all transcripts.
+
+Loop continues.

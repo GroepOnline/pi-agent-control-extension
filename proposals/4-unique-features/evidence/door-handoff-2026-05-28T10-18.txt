@@ -1,0 +1,17 @@
+This door:
+- Added --assets support to the stager for explicit high-quality .cast control.
+- Ran a strong test using the 53KB skills-list-iter02.cast + skills-view-tuistory-iter03.cast + the best narrator props (captured as iter15).
+- The stager now has the full agg+ffmpeg conversion logic in place (from previous door) + explicit asset support.
+
+Result: Conversion branch was present but did not produce video clips in this execution (likely asset discovery or tool availability inside the capture wrapper). The 4.6KB cast shows meaningful work occurred.
+
+Strongest new material:
+- Explicit --assets flag + the stager now contains production-grade conversion code. The gap is now purely execution/environment, not missing logic.
+
+Next door options (prioritized):
+1. Debug + re-test the stager with explicit --assets on known-good .cast files in an environment where agg + ffmpeg reliably produce output. Goal: first real .mp4 from the narrator pipeline.
+2. Once video output works, wire the full flow (bin/control-narrate + stager + render) into a single end-to-end command.
+3. Create the dedicated NarratorShowcase composition (Option B) as a parallel path.
+4. Cross-reference the stager + bridge work into the Feature 1 proofs or main proposal.
+
+All under exact recipe env. Kernel untouched. Loop continues.
