@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, watch } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, openSync, fstatSync, closeSync, mkdirSync, writeFileSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { SkillEntry, SkillSource, ShadowState } from '../model/skill.ts';
@@ -31,29 +31,51 @@ function parseSkillMd(text: string): { name: string; description: string } {
   };
 }
 
+const skillCache = new Map<string, { mtimeMs: number; parsed: ReturnType<typeof parseSkillMd> }>();
+
 function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEntry[] {
   if (!existsSync(dir)) return [];
   try {
     return readdirSync(dir, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && !d.name.startsWith('.') && existsSync(join(dir, d.name, 'SKILL.md')))
-      .map((d) => {
+      .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
+      .flatMap((d): SkillEntry[] => {
         const path = join(dir, d.name, 'SKILL.md');
-        const text = readFileSync(path, 'utf8');
-        const parsed = parseSkillMd(text);
-        const stat = statSync(path);
-        const hasName = parsed.name.length > 0;
-        const hasDesc = parsed.description.length > 0;
-        return {
-          name: d.name,
-          description: parsed.description || parsed.name || '',
-          path,
-          source,
-          sourceDir: sourceLabel,
-          enabled: true,
-          valid: hasName && hasDesc ? 'ok' : hasName || hasDesc ? 'warn' : 'error',
-          mtime: stat.mtime,
-          shadowState: null,
-        };
+        let fd: number;
+        try {
+          fd = openSync(path, 'r');
+        } catch {
+          return [];
+        }
+        try {
+          const fileStat = fstatSync(fd);
+
+          let parsed;
+          const cached = skillCache.get(path);
+          if (cached && cached.mtimeMs === fileStat.mtimeMs) {
+            parsed = cached.parsed;
+          } else {
+            const text = readFileSync(fd, 'utf8');
+            parsed = parseSkillMd(text);
+            skillCache.set(path, { mtimeMs: fileStat.mtimeMs, parsed });
+          }
+
+          const hasName = parsed.name.length > 0;
+          const hasDesc = parsed.description.length > 0;
+          const valid: SkillEntry['valid'] = hasName && hasDesc ? 'ok' : hasName || hasDesc ? 'warn' : 'error';
+          return [{
+            name: d.name,
+            description: parsed.description || parsed.name || '',
+            path,
+            source,
+            sourceDir: sourceLabel,
+            enabled: true,
+            valid,
+            mtime: fileStat.mtime,
+            shadowState: null,
+          }];
+        } finally {
+          closeSync(fd);
+        }
       });
   } catch {
     return [];
@@ -109,6 +131,12 @@ function buildRegistry(): SkillEntry[] {
     if (a.source !== b.source) return a.source === 'pi' ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
+
+  // Prune stale cache entries for deleted/renamed files
+  const activePaths = new Set(all.map((s) => s.path));
+  for (const key of skillCache.keys()) {
+    if (!activePaths.has(key)) skillCache.delete(key);
+  }
 
   return all;
 }
