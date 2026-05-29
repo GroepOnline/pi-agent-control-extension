@@ -6,11 +6,11 @@ import { buildUsageReport, buildParallelVerifyReport, listSkills, runValidator, 
 
 describe("shellEscape", () => {
   it("single-quotes POSIX shell metacharacters", () => {
-    expect(shellEscape("https://example.com?a=1&b=2")).toBe("'https://example.com?a=1&b=2'");
+    expect(shellEscape("https://example.com?a=1&b=2", "linux")).toBe("'https://example.com?a=1&b=2'");
   });
 
   it("uses safe escaping for strings with spaces", () => {
-    expect(shellEscape("https://example.com & calc")).toBe("'https://example.com & calc'");
+    expect(shellEscape("https://example.com & calc", "linux")).toBe("'https://example.com & calc'");
   });
 
   it("leaves simple arguments unchanged", () => {
