@@ -21,6 +21,7 @@ export function captureBrowser(
 
   const safeTarget = shellEscape(target);
   const safeDir = shellEscape(evidenceDir);
+  const lookUp = process.platform === "win32" ? "where" : "which";
 
   switch (format) {
     case "png":
@@ -35,7 +36,6 @@ export function captureBrowser(
     case "mp4":
       result.command = `agent-browser open ${safeTarget} --viewport 1280x720 && agent-browser record --out ${safeDir}/recording.mp4`;
       break;
-    }
     case "cast":
       result.command = `agent-browser open ${safeTarget} --viewport 1280x720`;
       result.warnings.push("asciicast format is not supported for browser captures; use mp4 or png.");
