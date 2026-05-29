@@ -243,7 +243,7 @@ context7.resolve-library-id(query="vitest testing", libraryName="vitest")
 ```text
 1. sentry.search_issues(org, project, "is:unresolved level:error")
 2. linear.save_issue(title="[Bug] ...", team="ChefSheesh", labels=["bug","sentry"])
-3. notion.notion-create-pages(masterTasks, {Task: "[Bug] ...", Status: "Not Started", Priority: "High"})
+3. notion.notion-create-pages(masterTasks, {Name: "[Bug] ...", Status: "To Do", Priority: "High"})
 ```
 
 ### Example 2: GitHub PR → Linear Update → Notion Log

@@ -34,10 +34,9 @@ Args: { "team": "ChefSheesh", "state": "started", "limit": 50 }
 
 | Linear Field | Notion Property | Transform |
 |---|---|---|
-| `title` | `Task` (title) | Direct copy |
-| `status` / `statusType` | `Status` | Map via statusType: triage/backlog/unstarted->Not Started, started->In Progress, completed->Done, canceled/duplicate->Archived |
-| `priority.name` | `Priority` | Direct: Urgent, High, Medium, Low |
-| `labels[]` | `Tags` | Join as multi-select |
+| `title` | `Name` (title) | Direct copy |
+| `status` / `statusType` | `Status` | Map via statusType: triage/backlog/unstarted->To Do, started->In Progress, completed/canceled/duplicate->Done |
+| `priority.value` | `Priority` | Map: 1/2->High, 3->Medium, 0/4->Low |
 | `project` | `Project` (relation) | Match by name in Project Database |
 | `dueDate` | `Due Date` | ISO-8601 date |
 | `url` | `GitHub Repo` or description | Append as reference link |
@@ -51,10 +50,9 @@ Args: {
   "data_source_id": "collection://36b960c9-572b-81e3-b3fc-000bf6eaf875",
   "pages": [{
     "properties": {
-      "Task": "Issue title from Linear",
+      "Name": "Issue title from Linear",
       "Status": "In Progress",
       "Priority": "High",
-      "Tags": "agent, automation",
       "date:Due Date:start": "2026-06-15"
     },
     "content": "Synced from Linear: [CHE-64](https://linear.app/...)\n\nDescription from Linear issue..."
@@ -70,7 +68,7 @@ Args: {
 Tool: notion.query_data_sources
 Args: {
   "data_source_id": "collection://36b960c9-572b-81e3-b3fc-000bf6eaf875",
-  "query": "SELECT * FROM ... WHERE Status = 'Not Started' AND Tags LIKE '%linear-sync%'"
+  "query": "SELECT * FROM ... WHERE Status = 'To Do'"
 }
 ```
 
@@ -161,20 +159,20 @@ Args: {
 
 | Linear statusType | Notion Status |
 |---|---|
-| `triage` | Not Started |
-| `backlog` | Not Started |
-| `unstarted` | Not Started |
+| `triage` | To Do |
+| `backlog` | To Do |
+| `unstarted` | To Do |
 | `started` | In Progress |
 | `completed` | Done |
-| `canceled` | Archived |
-| `duplicate` | Archived |
+| `canceled` | Done |
+| `duplicate` | Done |
 
 ### Linear Priority -> Notion Priority
 
 | Linear priority.value | Notion Priority |
 |---|---|
 | 0 | Low (default) |
-| 1 | Urgent |
+| 1 | High |
 | 2 | High |
 | 3 | Medium |
 | 4 | Low |

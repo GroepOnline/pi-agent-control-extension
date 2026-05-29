@@ -14,16 +14,15 @@
       "url": "https://www.notion.so/36b960c9572b816aad76cc2c2f596efd",
       "dataSourceId": "collection://36b960c9-572b-81e3-b3fc-000bf6eaf875",
       "schema": {
-        "Task": { "type": "title" },
+        "Name": { "type": "title" },
         "Status": {
           "type": "select",
-          "options": ["Not Started", "In Progress", "Done", "Archived"]
+          "options": ["To Do", "In Progress", "Done"]
         },
         "Priority": {
           "type": "select",
-          "options": ["Urgent", "High", "Medium", "Low"]
+          "options": ["High", "Medium", "Low"]
         },
-        "Tags": { "type": "multi_select" },
         "Due Date": { "type": "date" },
         "Assignee": { "type": "person" },
         "Project": {
