@@ -11,8 +11,11 @@ const DEFAULT_CURRENCY = "USD";
  * POSIX shell escaping: wraps in single quotes and escapes any embedded single quotes.
  * Safe for use in command strings that will be interpreted by a shell.
  */
-export function shellEscape(arg: string): string {
+export function shellEscape(arg: string, platform?: string): string {
   if (/^[a-zA-Z0-9_/:.@-]+$/.test(arg)) return arg;
+  if (platform === "win32") {
+    return '"' + arg.replace(/([&|<>^%])/g, "^$1") + '"';
+  }
   return "'" + arg.replace(/'/g, "'\\''") + "'";
 }
 
