@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Tests for CHANGELOG-v5.md content and structure."""
 
-from __future__ import annotations
-
 import unittest
 from pathlib import Path
 
