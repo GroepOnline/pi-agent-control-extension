@@ -27,7 +27,7 @@ Synchronize tasks, projects, and documentation between your Notion Command Cente
 
 ```text
 Tool: linear.list_issues
-Args: { "team": "ChefSheesh", "state": "in_progress", "limit": 50 }
+Args: { "team": "ChefSheesh", "state": "started", "limit": 50 }
 ```
 
 ### Step 2: Map fields to Notion schema
@@ -35,7 +35,7 @@ Args: { "team": "ChefSheesh", "state": "in_progress", "limit": 50 }
 | Linear Field | Notion Property | Transform |
 |---|---|---|
 | `title` | `Task` (title) | Direct copy |
-| `status` / `statusType` | `Status` | Map: triage->Not Started, started/in_progress->In Progress, completed->Done |
+| `status` / `statusType` | `Status` | Map via statusType: triage/backlog/unstarted->Not Started, started->In Progress, completed->Done, canceled/duplicate->Archived |
 | `priority.name` | `Priority` | Direct: Urgent, High, Medium, Low |
 | `labels[]` | `Tags` | Join as multi-select |
 | `project` | `Project` (relation) | Match by name in Project Database |
@@ -108,7 +108,7 @@ Args: { "team": "ChefSheesh", "state": "completed", "updatedAt": "-P7D" }
 
 # Linear: in-progress issues
 Tool: linear.list_issues
-Args: { "team": "ChefSheesh", "state": "in_progress" }
+Args: { "team": "ChefSheesh", "state": "started" }
 
 # Notion: active tasks
 Tool: notion.query_data_sources
@@ -167,6 +167,7 @@ Args: {
 | `started` | In Progress |
 | `completed` | Done |
 | `canceled` | Archived |
+| `duplicate` | Archived |
 
 ### Linear Priority -> Notion Priority
 
