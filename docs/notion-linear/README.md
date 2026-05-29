@@ -17,7 +17,7 @@ This report documents the full integration between the **Notion Command Center**
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────────┐        MCP        ┌─────────────────────┐
 │   Notion Workspace   │ <───────────────> │  Linear Workspace   │
 │                      │                   │                      │
@@ -101,18 +101,23 @@ This report documents the full integration between the **Notion Command Center**
 Five Devin playbooks were created to standardize workflows:
 
 ### 1. `!notion-linear-sync` — Issue Sync
+
 Syncs Linear issues to Notion Master Task Database and vice versa.
 
 ### 2. `!linear-triage` — Triage & Prioritize
+
 Fetches unassigned/unprioritized Linear issues and helps triage them.
 
 ### 3. `!sprint-report` — Weekly Sprint Report
+
 Generates a combined sprint report from both platforms.
 
 ### 4. `!project-doc-sync` — Project Documentation
+
 Mirrors Linear project descriptions into Notion Project Database entries.
 
 ### 5. `!weekly-digest` — Automated Weekly Digest
+
 Scheduled playbook that creates a weekly summary in Notion and Linear.
 
 ---
@@ -121,7 +126,7 @@ Scheduled playbook that creates a weekly summary in Notion and Linear.
 
 ### Sync Flow: Linear -> Notion
 
-```
+```text
 1. linear.list_issues(team=ChefSheesh, state=in_progress)
 2. For each issue:
    a. Map status/priority/labels to Notion schema
@@ -131,7 +136,7 @@ Scheduled playbook that creates a weekly summary in Notion and Linear.
 
 ### Sync Flow: Notion -> Linear
 
-```
+```text
 1. notion.query_data_sources(masterTasks, WHERE Status='Not Started' AND Tags LIKE '%linear-sync%')
 2. For each task:
    a. linear.save_issue(team=ChefSheesh, title=..., labels=[notion-sync])
@@ -141,7 +146,7 @@ Scheduled playbook that creates a weekly summary in Notion and Linear.
 
 ### Sprint Report Generation
 
-```
+```text
 1. linear.list_issues(team=ChefSheesh, state=completed, updatedAt=-P7D)
 2. linear.list_issues(team=ChefSheesh, state=in_progress)
 3. notion.query_data_sources(masterTasks, WHERE Status IN ('In Progress','Done'))
