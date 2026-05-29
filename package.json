@@ -42,7 +42,7 @@
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
-    "typebox": "*"
+    "typebox": ">=0.30.0"
   },
   "files": [
     "README.md",
@@ -57,6 +57,7 @@
   ],
   "devDependencies": {
     "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
     "@types/ws": "^8.18.1",
     "@vitest/coverage-v8": "^4.1.7",
     "ink-testing-library": "^4.0.0",
@@ -64,7 +65,6 @@
     "vitest": "^4.1.6"
   },
   "dependencies": {
-    "@types/react": "^19.2.15",
     "ink": "^7.0.4",
     "react": "^19.2.6",
     "tsx": "^4.22.3"

@@ -6,8 +6,15 @@ export default defineConfig({
     exclude: ["node_modules", "remotion/node_modules"],
     environment: "node",
     globals: true,
-    restoreMocks: true,
-    clearMocks: true,
+    coverage: {
+      provider: "v8",
+      thresholds: {
+        statements: 50,
+        branches: 40,
+        functions: 50,
+        lines: 50,
+      },
+    },
   },
   benchmark: {
     include: ["extensions/**/*.bench.ts"],
