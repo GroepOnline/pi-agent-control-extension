@@ -42,6 +42,7 @@ interface NotionTaskProperties {
 }
 
 const LINEAR_STATUS_MAP: Record<string, string> = {
+  triage: "Not Started",
   backlog: "Not Started",
   unstarted: "Not Started",
   started: "In Progress",
@@ -50,7 +51,7 @@ const LINEAR_STATUS_MAP: Record<string, string> = {
 };
 
 const LINEAR_PRIORITY_MAP: Record<number, string> = {
-  0: "No priority",
+  0: "Low",
   1: "Urgent",
   2: "High",
   3: "Medium",
@@ -102,7 +103,7 @@ function linearIssueToNotionTask(issue: LinearIssue): NotionTaskProperties {
   const props: NotionTaskProperties = {
     Task: issue.title,
     Status: LINEAR_STATUS_MAP[issue.statusType] ?? "Not Started",
-    Priority: LINEAR_PRIORITY_MAP[issue.priority.value] ?? "No priority",
+    Priority: LINEAR_PRIORITY_MAP[issue.priority.value] ?? "Low",
     Tags: issue.labels.join(", "),
   };
   if (issue.dueDate) {
@@ -185,10 +186,10 @@ function buildLinearCreateCall(task: {
       team: "ChefSheesh",
       description: [
         task.description,
-        "",
-        task.notionUrl ? `> Synced from Notion: [View in Notion](${task.notionUrl})` : "",
+        ...(task.notionUrl
+          ? ["", `> Synced from Notion: [View in Notion](${task.notionUrl})`]
+          : []),
       ]
-        .filter(Boolean)
         .join("\n"),
       priority: task.priority ?? 3,
       labels: [...(task.labels ?? []), "notion-sync"],

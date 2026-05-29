@@ -161,6 +161,7 @@ Args: {
 
 | Linear statusType | Notion Status |
 |---|---|
+| `triage` | Not Started |
 | `backlog` | Not Started |
 | `unstarted` | Not Started |
 | `started` | In Progress |
@@ -171,7 +172,7 @@ Args: {
 
 | Linear priority.value | Notion Priority |
 |---|---|
-| 0 | No priority |
+| 0 | Low (default) |
 | 1 | Urgent |
 | 2 | High |
 | 3 | Medium |

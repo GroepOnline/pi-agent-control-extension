@@ -27,6 +27,7 @@ EXPECTED_SKILLS = {
     "session-navigation",
     "background-pty",
     "meta-control",
+    "notion-linear-bridge",
 }
 REQUIRED_FILES = [
     "package.json",
