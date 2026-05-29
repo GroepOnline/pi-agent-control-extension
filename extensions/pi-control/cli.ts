@@ -39,7 +39,11 @@ function loadDisabledSet(): Set<string> {
     const raw = readFileSync(STUDIO_STATE_PATH, 'utf8');
     const data = JSON.parse(raw);
     if (Array.isArray(data.disabled)) return new Set(data.disabled);
-  } catch { /* ignore */ }
+  } catch (e: any) {
+    if (e.code !== 'ENOENT') {
+      console.warn(`[skills] Failed to load state from ${STUDIO_STATE_PATH}: ${e.message}`);
+    }
+  }
   return new Set();
 }
 
@@ -50,7 +54,9 @@ function saveDisabledSet(disabled: Set<string>) {
     const data = JSON.parse(raw);
     data.disabled = Array.from(disabled);
     writeFileSync(STUDIO_STATE_PATH, JSON.stringify(data, null, 2));
-  } catch { /* ignore */ }
+  } catch (e: any) {
+    console.warn(`[skills] Failed to save state to ${STUDIO_STATE_PATH}: ${e.message}`);
+  }
 }
 
 function parseSkillMd(text: string): { name: string; description: string } {

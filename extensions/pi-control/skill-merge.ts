@@ -40,7 +40,11 @@ function loadMergeState(): Map<string, MergeState> {
     if (data.merges && typeof data.merges === "object") {
       return new Map(Object.entries(data.merges));
     }
-  } catch { /* ignore */ }
+  } catch (e: any) {
+    if (e.code !== 'ENOENT') {
+      console.warn(`[skill-merge] Failed to load merge state: ${e.message}`);
+    }
+  }
   return new Map();
 }
 
@@ -51,7 +55,9 @@ function saveMergeState(merges: Map<string, MergeState>) {
     const data = JSON.parse(raw);
     data.merges = Object.fromEntries(merges);
     writeFileSync(MERGE_STATE_PATH, JSON.stringify(data, null, 2));
-  } catch { /* ignore */ }
+  } catch (e: any) {
+    console.warn(`[skill-merge] Failed to save merge state: ${e.message}`);
+  }
 }
 
 /**

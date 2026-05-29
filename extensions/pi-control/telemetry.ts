@@ -56,11 +56,11 @@ class MetricsRegistry {
       durationMs,
       error,
     };
+    this.flush(event);
     this.events.push(event);
     if (this.events.length > this.maxBuffer) {
       this.events.shift();
     }
-    this.flush(event);
   }
 
   private flush(event: TelemetryEvent) {
