@@ -47,8 +47,8 @@ function ensureToken(): string {
   try {
     mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
     writeFileSync(BRIDGE_TOKEN_PATH, token);
-  } catch {
-    // Token created in memory but not persisted — safe to use for this session
+  } catch (err) {
+    console.warn(`[bridge] Failed to persist token to ${BRIDGE_TOKEN_PATH}: ${err instanceof Error ? err.message : String(err)}. Using in-memory token for this session.`);
   }
   return token;
 }
@@ -71,7 +71,7 @@ const bridgeState: InternalBridgeState = {
 let pingInterval: ReturnType<typeof setInterval> | null = null;
 let httpServer: ReturnType<typeof createServer> | null = null;
 let wss: WebSocketServer | null = null;
-let starting = false;
+let starting: Promise<{ port: number; token: string }> | null = null;
 
 function broadcast(msg: BridgeMessage, exclude?: string) {
   const payload = JSON.stringify(msg);
@@ -87,7 +87,7 @@ function addEvent(msg: BridgeMessage) {
   if (bridgeState.events.length > 100) bridgeState.events.shift();
 }
 
-export function stopBridge(): void {
+export async function stopBridge(): Promise<void> {
   if (pingInterval !== null) {
     clearInterval(pingInterval);
     pingInterval = null;
@@ -98,12 +98,22 @@ export function stopBridge(): void {
   }
 
   if (wss !== null) {
-    try { wss.close(); } catch { /* ignore */ }
+    await new Promise<void>((resolve) => {
+      wss!.close((err) => {
+        if (err) console.warn("[bridge] Error closing WebSocket server:", err.message);
+        resolve();
+      });
+    });
     wss = null;
   }
 
   if (httpServer !== null) {
-    try { httpServer.close(); } catch { /* ignore */ }
+    await new Promise<void>((resolve) => {
+      httpServer!.close((err) => {
+        if (err) console.warn("[bridge] Error closing HTTP server:", err.message);
+        resolve();
+      });
+    });
     httpServer = null;
   }
 
@@ -126,12 +136,12 @@ export function getBridgeState(): BridgeState {
 
 export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionContext): Promise<{ port: number; token: string }> {
   if (starting) {
-    return Promise.resolve({ port: bridgeState.port, token: ensureToken() });
+    return starting;
   }
-  starting = true;
-  try {
-    return new Promise((resolve, reject) => {
-      stopBridge();
+
+  starting = (async () => {
+    try {
+      await stopBridge();
 
       const token = ensureToken();
       httpServer = createServer();
@@ -188,21 +198,25 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
         }
       }, 30000);
 
-      httpServer.listen(port, () => {
-        bridgeState.running = true;
-        bridgeState.port = port;
-        bridgeState.startTime = new Date();
-        resolve({ port, token });
-      });
+      return new Promise<{ port: number; token: string }>((resolve, reject) => {
+        httpServer!.listen(port, () => {
+          bridgeState.running = true;
+          bridgeState.port = port;
+          bridgeState.startTime = new Date();
+          resolve({ port, token });
+        });
 
-      httpServer.on("error", (err) => {
-        stopBridge();
-        reject(err);
+        httpServer!.on("error", (err) => {
+          stopBridge();
+          reject(err);
+        });
       });
-    });
-  } finally {
-    starting = false;
-  }
+    } finally {
+      starting = null;
+    }
+  })();
+
+  return starting;
 }
 
 async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: ExtensionAPI, _ctx?: ExtensionContext) {
