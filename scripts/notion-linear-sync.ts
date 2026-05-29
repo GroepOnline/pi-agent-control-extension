@@ -33,27 +33,26 @@ interface LinearIssue {
 }
 
 interface NotionTaskProperties {
-  Task: string;
+  Name: string;
   Status: string;
   Priority: string;
-  Tags: string;
   "date:Due Date:start"?: string;
   "GitHub Repo"?: string;
 }
 
 const LINEAR_STATUS_MAP: Record<string, string> = {
-  triage: "Not Started",
-  backlog: "Not Started",
-  unstarted: "Not Started",
+  triage: "To Do",
+  backlog: "To Do",
+  unstarted: "To Do",
   started: "In Progress",
   completed: "Done",
-  canceled: "Archived",
-  duplicate: "Archived",
+  canceled: "Done",
+  duplicate: "Done",
 };
 
 const LINEAR_PRIORITY_MAP: Record<number, string> = {
   0: "Low",
-  1: "Urgent",
+  1: "High",
   2: "High",
   3: "Medium",
   4: "Low",
@@ -102,10 +101,9 @@ const LINEAR_IDS = {
 
 function linearIssueToNotionTask(issue: LinearIssue): NotionTaskProperties {
   const props: NotionTaskProperties = {
-    Task: issue.title,
-    Status: LINEAR_STATUS_MAP[issue.statusType] ?? "Not Started",
+    Name: issue.title,
+    Status: LINEAR_STATUS_MAP[issue.statusType] ?? "To Do",
     Priority: LINEAR_PRIORITY_MAP[issue.priority.value] ?? "Low",
-    Tags: issue.labels.join(", "),
   };
   if (issue.dueDate) {
     props["date:Due Date:start"] = issue.dueDate;

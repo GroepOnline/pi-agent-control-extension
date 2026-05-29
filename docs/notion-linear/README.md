@@ -137,7 +137,7 @@ Scheduled playbook that creates a weekly summary in Notion and Linear.
 ### Sync Flow: Notion -> Linear
 
 ```text
-1. notion.query_data_sources(masterTasks, WHERE Status='Not Started' AND Tags LIKE '%linear-sync%')
+1. notion.query_data_sources(masterTasks, WHERE Status='To Do')
 2. For each task:
    a. linear.save_issue(team=ChefSheesh, title=..., labels=[notion-sync])
    b. notion.update-page(pageUrl, append Linear issue link)

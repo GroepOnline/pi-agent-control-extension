@@ -157,16 +157,15 @@
 {
   "name": "Master Task Database",
   "schema": {
-    "Task": { "type": "title" },
+    "Name": { "type": "title" },
     "Status": {
       "type": "select",
-      "options": ["Not Started", "In Progress", "Done", "Archived"]
+      "options": ["To Do", "In Progress", "Done"]
     },
     "Priority": {
       "type": "select",
-      "options": ["Urgent", "High", "Medium", "Low"]
+      "options": ["High", "Medium", "Low"]
     },
-    "Tags": { "type": "multi_select" },
     "Due Date": { "type": "date" },
     "Assignee": { "type": "person" },
     "Project": { "type": "relation", "relatedTo": "Project Database" },
@@ -198,10 +197,9 @@
   "pages": [
     {
       "properties": {
-        "Task": "[Agent Spec] Pi Orchestrator Core",
-        "Status": "Not Started",
+        "Name": "[Agent Spec] Pi Orchestrator Core",
+        "Status": "To Do",
         "Priority": "Medium",
-        "Tags": "agent, automation, linear-sync",
         "GitHub Repo": "OnlineChefGroep/pi-agent-orchestrator"
       },
       "content": "> Synced from Linear: [CHE-64](https://linear.app/chefclawsheesh/issue/CHE-64/agent-spec-pi-orchestrator-core)\n\nYou are **Pi Orchestrator**, the central nervous system of the agent swarm...\n\n---\n**Project**: Pi Agent Platform\n**Status**: Backlog\n**Labels**: agent, automation"
