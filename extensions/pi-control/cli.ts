@@ -59,7 +59,7 @@ function saveDisabledSet(disabled: Set<string>) {
   }
 }
 
-function parseSkillMd(text: string): { name: string; description: string } {
+export function parseSkillMd(text: string): { name: string; description: string } {
   const nameMatch = text.match(/^name:\s*(.+)$/m);
   const descMatch = text.match(/^description:\s*(.+)$/m);
   return {
