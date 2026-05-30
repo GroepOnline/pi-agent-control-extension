@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import type { CaptureResult, CaptureFormat } from "./capture.ts";
 import { shellEscape } from "./utils.ts";
 
@@ -18,24 +17,33 @@ export function captureTrueInput(
     warnings: [],
   };
 
-  const safeTarget = shellEscape(target);
-  const safeOut = shellEscape(evidenceDir);
-
   switch (format) {
     case "mp4":
-      result.command = `true-input record --out ${safeOut}/capture.mp4 -- ${safeTarget}`;
+      result.commandParts = [
+        ["true-input", "record", "--out", `${evidenceDir}/capture.mp4`, "--", target]
+      ];
+      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
       result.validated = true;
       break;
     case "cast":
-      result.command = `true-input record --asciicast --out ${safeOut}/capture.cast -- ${safeTarget}`;
+      result.commandParts = [
+        ["true-input", "record", "--asciicast", "--out", `${evidenceDir}/capture.cast`, "--", target]
+      ];
+      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
       result.validated = true;
       break;
     case "png":
-      result.command = `true-input screenshot --out ${safeOut}/screenshot.png -- ${safeTarget}`;
+      result.commandParts = [
+        ["true-input", "screenshot", "--out", `${evidenceDir}/screenshot.png`, "--", target]
+      ];
+      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
       result.warnings.push("png for true-input produces a PTY screenshot.");
       break;
     case "report":
-      result.command = `true-input log --out ${safeOut}/log.txt -- ${safeTarget}`;
+      result.commandParts = [
+        ["true-input", "log", "--out", `${evidenceDir}/log.txt`, "--", target]
+      ];
+      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
       result.validated = true;
       break;
   }
