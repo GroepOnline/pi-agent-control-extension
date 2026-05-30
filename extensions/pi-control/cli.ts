@@ -117,29 +117,48 @@ function buildRegistry(): SkillEntry[] {
 
   const disabled = loadDisabledSet();
 
-  const piMap = new Map(piSkills.map((s) => [s.name, s]));
-  const userMap = new Map(userSkills.map((s) => [s.name, s]));
+  const userNames = new Set<string>();
+  for (let j = 0; j < userSkills.length; j++) {
+    userNames.add(userSkills[j].name);
+  }
+  const piNames = new Set<string>();
+  for (let j = 0; j < piSkills.length; j++) {
+    piNames.add(piSkills[j].name);
+  }
 
-  const all: SkillEntry[] = [];
+  const all: SkillEntry[] = new Array(piSkills.length + userSkills.length);
+  let idx = 0;
 
   // Process PI skills
-  for (const skill of piSkills) {
-    const isShadowed = userMap.has(skill.name);
-    all.push({
-      ...skill,
+  for (let j = 0; j < piSkills.length; j++) {
+    const skill = piSkills[j];
+    all[idx++] = {
+      name: skill.name,
+      description: skill.description,
+      path: skill.path,
+      source: skill.source,
+      sourceDir: skill.sourceDir,
+      valid: skill.valid,
+      mtime: skill.mtime,
       enabled: !disabled.has(skill.name),
-      shadowState: isShadowed ? 'shadowed' : null,
-    });
+      shadowState: userNames.has(skill.name) ? 'shadowed' : null,
+    };
   }
 
   // Process user skills
-  for (const skill of userSkills) {
-    const isOverride = piMap.has(skill.name);
-    all.push({
-      ...skill,
+  for (let j = 0; j < userSkills.length; j++) {
+    const skill = userSkills[j];
+    all[idx++] = {
+      name: skill.name,
+      description: skill.description,
+      path: skill.path,
+      source: skill.source,
+      sourceDir: skill.sourceDir,
+      valid: skill.valid,
+      mtime: skill.mtime,
       enabled: !disabled.has(skill.name),
-      shadowState: isOverride ? 'overrides' : null,
-    });
+      shadowState: piNames.has(skill.name) ? 'overrides' : null,
+    };
   }
 
   all.sort((a, b) => {
