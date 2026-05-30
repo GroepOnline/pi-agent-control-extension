@@ -26,12 +26,14 @@ export function validateEvidence(input: EvidenceInput): { valid: boolean; errors
   }
 
   const schemaLower = EVIDENCE_SCHEMA.toLowerCase();
-  const formatLower = input.format.toLowerCase();
-  const allowedFormats = ["cast", "mp4", "screenshots", "report", "png"];
-  if (!allowedFormats.includes(formatLower)) {
-    errors.push(`format '${input.format}' is not a recognized evidence format`);
-  } else if (!schemaLower.includes(formatLower) && formatLower !== "report") {
-    errors.push(`format '${input.format}' is not mentioned in evidence schema`);
+  if (input.format) {
+    const formatLower = input.format.toLowerCase();
+    const allowedFormats = ["cast", "mp4", "screenshots", "report", "png"];
+    if (!allowedFormats.includes(formatLower)) {
+      errors.push(`format '${input.format}' is not a recognized evidence format`);
+    } else if (!schemaLower.includes(formatLower) && formatLower !== "report") {
+      errors.push(`format '${input.format}' is not mentioned in evidence schema`);
+    }
   }
 
   return { valid: errors.length === 0, errors };
