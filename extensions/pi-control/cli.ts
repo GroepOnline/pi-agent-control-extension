@@ -71,27 +71,34 @@ export function parseSkillMd(text: string): { name: string; description: string 
 function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEntry[] {
   if (!existsSync(dir)) return [];
   try {
-    return readdirSync(dir, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && !d.name.startsWith('.') && existsSync(join(dir, d.name, 'SKILL.md')))
-      .map((d) => {
-        const path = join(dir, d.name, 'SKILL.md');
-        const text = readFileSync(path, 'utf8');
-        const parsed = parseSkillMd(text);
-        const stat = statSync(path);
-        const hasName = parsed.name.length > 0;
-        const hasDesc = parsed.description.length > 0;
-        return {
-          name: d.name,
-          description: parsed.description || parsed.name || '',
-          path,
-          source,
-          sourceDir: sourceLabel,
-          enabled: true,
-          valid: hasName && hasDesc ? 'ok' : hasName || hasDesc ? 'warn' : 'error',
-          mtime: stat.mtime,
-          shadowState: null,
-        };
+    const entries = readdirSync(dir, { withFileTypes: true });
+    const result: SkillEntry[] = [];
+
+    for (const d of entries) {
+      if (!d.isDirectory() || d.name.startsWith('.')) continue;
+
+      const path = join(dir, d.name, 'SKILL.md');
+      if (!existsSync(path)) continue;
+
+      const text = readFileSync(path, 'utf8');
+      const parsed = parseSkillMd(text);
+      const stat = statSync(path);
+      const hasName = parsed.name.length > 0;
+      const hasDesc = parsed.description.length > 0;
+
+      result.push({
+        name: d.name,
+        description: parsed.description || parsed.name || '',
+        path,
+        source,
+        sourceDir: sourceLabel,
+        enabled: true,
+        valid: hasName && hasDesc ? 'ok' : hasName || hasDesc ? 'warn' : 'error',
+        mtime: stat.mtime,
+        shadowState: null,
       });
+    }
+    return result;
   } catch {
     return [];
   }

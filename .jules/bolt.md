@@ -5,7 +5,9 @@
 2. Cache RegExp objects in routing to avoid recompilation.
 3. Defer string allocations (like `toLowerCase()`) in event interceptors (`inspectToolCall`) until the condition demands it.
 
+## 2026-05-29 - Performance optimization in `scanDir`
+Replaced `.filter().map()` array chaining in `extensions/pi-control/cli.ts` `scanDir` with a single `for` loop, mitigating performance overheads associated with creating an intermediate array.
+
 ## 2026-05-29 - Performance optimization of buildRegistry loop
 - **What**: Replaced Map creation with Set creation, using plain loops for collecting keys instead of `Array.map`. Replaced object spread operator (`...skill`) with explicit property assignments. Pre-allocated the target array (`new Array(...)`) instead of using `.push()`.
 - **Why**: Prevent object instantiation overhead when creating Map values and Array elements from `.map()`, reduce spread operator overhead in tight loop processing thousands of elements, and avoid array reallocation/resizing during push loops.
-- **Measured Improvement**: Benchmark with 10k skills showed a drop in latency from ~870ms down to ~590ms (an approximately ~32% execution time improvement). Execution is strictly functionally identical.
