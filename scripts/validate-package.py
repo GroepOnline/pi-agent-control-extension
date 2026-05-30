@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Validate pi-agent-control-extension package structure."""
 
-from __future__ import annotations
-
 import json
 import os
 import shutil
