@@ -111,10 +111,9 @@ def find_baseline(results, segment):
 
 def find_best_kept(results, segment, direction):
     """Find the best kept metric in the current segment."""
-    cur = current_segment_results(results, segment)
     best = None
-    for r in cur:
-        if r.get("status") == "keep":
+    for r in results:
+        if r.get("segment", 0) == segment and r.get("status") == "keep":
             val = r["metric"]
             if best is None:
                 best = val
