@@ -18,6 +18,7 @@ export interface CaptureResult {
   validated: boolean;
   driver: string;
   command: string;
+  commandParts?: string[][];
   warnings: string[];
 }
 

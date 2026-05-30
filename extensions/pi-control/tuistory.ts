@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import type { CaptureResult, CaptureFormat } from "./capture.ts";
 import { shellEscape } from "./utils.ts";
 
@@ -18,25 +17,34 @@ export function captureTuiStory(
     warnings: [],
   };
 
-  const safeTarget = shellEscape(target);
-  const safeDir = shellEscape(evidenceDir);
-  const castPath = `${safeDir}/capture.cast`;
-  const snapshotPath = `${safeDir}/snapshot.txt`;
-
   switch (format) {
     case "cast":
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} --env FORCE_COLOR=3 --env COLORTERM=truecolor`;
+      result.commandParts = [
+        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--env", "FORCE_COLOR=3", "--env", "COLORTERM=truecolor", "--", target]
+      ];
+      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
       result.validated = true;
       break;
     case "mp4":
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && cast2gif ${castPath} ${safeDir}/capture.mp4`;
+      result.commandParts = [
+        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--", target],
+        ["cast2gif", `${evidenceDir}/capture.cast`, `${evidenceDir}/capture.mp4`]
+      ];
+      result.command = result.commandParts.map(cmd => cmd.map(p => shellEscape(p)).join(" ")).join(" && ");
       break;
     case "png":
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && tctl snapshot --out ${snapshotPath}`;
+      result.commandParts = [
+        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--", target],
+        ["tctl", "snapshot", "--out", `${evidenceDir}/snapshot.txt`]
+      ];
+      result.command = result.commandParts.map(cmd => cmd.map(p => shellEscape(p)).join(" ")).join(" && ");
       result.warnings.push("png for tuistory produces a text snapshot, not an image.");
       break;
     case "report":
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath}`;
+      result.commandParts = [
+        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--", target]
+      ];
+      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
       result.validated = true;
       break;
   }

@@ -78,6 +78,9 @@ describe("capture", () => {
     expect(result.format).toBe("png");
     expect(result.path.replace(/\\/g, "/")).toContain("artifacts/runs/");
     expect(result.command).toContain("agent-browser");
+    expect(result.commandParts).toBeDefined();
+    expect(result.commandParts![0]).toContain("agent-browser");
+    expect(result.commandParts![0]).toContain("https://example.com");
     expect(Array.isArray(result.warnings)).toBe(true);
   });
 
@@ -86,6 +89,8 @@ describe("capture", () => {
     expect(result.driver).toBe("tuistory");
     expect(result.format).toBe("cast");
     expect(result.command).toContain("tctl");
+    expect(result.commandParts).toBeDefined();
+    expect(result.commandParts![0]).toContain("run tui app");
     expect(result.validated).toBe(true);
   });
 
@@ -94,6 +99,8 @@ describe("capture", () => {
     expect(result.driver).toBe("true-input");
     expect(result.format).toBe("mp4");
     expect(result.command).toContain("true-input");
+    expect(result.commandParts).toBeDefined();
+    expect(result.commandParts![0]).toContain("real terminal test");
     expect(result.validated).toBe(true);
   });
 
@@ -132,6 +139,59 @@ describe("formatCaptureMarkdown", () => {
     });
     expect(md).toContain("warn1");
     expect(md).toContain("warn2");
+  });
+});
+
+describe("commandParts security", () => {
+  it("stores raw target in commandParts without shell interpolation", () => {
+    const malicious = '"; rm -rf / #';
+    const result = capture(malicious, "cast");
+    expect(result.commandParts).toBeDefined();
+    expect(result.commandParts![0]).toContain(malicious);
+  });
+
+  it("stores shell metacharacters literally in commandParts", () => {
+    const payloads = [
+      '$(whoami)',
+      '`id`',
+      '; echo pwned',
+      '| cat /etc/passwd',
+      '&& malicious',
+    ];
+    for (const payload of payloads) {
+      const result = capture(payload, "cast");
+      expect(result.commandParts).toBeDefined();
+      expect(result.commandParts![0]).toContain(payload);
+    }
+  });
+
+  it("uses -- flag terminator to prevent CLI flag injection in tuistory", () => {
+    const flagInjection = "--backend evil";
+    const result = capture(flagInjection, "cast");
+    expect(result.commandParts).toBeDefined();
+    const cmd = result.commandParts![0];
+    const dashDashIdx = cmd.indexOf("--");
+    expect(dashDashIdx).toBeGreaterThan(-1);
+    expect(cmd[dashDashIdx + 1]).toBe(flagInjection);
+  });
+
+  it("uses -- flag terminator to prevent CLI flag injection in browser", () => {
+    const flagInjection = "--viewport 9999x9999";
+    const result = capture("https://example.com " + flagInjection, "png");
+    expect(result.commandParts).toBeDefined();
+    const cmd = result.commandParts![0];
+    const dashDashIdx = cmd.indexOf("--");
+    expect(dashDashIdx).toBeGreaterThan(-1);
+  });
+
+  it("uses -- flag terminator to prevent CLI flag injection in true-input", () => {
+    const flagInjection = "--record /tmp/evil";
+    const result = capture("ghostty key encoding " + flagInjection, "mp4");
+    expect(result.driver).toBe("true-input");
+    expect(result.commandParts).toBeDefined();
+    const cmd = result.commandParts![0];
+    const dashDashIdx = cmd.indexOf("--");
+    expect(dashDashIdx).toBeGreaterThan(-1);
   });
 });
 
