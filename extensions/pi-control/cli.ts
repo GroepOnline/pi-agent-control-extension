@@ -19,10 +19,10 @@ const C_ACCENT = '\x1b[38;5;45m'; // Soft Turquoise
 
 const STUDIO_STATE_PATH = join(homedir(), '.config', 'devin', 'skill-studio.json');
 
-type SkillSource = 'user' | 'pi';
-type ShadowState = 'overrides' | 'shadowed' | null;
+export type SkillSource = 'user' | 'pi';
+export type ShadowState = 'overrides' | 'shadowed' | null;
 
-interface SkillEntry {
+export interface SkillEntry {
   name: string;
   description: string;
   path: string;
@@ -104,7 +104,7 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
   }
 }
 
-function getRepoRoot(): string {
+export function getRepoRoot(): string {
   const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
   const candidates = [process.cwd(), PACKAGE_ROOT];
   for (const d of candidates) {
@@ -176,7 +176,7 @@ function buildRegistry(): SkillEntry[] {
   return all;
 }
 
-function doDiff(skill: SkillEntry): string {
+export function doDiff(skill: SkillEntry): string {
   if (!skill.shadowState) return 'No shadowed/overridden version found.';
   try {
     const repoRoot = getRepoRoot();
@@ -433,4 +433,6 @@ function main() {
   }
 }
 
-main();
+if (process.env.NODE_ENV !== "test") {
+  main();
+}
