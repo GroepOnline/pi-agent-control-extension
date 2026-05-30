@@ -8,14 +8,11 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
 
-function safeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
-}
-
-function maskToken(token: string): string {
-  if (token.length <= 8) return "***";
-  return token.slice(0, 4) + "..." + token.slice(-4);
+export function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.byteLength !== bufB.byteLength) return false;
+  return timingSafeEqual(bufA, bufB);
 }
 
 export interface BridgeMessage {
@@ -290,6 +287,9 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
 
 export function formatBridgeStatusMarkdown(): string {
   const s = getBridgeState();
+  const token = loadToken() || "";
+  const maskedToken = token.length <= 8 ? "***" : token.slice(0, 4) + "..." + token.slice(-4);
+
   return [
     `## Bridge Status`,
     ``,
@@ -302,7 +302,7 @@ export function formatBridgeStatusMarkdown(): string {
     `| **Events** | ${s.events.length} |`,
     ``,
     s.running
-      ? `Token: \`${maskToken(loadToken() || "")}\``
+      ? `Token: \`${maskedToken}\``
       : "Bridge not running. Start with `/bridge-start`.",
   ].join("\n");
 }
