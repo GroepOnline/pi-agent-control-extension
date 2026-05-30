@@ -17,7 +17,6 @@ import argparse
 import json
 import os
 import statistics
-import sys
 import time
 
 
@@ -150,8 +149,7 @@ def cmd_log(args):
     config, results = read_jsonl(args.jsonl)
 
     if config is None:
-        print("Error: No config found. Run 'init' first.", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit("Error: No config found. Run 'init' first.")
 
     segment = config.get("_segment", 0) if config else 0
     direction = args.direction or (config.get("bestDirection", "lower") if config else "lower")
@@ -161,14 +159,14 @@ def cmd_log(args):
         try:
             extra_metrics = json.loads(args.metrics)
         except json.JSONDecodeError:
-            print(f"Warning: could not parse --metrics JSON: {args.metrics}", file=sys.stderr)
+            print(f"Warning: could not parse --metrics JSON: {args.metrics}")
 
     asi = None
     if args.asi:
         try:
             asi = json.loads(args.asi)
         except json.JSONDecodeError:
-            print(f"Warning: could not parse --asi JSON: {args.asi}", file=sys.stderr)
+            print(f"Warning: could not parse --asi JSON: {args.asi}")
 
     entry = {
         "run": len(results) + 1,
@@ -217,8 +215,7 @@ def cmd_evaluate(args):
     config, results = read_jsonl(args.jsonl)
 
     if not config:
-        print("No config found in JSONL. Run init first.", file=sys.stderr)
-        sys.exit(1)
+        raise SystemExit("No config found in JSONL. Run init first.")
 
     segment = config.get("_segment", 0)
     direction = args.direction or config.get("bestDirection", "lower")
@@ -230,7 +227,7 @@ def cmd_evaluate(args):
     if compare_against is None:
         print("DECISION: keep (first experiment — this is the baseline)")
         print(f"  Metric: {args.metric}")
-        sys.exit(0)
+        raise SystemExit(0)
 
     improved = is_better(args.metric, compare_against, direction)
 
