@@ -6,6 +6,7 @@ import { recipeFor, verifyCommitments } from "../recipes.ts";
 import { browserControlGuidance, BROWSER_CONTROL_STATUS } from "./browser.ts";
 import { osControlGuidance, OS_CONTROL_STATUS } from "./os.ts";
 import { browserCommandTool } from "./browser_command.ts";
+import { shellCommandTool } from "./shell_command.ts";
 import {
   rootDir,
   listSkills,
@@ -129,6 +130,7 @@ const TOOLS = [
     },
   },
   browserCommandTool,
+  shellCommandTool,
 ];
 
 export function registerTools(pi: ExtensionAPI) {
