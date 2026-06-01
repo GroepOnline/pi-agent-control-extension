@@ -1,0 +1,21 @@
+# Remotion build artifacts and dev dependencies
+remotion/node_modules/
+remotion/package-lock.json
+remotion/artifacts/
+
+# Test & dev artifacts
+artifacts/runs/*
+!artifacts/runs/.gitkeep
+artifacts/telemetry/*
+coverage/
+.factory/
+
+# Local agent config
+.claude/
+
+# Dev tooling
+.ruff_cache/
+.venv/
+*.log
+.env
+.DS_Store

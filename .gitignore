@@ -13,9 +13,20 @@ remotion/package-lock.json
 /tmp/tctl-sessions/
 .factory/
 coverage/
+reports/
+
+*.tgz
+.env.*
 
 # Local agent config
 .claude/
 
 # Remotion build artifacts
 remotion/artifacts/
+
+# Local tool output and agent config
+graphify-out/
+.jules/
+.remember/
+.pi/
+*.patch
