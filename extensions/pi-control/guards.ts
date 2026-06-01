@@ -80,7 +80,7 @@ export function inspectToolCall(event: any) {
     }
 
     // Reverse shell patterns
-    if (/\b(bash\s+-i|\/dev\/(tcp|udp)|mkfifo|nc\s+-e|ncat\s+-e|socat\s+.*exec)\b/.test(lower)) {
+    if (/\b(bash\s+-i|mkfifo|nc\s+-e|ncat\s+-e|socat\s+.*exec)\b/.test(lower) || /\/dev\/(tcp|udp)\//.test(lower)) {
       return { block: true, reason: "Blocked reverse shell pattern. Use approved remote access methods." };
     }
 

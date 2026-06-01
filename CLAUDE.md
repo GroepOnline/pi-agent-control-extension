@@ -14,6 +14,8 @@ Pi Agent Control Extension — a Pi extension package providing routing, capture
 | `npm run lint` | TypeScript type checking (`tsc --noEmit`) |
 | `npm test` | Run all tests (vitest) |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run test:e2e` | Run end-to-end tests |
+| `npm run lint:python` | Python linting with ruff (`ruff check` + `ruff format --check`) |
 | `npm run validate` | Validate package structure, skills, and manifest (Python) |
 | `npm run pack:dry` | Preview npm package contents |
 | `npm run clean` | Clean caches and temp files |
@@ -59,15 +61,24 @@ Ink-based terminal UI for skill management:
 
 ### Skills (`skills/`)
 
-25 skill directories, each with a `SKILL.md` file (YAML frontmatter with `name` and `description`). Skills are auto-discovered by reading `skills/*/SKILL.md`. Key skill groups:
+26 skill directories, each with a `SKILL.md` file (YAML frontmatter with `name` and `description`). Skills are auto-discovered by reading `skills/*/SKILL.md`. Key skill groups:
 - **Core control**: agent-browser, tuistory, true-input, capture, pty-capture, verify, compose, showcase
 - **Meta/init**: init, wiki, review, autoresearch, session-navigation, meta-control
 - **Agent orchestration**: ralph, agent-planner, agent-architect, agent-critic, agent-security-reviewer, e2e-tester
-- **Infrastructure**: pi-agent-cli, pi-agent-control, background-pty, control-narrate
+- **Infrastructure**: pi-agent-cli, pi-agent-control, background-pty, control-narrate, network-audit, notion-linear-bridge
 
 ### Remotion (`remotion/`)
 
-React-based video rendering engine for showcase videos. Separate npm package with its own dependencies. Recipes auto-select presets, layouts, and transitions.
+React-based video rendering engine for showcase videos. Separate npm package with its own dependencies. Recipes auto-select presets, layouts, and transitions. Two compositions: `Showcase` and `NarratorShowcase`.
+
+**Critical rules (Remotion renders per-frame, not as live browser animation):**
+- **CSS transitions/animations are FORBIDDEN** — they will not render. Use `useCurrentFrame()` + `interpolate()` instead.
+- **Tailwind animation classes are FORBIDDEN** — same reason.
+- Use `<Video>`, `<Audio>`, `<Img>` from `@remotion/media` (or `remotion`) for media assets.
+- Use `staticFile()` to reference files from `public/`.
+- Use `calculateMetadata` in `<Composition>` for dynamic duration/props.
+- Use `<Sequence from={...} durationInFrames={...}>` to time elements.
+- `Easing` from `remotion` for custom animation curves.
 
 ### Binary Helpers (`bin/`)
 
@@ -88,9 +99,11 @@ React-based video rendering engine for showcase videos. Separate npm package wit
 ## Testing
 
 - Tests are co-located: `*.test.ts` and `*.test.tsx` next to source files.
-- Benchmarks: `*.bench.ts` files.
+- Benchmarks: `*.bench.ts` files (vitest benchmark, 200ms time, 10 iterations).
 - E2E: `scripts/test-e2e.sh`.
 - Python validation: `scripts/validate-package.py` (run via `npm run validate`).
+- Python tests: `scripts/test_*.py`.
+- Ruff config: `ruff.toml` (line-length 100, select E/F/B/I/W, ignore E501).
 - Coverage thresholds: 50% statements, 40% branches, 50% functions, 50% lines.
 
 ## Routing Model

@@ -17,7 +17,6 @@ export const ProgressBar: React.FC<{ progress: number; palette: Palette }> = ({ 
         width: `${Math.max(0, Math.min(100, progress * 100))}%`,
         height: '100%',
         background: palette.accent,
-        transition: 'width 0.1s linear',
       }}
     />
   </div>
