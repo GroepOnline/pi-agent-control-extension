@@ -84,9 +84,9 @@ describe("registerTools", () => {
     expect(toolNames).toContain("control_browser_command");
   });
 
-  it("registers exactly 11 tools", () => {
+  it("registers exactly 12 tools", () => {
     const registered = getRegisteredTools();
-    expect(registered).toHaveLength(11);
+    expect(registered).toHaveLength(12);
   });
 
   it("each tool has a name, description, and execute function", () => {
