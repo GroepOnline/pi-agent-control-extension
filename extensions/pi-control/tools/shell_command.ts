@@ -7,33 +7,80 @@ import { rootDir } from "../utils.ts";
 
 const DEFAULT_TIMEOUT = 30_000;
 const MAX_TIMEOUT = 120_000;
-const MAX_OUTPUT_BYTES = 102_400;
+const MAX_OUTPUT_BYTES = 102_400; // 100 KB
 
-const ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
+/** Base commands that are permitted to execute. */
+export const ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
+  // filesystem inspection (read-only)
   "ls", "find", "stat", "file", "du", "df", "wc", "head", "tail",
   "cat", "less", "tree", "readlink", "realpath", "basename", "dirname",
+  // text processing
   "grep", "rg", "sed", "awk", "sort", "uniq", "cut", "tr", "diff",
   "jq", "xargs", "tee", "column",
+  // development
   "git", "npm", "npx", "node", "tsc", "vitest", "eslint", "prettier",
   "pnpm", "yarn", "bun", "deno",
   "python3", "python", "pip", "pip3", "uv",
   "cargo", "rustc", "make", "cmake",
+  // system info
   "echo", "printf", "date", "whoami", "hostname", "uname", "env", "printenv",
   "which", "type", "id", "pwd", "true", "false", "test",
+  // network (read-only)
   "ping", "dig", "nslookup", "host", "curl",
+  // archive
   "tar", "zip", "unzip", "gzip", "gunzip",
+  // process inspection
   "ps", "top", "htop", "lsof",
-  "sleep", "base64",
+  // utilities
+  "sleep", "base64", "mkdir",
+  // pi-specific
   "tctl", "tuistory", "agent-browser", "doctor-control",
 ]);
 
-function getAllowedPrefixes(): string[] {
-  return [rootDir(), "/home", "/tmp", "/var/tmp"];
+/** Directories the tool is allowed to operate in. */
+export const ALLOWED_CWD_PREFIXES: readonly string[] = [rootDir(), "/home", "/tmp", "/var/tmp"];
+
+/**
+ * Parse leading VAR=value pairs from a command string.
+ * Returns the env map and the remaining command part.
+ */
+export function parseEnvPrefix(raw: string): { env: Record<string, string>; rest: string } {
+  const env: Record<string, string> = {};
+  let rest = raw.trimStart();
+  const re = /^(\w+)=(\S+)\s+/;
+  let m;
+  while ((m = re.exec(rest))) {
+    env[m[1]!] = m[2]!;
+    rest = rest.slice(m[0].length);
+  }
+  return { env, rest };
 }
 
-const ALLOWED_CWD_PREFIXES: readonly string[] = getAllowedPrefixes();
+/**
+ * Parse a command string into tokens, respecting single and double quotes.
+ * Quotes are stripped from the resulting tokens.
+ */
+export function parseCommandTokens(raw: string): string[] {
+  const tokens: string[] = [];
+  let current = "";
+  let inSingle = false;
+  let inDouble = false;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (ch === "'" && !inDouble) { inSingle = !inSingle; continue; }
+    if (ch === '"' && !inSingle) { inDouble = !inDouble; continue; }
+    if (/\s/.test(ch) && !inSingle && !inDouble) {
+      if (current) { tokens.push(current); current = ""; }
+      continue;
+    }
+    current += ch;
+  }
+  if (current) tokens.push(current);
+  return tokens;
+}
 
-function extractBaseCommand(command: string): string {
+/** Extract the basename from a command string (handles paths and env prefixes). */
+export function extractBaseCommand(command: string): string {
   const trimmed = command.trim();
   const withoutEnv = trimmed.replace(/^(\w+=\S+\s+)+/, "");
   const first = withoutEnv.split(/\s+/)[0] ?? "";
@@ -41,7 +88,28 @@ function extractBaseCommand(command: string): string {
   return parts[parts.length - 1] ?? "";
 }
 
-function isAllowedCwd(cwd: string): boolean {
+/** Sensitive path patterns that should not appear in command arguments. */
+const SENSITIVE_PATH_RE: readonly RegExp[] = [
+  /\/etc\/(passwd|shadow|gshadow|sudoers|master\.passwd)/,
+  /\/etc\/ssh\b/,
+  /\/\.ssh\b/,
+  /\/\.gnupg\b/,
+  /\/\.aws\//,
+  /\/\.env\b/,
+];
+
+/** Check if any argument references a sensitive path. Returns the offending arg or null. */
+export function containsSensitivePath(args: readonly string[]): string | null {
+  for (const arg of args) {
+    for (const re of SENSITIVE_PATH_RE) {
+      if (re.test(arg)) return arg;
+    }
+  }
+  return null;
+}
+
+/** Validate that cwd is under an allowed prefix (symlink-safe via realpathSync). */
+export function isAllowedCwd(cwd: string): boolean {
   let resolved: string;
   try {
     resolved = realpathSync(resolve(cwd));
@@ -59,12 +127,20 @@ function isAllowedCwd(cwd: string): boolean {
   });
 }
 
+/** Normalize timeout value (clamped to valid range). */
+export function normalizeTimeout(timeout?: number): number {
+  return Math.min(Math.max(timeout ?? DEFAULT_TIMEOUT, 1), MAX_TIMEOUT);
+}
+
+/** Truncate a string to maxBytes (UTF-8), appending a truncation notice. */
 function truncateOutput(text: string, maxBytes: number): string {
   const buf = Buffer.from(text, "utf8");
   if (buf.length <= maxBytes) return text;
   const truncated = buf.subarray(0, maxBytes).toString("utf8");
   return truncated + `\n\n--- output truncated (${buf.length} bytes, limit ${maxBytes}) ---`;
 }
+
+// ── Audit log ──────────────────────────────────────────────────────
 
 interface AuditEntry {
   ts: string;
@@ -78,10 +154,14 @@ interface AuditEntry {
   error?: string;
 }
 
+/** Redact sensitive patterns from command strings before logging. */
 function redactCommand(cmd: string): string {
-  let redacted = cmd.replace(/^(\w+)=\S+/gm, "$1=<REDACTED>");
-  redacted = redacted.replace(/(-[A-Za-z]*?(?:token|key|secret|password|auth|credential)\s+)\S+/gi, "$1<REDACTED>");
+  let redacted = cmd;
+  redacted = redacted.replace(/\b(\w*(?:token|key|secret|password|passwd|auth|credential)\w*)=(\S+)/gi, "$1=<REDACTED>");
   redacted = redacted.replace(/(Bearer\s+)\S+/gi, "$1<REDACTED>");
+  redacted = redacted.replace(/(Authorization:\s*)\S+/gi, "$1<REDACTED>");
+  redacted = redacted.replace(/\bAKIA[A-Z0-9]{16}\b/g, "<REDACTED>");
+  redacted = redacted.replace(/\b[0-9a-f]{40,}\b/gi, "<REDACTED>");
   return redacted;
 }
 
@@ -105,15 +185,19 @@ function auditLog(entry: AuditEntry): void {
   } catch { /* silent */ }
 }
 
+// ── Tool definition ────────────────────────────────────────────────
+
 export const shellCommandTool = {
   name: "control_shell_command",
   label: "Shell Command",
   description:
-    "Execute an allowlisted shell command and return its stdout/stderr. " +
-    "Commands are validated against an allowlist, cwd is restricted, " +
-    "output is size-limited, and all invocations are audit-logged.",
+    "Execute an allowlisted command and return its stdout/stderr. " +
+    "Commands are executed directly via execFile (no shell interpreter) — " +
+    "shell metacharacters (;, |, &&, >, <, backticks) are NOT interpreted. " +
+    "Arguments are validated against an allowlist and sensitive-path blocklist, " +
+    "cwd is restricted, output is size-limited, and all invocations are audit-logged.",
   parameters: Type.Object({
-    command: Type.String({ description: "The command to execute (must start with an allowed base command)" }),
+    command: Type.String({ description: "The command to execute (must start with an allowed base command; no shell operators)" }),
     cwd: Type.Optional(
       Type.String({ description: "Working directory (must be under /home, /tmp, or project root; defaults to $HOME)" }),
     ),
@@ -128,9 +212,27 @@ export const shellCommandTool = {
     p: { command: string; cwd?: string; timeout?: number },
   ) {
     const startTime = Date.now();
-    const timeout = Math.min(Math.max(p.timeout ?? DEFAULT_TIMEOUT, 1), MAX_TIMEOUT);
+    const timeout = normalizeTimeout(p.timeout);
 
-    const baseCmd = extractBaseCommand(p.command);
+    // ── Parse env prefix and tokenize (no shell) ──
+    const { env: cmdEnv, rest: cmdRest } = parseEnvPrefix(p.command);
+    const tokens = parseCommandTokens(cmdRest);
+
+    if (tokens.length === 0) {
+      const reason = `Command "(empty)" is not in the allowlist.`;
+      auditLog({ ts: new Date().toISOString(), command: p.command, cwd: p.cwd ?? null, timeout, success: false, blocked: true, blockReason: reason });
+      return {
+        content: [{ type: "text" as const, text: `Blocked: ${reason}` }],
+        details: { command: p.command, cwd: p.cwd ?? null, success: false, error: reason },
+      };
+    }
+
+    const binary = tokens[0]!;
+    const args = tokens.slice(1);
+
+    // ── Allowlist check ──
+    const binaryParts = binary.split("/");
+    const baseCmd = binaryParts[binaryParts.length - 1] ?? "";
     if (!baseCmd || !ALLOWED_COMMANDS.has(baseCmd)) {
       const reason = `Command "${baseCmd || "(empty)"}" is not in the allowlist.`;
       auditLog({ ts: new Date().toISOString(), command: p.command, cwd: p.cwd ?? null, timeout, success: false, blocked: true, blockReason: reason });
@@ -140,6 +242,18 @@ export const shellCommandTool = {
       };
     }
 
+    // ── Sensitive path check ──
+    const sensitiveArg = containsSensitivePath(args);
+    if (sensitiveArg) {
+      const reason = `Argument "${sensitiveArg}" references a sensitive path. Access to credentials, SSH keys, and system auth files is blocked.`;
+      auditLog({ ts: new Date().toISOString(), command: p.command, cwd: p.cwd ?? null, timeout, success: false, blocked: true, blockReason: reason });
+      return {
+        content: [{ type: "text" as const, text: `Blocked: ${reason}` }],
+        details: { command: p.command, cwd: p.cwd ?? null, success: false, error: reason },
+      };
+    }
+
+    // ── cwd validation ──
     const effectiveCwd = p.cwd ?? process.env.HOME;
     if (effectiveCwd && !isAllowedCwd(effectiveCwd)) {
       const reason = `Working directory "${effectiveCwd}" is not under an allowed path.`;
@@ -150,17 +264,22 @@ export const shellCommandTool = {
       };
     }
 
+    // ── Execute (no shell — binary + args passed directly) ──
     try {
+      const execEnv = Object.keys(cmdEnv).length > 0
+        ? { ...process.env, ...cmdEnv }
+        : undefined;
+
       const { stdout, stderr } = await new Promise<{
         stdout: string;
         stderr: string;
       }>((resolve, reject) => {
         execFile(
-          "/bin/sh",
-          ["-c", p.command],
-          { encoding: "utf8", timeout, cwd: effectiveCwd },
+          binary,
+          args,
+          { encoding: "utf8", timeout, cwd: effectiveCwd, env: execEnv },
           (err: ExecFileException | null, stdout: string, stderr: string) => {
-            if (err) reject(Object.assign({}, err, { message: err.message, stdout, stderr }));
+            if (err) reject(Object.assign({ message: err.message, stdout, stderr }, err));
             else resolve({ stdout, stderr });
           },
         );

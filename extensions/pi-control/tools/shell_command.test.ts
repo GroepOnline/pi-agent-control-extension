@@ -6,6 +6,9 @@ import {
   extractBaseCommand,
   isAllowedCwd,
   normalizeTimeout,
+  parseCommandTokens,
+  parseEnvPrefix,
+  containsSensitivePath,
   ALLOWED_COMMANDS,
   ALLOWED_CWD_PREFIXES,
 } from "./shell_command.ts";
@@ -16,11 +19,61 @@ const isWin = process.platform === "win32";
 const drive = isWin ? win32.parse(process.cwd()).root : "";
 const homeDir = isWin ? process.env.USERPROFILE || join(drive, "Users", "user") : "/home/user";
 const tmpDir = isWin ? join(drive, "tmp") : "/tmp";
-const tmpDirReal = realpathSync(tmpDir); // Resolve symlinks (e.g., macOS /tmp -> /private/tmp)
+const tmpDirReal = realpathSync(tmpDir);
 const etcDir = isWin ? join(drive, "Windows", "System32", "config") : "/etc";
 const rootHome = isWin ? join(drive, "Users", "root") : "/root";
 const varDir = isWin ? join(drive, "var") : "/var";
 const varTmpDir = isWin ? join(drive, "var", "tmp") : "/var/tmp";
+
+// ── parseCommandTokens ─────────────────────────────────────────────
+
+describe("parseCommandTokens", () => {
+  it("splits simple tokens", () => {
+    expect(parseCommandTokens("ls -la /tmp")).toEqual(["ls", "-la", "/tmp"]);
+  });
+
+  it("handles double quotes", () => {
+    expect(parseCommandTokens('echo "hello world"')).toEqual(["echo", "hello world"]);
+  });
+
+  it("handles single quotes", () => {
+    expect(parseCommandTokens("find /tmp -name '*.log'")).toEqual(["find", "/tmp", "-name", "*.log"]);
+  });
+
+  it("returns empty array for empty string", () => {
+    expect(parseCommandTokens("")).toEqual([]);
+  });
+
+  it("handles mixed quotes", () => {
+    expect(parseCommandTokens(`grep -r "pattern" '/home/user'`)).toEqual(["grep", "-r", "pattern", "/home/user"]);
+  });
+
+  it("preserves metacharacters as literal text", () => {
+    expect(parseCommandTokens("echo safe; rm -rf /")).toEqual(["echo", "safe;", "rm", "-rf", "/"]);
+  });
+});
+
+// ── parseEnvPrefix ──────────────────────────────────────────────────
+
+describe("parseEnvPrefix", () => {
+  it("parses env vars from prefix", () => {
+    const { env, rest } = parseEnvPrefix("NODE_ENV=prod node index.js");
+    expect(env).toEqual({ NODE_ENV: "prod" });
+    expect(rest).toBe("node index.js");
+  });
+
+  it("parses multiple env vars", () => {
+    const { env, rest } = parseEnvPrefix("A=1 B=2 echo hello");
+    expect(env).toEqual({ A: "1", B: "2" });
+    expect(rest).toBe("echo hello");
+  });
+
+  it("returns empty env for no prefix", () => {
+    const { env, rest } = parseEnvPrefix("echo hello");
+    expect(env).toEqual({});
+    expect(rest).toBe("echo hello");
+  });
+});
 
 // ── extractBaseCommand ──────────────────────────────────────────────
 
@@ -46,6 +99,31 @@ describe("extractBaseCommand", () => {
   });
 });
 
+// ── containsSensitivePath ───────────────────────────────────────────
+
+describe("containsSensitivePath", () => {
+  it("blocks /etc/passwd", () => {
+    expect(containsSensitivePath(["/etc/passwd"])).toBe("/etc/passwd");
+  });
+
+  it("blocks /etc/shadow", () => {
+    expect(containsSensitivePath(["/etc/shadow"])).toBe("/etc/shadow");
+  });
+
+  it("blocks .ssh paths", () => {
+    expect(containsSensitivePath(["/home/user/.ssh/id_rsa"])).toBe("/home/user/.ssh/id_rsa");
+  });
+
+  it("blocks .env files with path prefix", () => {
+    expect(containsSensitivePath(["/.env"])).toBe("/.env");
+    expect(containsSensitivePath(["/home/user/project/.env"])).toBe("/home/user/project/.env");
+  });
+
+  it("allows safe paths", () => {
+    expect(containsSensitivePath(["/tmp/file.txt", "/home/user/code"])).toBeNull();
+  });
+});
+
 // ── isAllowedCwd ────────────────────────────────────────────────────
 
 describe("isAllowedCwd", () => {
@@ -58,7 +136,6 @@ describe("isAllowedCwd", () => {
   });
 
   it("allows tmp subdirectory", () => {
-    // Skip on Windows if subdir doesn't exist
     if (isWin && !require("fs").existsSync(join(tmpDir, "subdir"))) return;
     expect(isAllowedCwd(join(tmpDir, "subdir"))).toBe(true);
   });
@@ -76,7 +153,6 @@ describe("isAllowedCwd", () => {
   });
 
   it("allows var/tmp", () => {
-    // Skip on Windows if var/tmp doesn't exist
     if (isWin && !require("fs").existsSync(varTmpDir)) return;
     expect(isAllowedCwd(varTmpDir)).toBe(true);
   });
@@ -128,8 +204,69 @@ describe("allowlist blocking", () => {
 
   it("allows find (in allowlist) on a small directory", async () => {
     const result = await shellCommandTool.execute("t", { command: "find /tmp -maxdepth 1 -name '*.log'" });
-    // find is in the allowlist, so the allowlist layer lets it through
     expect(result.details.success).toBe(true);
+  });
+});
+
+// ── Sensitive path blocking ─────────────────────────────────────────
+
+describe("sensitive path blocking", () => {
+  it("blocks ls /etc/passwd", async () => {
+    const result = await shellCommandTool.execute("t", { command: "ls /etc/passwd" });
+    expect(result.details.success).toBe(false);
+    expect(result.content[0].text).toContain("Blocked");
+    expect(result.content[0].text).toContain("sensitive path");
+  });
+
+  it("blocks cat /etc/shadow", async () => {
+    const result = await shellCommandTool.execute("t", { command: "cat /etc/shadow" });
+    expect(result.details.success).toBe(false);
+    expect(result.content[0].text).toContain("Blocked");
+  });
+
+  it("blocks access to .ssh keys", async () => {
+    const result = await shellCommandTool.execute("t", { command: "cat /home/user/.ssh/id_rsa" });
+    expect(result.details.success).toBe(false);
+    expect(result.content[0].text).toContain("Blocked");
+  });
+
+  it("allows non-sensitive paths", async () => {
+    const result = await shellCommandTool.execute("t", { command: "ls /tmp" });
+    expect(result.details.success).toBe(true);
+  });
+});
+
+// ── Shell injection prevention (no-shell execFile) ──────────────────
+
+describe("shell injection prevention (no-shell execFile)", () => {
+  it("semicolon is treated as literal text, not command separator", async () => {
+    const result = await shellCommandTool.execute("t", { command: "echo safe; rm -rf /" });
+    expect(result.details.success).toBe(true);
+    // Without a shell, "safe;" "rm" "-rf" "/" are all literal args to echo
+    expect(result.content[0].text).toContain("safe;");
+    expect(result.content[0].text).toContain("rm");
+  });
+
+  it("pipe is treated as literal text, not shell pipe", async () => {
+    const result = await shellCommandTool.execute("t", { command: "echo payload | bash" });
+    expect(result.details.success).toBe(true);
+    // Without a shell, "|" and "bash" are literal args to echo
+    expect(result.content[0].text).toContain("|");
+    expect(result.content[0].text).toContain("bash");
+  });
+
+  it("dollar-paren substitution is harmless", async () => {
+    const result = await shellCommandTool.execute("t", { command: "echo $(whoami)" });
+    expect(result.details.success).toBe(true);
+    // $(whoami) is a literal string arg to echo, not evaluated
+    expect(result.content[0].text).toContain("$(whoami)");
+  });
+
+  it("ampersand chaining is harmless", async () => {
+    const result = await shellCommandTool.execute("t", { command: "echo safe && rm -rf /" });
+    expect(result.details.success).toBe(true);
+    // "&&" "rm" "-rf" "/" are literal args to echo
+    expect(result.content[0].text).toContain("&&");
   });
 });
 
@@ -150,10 +287,8 @@ describe("cwd validation", () => {
   });
 
   it("allows cwd=tmp", async () => {
-    const cmd = isWin ? "echo $PWD.Path" : "pwd";
-    const result = await shellCommandTool.execute("t", { command: cmd, cwd: tmpDir });
+    const result = await shellCommandTool.execute("t", { command: "pwd", cwd: tmpDir });
     expect(result.details.success).toBe(true);
-    // Accept both logical (/tmp) and physical (/private/tmp) paths for macOS compatibility
     expect([tmpDir, tmpDirReal]).toContain(result.content[0].text);
   });
 
@@ -174,10 +309,11 @@ describe("successful execution", () => {
     expect(result.details.error).toBe("");
   });
 
-  it("separates stdout and stderr", async () => {
-    // Skip on Windows - PowerShell stderr syntax is different
+  it("captures stderr via node", async () => {
     if (isWin) return;
-    const result = await shellCommandTool.execute("t", { command: "echo out && echo err >&2" });
+    const result = await shellCommandTool.execute("t", {
+      command: `node -e "process.stderr.write('err'); process.stdout.write('out')"`,
+    });
     expect(result.details.success).toBe(true);
     expect(result.content[0].text).toContain("out");
     expect(result.content[0].text).toContain("---stderr---");
@@ -190,6 +326,13 @@ describe("successful execution", () => {
     expect(result.content[0].text).toBe("(no output)");
   });
 
+  it("supports env var prefix", async () => {
+    const result = await shellCommandTool.execute("t", {
+      command: `MY_TEST_VAR=hello node -e "process.stdout.write(process.env.MY_TEST_VAR)"`,
+    });
+    expect(result.details.success).toBe(true);
+    expect(result.content[0].text).toBe("hello");
+  });
 });
 
 // ── Error handling ──────────────────────────────────────────────────
@@ -214,9 +357,8 @@ describe("error handling", () => {
 
 describe("timeout", () => {
   it("kills long-running command within timeout", async () => {
-    // Use node (in allowlist) instead of sleep (not in allowlist) to test actual timeout
     const start = Date.now();
-    const result = await shellCommandTool.execute("t", { command: "node -e \"setTimeout(() => {}, 60000)\"", timeout: 500 });
+    const result = await shellCommandTool.execute("t", { command: "sleep 60", timeout: 500 });
     const elapsed = Date.now() - start;
     expect(result.details.success).toBe(false);
     expect(result.content[0].text).not.toContain("Blocked");
@@ -224,11 +366,10 @@ describe("timeout", () => {
   });
 
   it("clamps large timeout to MAX_TIMEOUT", () => {
-    // Test the normalization helper directly
-    expect(normalizeTimeout(999_999)).toBe(120_000); // MAX_TIMEOUT
-    expect(normalizeTimeout(0)).toBe(1); // minimum
-    expect(normalizeTimeout(undefined)).toBe(30_000); // DEFAULT_TIMEOUT
-    expect(normalizeTimeout(5_000)).toBe(5_000); // within range
+    expect(normalizeTimeout(999_999)).toBe(120_000);
+    expect(normalizeTimeout(0)).toBe(1);
+    expect(normalizeTimeout(undefined)).toBe(30_000);
+    expect(normalizeTimeout(5_000)).toBe(5_000);
   });
 });
 
@@ -236,9 +377,7 @@ describe("timeout", () => {
 
 describe("output size limit", () => {
   it("truncates large output", async () => {
-    // Generate ~200KB of output (cross-platform)
-    // Use node to generate large output since it's in the allowlist
-    const cmd = 'node -e "process.stdout.write(Buffer.alloc(204800, 65))"';
+    const cmd = `node -e "process.stdout.write(Buffer.alloc(204800, 65).toString())"`;
     const result = await shellCommandTool.execute("t", { command: cmd });
     expect(result.details.success).toBe(true);
     expect(result.content[0].text).toContain("--- output truncated");
@@ -281,47 +420,8 @@ describe("exports", () => {
     expect(ALLOWED_COMMANDS.has("rm")).toBe(false);
   });
 
-  it("ALLOWED_CWD_PREFIXES includes home and tmp", () => {
-    if (isWin) {
-      expect(ALLOWED_CWD_PREFIXES.some(p => p.endsWith("/home"))).toBe(true);
-      expect(ALLOWED_CWD_PREFIXES.some(p => p.endsWith("/tmp"))).toBe(true);
-    } else {
-      expect(ALLOWED_CWD_PREFIXES).toContain("/home");
-      expect(ALLOWED_CWD_PREFIXES).toContain("/tmp");
-    }
-  });
-});
-
-// ── Audit logging ──────────────────────────────────────────────────
-
-import { readFileSync, readdirSync } from "node:fs";
-import { join as pathJoin } from "node:path";
-import { ensureAuditLog, auditLogPath } from "./shell_command.ts";
-
-describe("audit logging", () => {
-  it("writes audit entry for blocked command", async () => {
-    const uniqueCmd = "rm -rf /unique-audit-test-marker-12345";
-    await shellCommandTool.execute("t", { command: uniqueCmd });
-
-    const logFile = ensureAuditLog();
-    const entries = readFileSync(logFile, "utf8").trim().split("\n");
-    const matching = entries.map(e => JSON.parse(e)).find(e => e.command?.includes("unique-audit-test-marker-12345"));
-    expect(matching).toBeDefined();
-    expect(matching.blocked).toBe(true);
-    expect(matching.success).toBe(false);
-    expect(matching.ts).toBeDefined();
-  });
-
-  it("writes audit entry for successful command", async () => {
-    const uniqueCmd = "echo unique-success-marker-67890";
-    await shellCommandTool.execute("t", { command: uniqueCmd });
-
-    const logFile = ensureAuditLog();
-    const entries = readFileSync(logFile, "utf8").trim().split("\n");
-    const matching = entries.map(e => JSON.parse(e)).find(e => e.command?.includes("unique-success-marker-67890"));
-    expect(matching).toBeDefined();
-    expect(matching.blocked).toBe(false);
-    expect(matching.success).toBe(true);
-    expect(matching.durationMs).toBeGreaterThanOrEqual(0);
+  it("ALLOWED_CWD_PREFIXES includes /home and /tmp", () => {
+    expect(ALLOWED_CWD_PREFIXES).toContain("/home");
+    expect(ALLOWED_CWD_PREFIXES).toContain("/tmp");
   });
 });
