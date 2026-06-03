@@ -159,20 +159,22 @@ describe("command security", () => {
   it("uses -- flag terminator to prevent CLI flag injection in tuistory", () => {
     const flagInjection = "--backend evil";
     const result = capture(flagInjection, "cast");
-    expect(result.command).toContain(`-- '${flagInjection}'`);
+    expect(result.commandParts?.some((parts) => parts.at(-1) === flagInjection && parts.at(-2) === "--")).toBe(true);
   });
 
   it("uses -- flag terminator to prevent CLI flag injection in browser", () => {
     const flagInjection = "--viewport 9999x9999";
-    const result = capture("https://example.com " + flagInjection, "png");
-    expect(result.command).toContain(`-- '${flagInjection}'`);
+    const target = "https://example.com " + flagInjection;
+    const result = capture(target, "png");
+    expect(result.commandParts?.some((parts) => parts.at(-1) === target && parts.at(-2) === "--")).toBe(true);
   });
 
   it("uses -- flag terminator to prevent CLI flag injection in true-input", () => {
     const flagInjection = "--record /tmp/evil";
-    const result = capture("ghostty key encoding " + flagInjection, "mp4");
+    const target = "ghostty key encoding " + flagInjection;
+    const result = capture(target, "mp4");
     expect(result.driver).toBe("true-input");
-    expect(result.command).toContain(`-- '${flagInjection}'`);
+    expect(result.commandParts?.some((parts) => parts.at(-1) === target && parts.at(-2) === "--")).toBe(true);
   });
 });
 
