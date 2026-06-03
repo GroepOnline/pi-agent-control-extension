@@ -78,7 +78,8 @@ export function inspectToolCall(event: any) {
     }
 
     // Reverse shell patterns
-    if (/\b(bash\s+-i|\/dev\/(tcp|udp)|mkfifo|nc\s+-e|ncat\s+-e|socat\s+.*exec)\b/.test(lower)) {
+    if (/\b(bash\s+-i|mkfifo|nc\s+-e|ncat\s+-e|socat\s+.*exec)\b/.test(lower) ||
+        /\/dev\/(tcp|udp)\//.test(lower)) {
       return { block: true, reason: "Blocked reverse shell pattern. Use approved remote access methods." };
     }
 
@@ -86,7 +87,7 @@ export function inspectToolCall(event: any) {
     if (/base64\s+(-d|--decode)\s*\|\s*(sh|bash|zsh|python|node|perl|ruby|php)\b/.test(lower)) {
       return { block: true, reason: "Blocked base64-decoded execution. Decode to a file and review before running." };
     }
-    if (/\beval\s+/.test(lower) && /(\$|`|\\)/.test(lower)) {
+    if (/\beval\s+/.test(lower) && /(\ $|`|\\)/.test(lower)) {
       return { block: true, reason: "Blocked eval with dynamic content. Use explicit function calls instead." };
     }
   }
