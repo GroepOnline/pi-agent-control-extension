@@ -74,12 +74,6 @@ function loadToken(): string | null {
   return null;
 }
 
-function maskToken(token: string | null): string {
-  if (!token) return "N/A";
-  if (token.length <= 8) return "****";
-  return token.slice(0, 4) + "..." + token.slice(-4);
-}
-
 const bridgeState: InternalBridgeState = {
   running: false,
   port: 0,
@@ -299,11 +293,6 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
     default:
       reply({ ok: false, error: `Unknown message type: ${msg.type}` });
   }
-}
-
-function maskToken(token: string | null): string {
-  if (!token || token.length < 8) return "****";
-  return token.slice(0, 4) + "..." + token.slice(-4);
 }
 
 export function formatBridgeStatusMarkdown(): string {
