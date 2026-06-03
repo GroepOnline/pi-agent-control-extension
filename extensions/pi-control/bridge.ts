@@ -75,8 +75,8 @@ function loadToken(): string | null {
 }
 
 const bridgeState: InternalBridgeState = {
-  running: false,
-  port: 0,
+  running: false;
+  port: 0;
   clients: [],
   events: [],
   startTime: null,
@@ -323,8 +323,16 @@ export function registerBridge(pi: ExtensionAPI) {
       const port = parseInt(args.trim()) || 8765;
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
+        const storedToken = loadToken();
+        const effectiveToken = storedToken || token;
+        let tokenInfo: string;
+        if (storedToken) {
+          tokenInfo = `- Token: \`${maskToken(storedToken)}\` (full value in ${BRIDGE_TOKEN_PATH})`;
+        } else {
+          tokenInfo = `- Token (session-only, persistence failed): \`${token}\`\n  ← Copy the FULL token above now — it is not persisted to disk and will be lost on restart.`;
+        }
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${maskToken(token)}\`\n- URL: ws://localhost:${actualPort}?token=<stored-token>`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n${tokenInfo}\n- URL: ws://localhost:${actualPort}?token=${effectiveToken}`,
           "info",
         );
       } catch (e: unknown) {
