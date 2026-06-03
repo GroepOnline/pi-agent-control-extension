@@ -38,6 +38,7 @@ export function captureBrowser(
       const out = join(evidenceDir, "recording.mp4");
       result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720 && agent-browser record --out ${shellEscape(out)}`;
       break;
+    }
     case "cast":
       result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720`;
       result.warnings.push("asciicast format is not supported for browser captures; use mp4 or png.");
