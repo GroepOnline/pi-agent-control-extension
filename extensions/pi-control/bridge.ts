@@ -74,6 +74,12 @@ function loadToken(): string | null {
   return null;
 }
 
+function maskToken(token: string | null): string {
+  if (!token) return "N/A";
+  if (token.length <= 8) return "****";
+  return token.slice(0, 4) + "..." + token.slice(-4);
+}
+
 const bridgeState: InternalBridgeState = {
   running: false,
   port: 0,
