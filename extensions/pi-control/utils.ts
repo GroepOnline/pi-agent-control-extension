@@ -13,7 +13,10 @@ const DEFAULT_CURRENCY = "USD";
  * On other platforms uses POSIX single-quote wrapping.
  */
 export function shellEscape(arg: string, platform: NodeJS.Platform = process.platform): string {
-  if (/^[a-zA-Z0-9_/:.@\\-]+$/.test(arg)) return arg;
+  const safeRegex = platform === "win32"
+    ? /^[a-zA-Z0-9_/:.@\\-]+$/
+    : /^[a-zA-Z0-9_/:.@-]+$/;
+  if (safeRegex.test(arg)) return arg;
   if (platform === "win32") {
     return `"${arg.replace(/(["^&|<>()%!\\])/g, "^$1").replace(/\r?\n/g, " ")}"`;
   }
@@ -118,7 +121,7 @@ export function buildUsageReport(input: UsageInput = {}) {
   const billableInputTokens = Math.max(promptTokens - cachedInputTokens, 0);
   const currency = input.currency || DEFAULT_CURRENCY;
   const estimatedInputCost = (billableInputTokens / 1_000_000) * inputCostPerMillion;
-  const estimatedOutputCost = (completionTokens / 1_000_000) * outputCostPerMillion;
+  const estimatedOutputCost = (completionTokens / 1_000_000) * inputCostPerMillion;
   const estimatedTotalCost = estimatedInputCost + estimatedOutputCost;
 
   const lines = [
@@ -130,7 +133,7 @@ export function buildUsageReport(input: UsageInput = {}) {
     `Billable input tokens: ${billableInputTokens}`,
     `Completion tokens: ${completionTokens}`,
     `Input rate per 1M: ${money(inputCostPerMillion, currency)}`,
-    `Output rate per 1M: ${money(outputCostPerMillion, currency)}`,
+    `Output rate per 1M: ${money(inputCostPerMillion, currency)}`,
     `Estimated input cost: ${money(estimatedInputCost, currency)}`,
     `Estimated output cost: ${money(estimatedOutputCost, currency)}`,
     `Estimated total cost: ${money(estimatedTotalCost, currency)}`,
@@ -194,5 +197,5 @@ export function buildParallelVerifyReport(reports: ParallelReport[]) {
       : "At least one report is missing required proof structure. Fix the missing sections before marking QA complete.",
   ];
 
-  return { text: lines.join("\n"), details: { reports: checked, ok: checked.every((r) => r.ok) } };
+  return { text: lines.join("\n"), details: { reports: checked, ok: checked.every((r) => r.ok) };
 }
