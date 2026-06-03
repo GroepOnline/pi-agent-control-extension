@@ -59,7 +59,7 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
             skillCache.set(path, { mtimeMs: fileStat.mtimeMs, parsed });
           }
 
-          return {
+          const entry: SkillEntry = {
             name: d.name,
             description: parsed.description || parsed.name || '',
             path,
@@ -70,6 +70,7 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
             mtime: fileStat.mtime,
             shadowState: null,
           };
+          return entry;
         } finally {
           closeSync(fd);
         }

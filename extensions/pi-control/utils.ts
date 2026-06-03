@@ -121,7 +121,7 @@ export function buildUsageReport(input: UsageInput = {}) {
   const billableInputTokens = Math.max(promptTokens - cachedInputTokens, 0);
   const currency = input.currency || DEFAULT_CURRENCY;
   const estimatedInputCost = (billableInputTokens / 1_000_000) * inputCostPerMillion;
-  const estimatedOutputCost = (completionTokens / 1_000_000) * inputCostPerMillion;
+  const estimatedOutputCost = (completionTokens / 1_000_000) * outputCostPerMillion;
   const estimatedTotalCost = estimatedInputCost + estimatedOutputCost;
 
   const lines = [
@@ -133,7 +133,7 @@ export function buildUsageReport(input: UsageInput = {}) {
     `Billable input tokens: ${billableInputTokens}`,
     `Completion tokens: ${completionTokens}`,
     `Input rate per 1M: ${money(inputCostPerMillion, currency)}`,
-    `Output rate per 1M: ${money(inputCostPerMillion, currency)}`,
+    `Output rate per 1M: ${money(outputCostPerMillion, currency)}`,
     `Estimated input cost: ${money(estimatedInputCost, currency)}`,
     `Estimated output cost: ${money(estimatedOutputCost, currency)}`,
     `Estimated total cost: ${money(estimatedTotalCost, currency)}`,
@@ -197,5 +197,5 @@ export function buildParallelVerifyReport(reports: ParallelReport[]) {
       : "At least one report is missing required proof structure. Fix the missing sections before marking QA complete.",
   ];
 
-  return { text: lines.join("\n"), details: { reports: checked, ok: checked.every((r) => r.ok) };
+  return { text: lines.join("\n"), details: { reports: checked, ok: checked.every((r) => r.ok) } };
 }

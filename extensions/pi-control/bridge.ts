@@ -75,8 +75,8 @@ function loadToken(): string | null {
 }
 
 const bridgeState: InternalBridgeState = {
-  running: false;
-  port: 0;
+  running: false,
+  port: 0,
   clients: [],
   events: [],
   startTime: null,
