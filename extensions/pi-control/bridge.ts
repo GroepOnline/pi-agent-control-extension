@@ -295,6 +295,11 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
   }
 }
 
+function maskToken(token: string | null): string {
+  if (!token || token.length < 8) return "****";
+  return token.slice(0, 4) + "..." + token.slice(-4);
+}
+
 export function formatBridgeStatusMarkdown(): string {
   const s = getBridgeState();
   const token = loadToken() || "";

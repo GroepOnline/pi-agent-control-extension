@@ -38,13 +38,13 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
   try {
     return readdirSync(dir, { withFileTypes: true })
       .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
-      .flatMap((d): SkillEntry[] => {
+      .map((d) => {
         const path = join(dir, d.name, 'SKILL.md');
         let fd: number;
         try {
           fd = openSync(path, 'r');
         } catch {
-          return [];
+          return null;
         }
         try {
           const fileStat = fstatSync(fd);
@@ -59,24 +59,22 @@ function scanDir(dir: string, source: SkillSource, sourceLabel: string): SkillEn
             skillCache.set(path, { mtimeMs: fileStat.mtimeMs, parsed });
           }
 
-          const hasName = parsed.name.length > 0;
-          const hasDesc = parsed.description.length > 0;
-          const valid: SkillEntry['valid'] = hasName && hasDesc ? 'ok' : hasName || hasDesc ? 'warn' : 'error';
-          return [{
+          return {
             name: d.name,
             description: parsed.description || parsed.name || '',
             path,
             source,
             sourceDir: sourceLabel,
             enabled: true,
-            valid,
+            valid: parsed.name.length > 0 && parsed.description.length > 0 ? 'ok' : parsed.name.length > 0 || parsed.description.length > 0 ? 'warn' : 'error',
             mtime: fileStat.mtime,
             shadowState: null,
-          }];
+          };
         } finally {
           closeSync(fd);
         }
-      });
+      })
+      .filter((entry): entry is SkillEntry => entry !== null);
   } catch {
     return [];
   }
