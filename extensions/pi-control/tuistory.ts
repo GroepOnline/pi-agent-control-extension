@@ -26,7 +26,7 @@ export function captureTuiStory(
   switch (format) {
     case "cast": {
       const castFile = join(evidenceDir, "capture.cast");
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} --env FORCE_COLOR=3 --env COLORTERM=truecolor`;
+      result.command = `tctl launch --backend tuistory --record ${castPath} --env FORCE_COLOR=3 --env COLORTERM=truecolor -- ${safeTarget}`;
       result.commandParts = [["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--env", "FORCE_COLOR=3", "--env", "COLORTERM=truecolor", "--", target]];
       result.validated = true;
       break;
@@ -34,7 +34,7 @@ export function captureTuiStory(
     case "mp4": {
       const castFile = join(evidenceDir, "capture.cast");
       const mp4File = join(evidenceDir, "capture.mp4");
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && cast2gif ${castPath} ${mp4Path}`;
+      result.command = `tctl launch --backend tuistory --record ${castPath} -- ${safeTarget} && cast2gif ${castPath} ${mp4Path}`;
       result.commandParts = [
         ["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target],
         ["cast2gif", castFile, mp4File],
@@ -44,7 +44,7 @@ export function captureTuiStory(
     case "png": {
       const castFile = join(evidenceDir, "capture.cast");
       const snapshotFile = join(evidenceDir, "snapshot.txt");
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && tctl snapshot --out ${snapshotPath}`;
+      result.command = `tctl launch --backend tuistory --record ${castPath} -- ${safeTarget} && tctl snapshot --out ${snapshotPath}`;
       result.commandParts = [
         ["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target],
         ["tctl", "snapshot", "--out", snapshotFile],
@@ -54,7 +54,7 @@ export function captureTuiStory(
     }
     case "report": {
       const castFile = join(evidenceDir, "capture.cast");
-      result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath}`;
+      result.command = `tctl launch --backend tuistory --record ${castPath} -- ${safeTarget}`;
       result.commandParts = [["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target]];
       result.validated = true;
       break;
