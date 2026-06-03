@@ -8,7 +8,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
 
-function safeEqual(a: string, b: string): boolean {
+export function safeEqual(a: string, b: string): boolean {
   const aBuffer = Buffer.from(a);
   const bBuffer = Buffer.from(b);
   if (aBuffer.length !== bBuffer.length) return false;
