@@ -8,11 +8,17 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
 
-export function safeEqual(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.byteLength !== bufB.byteLength) return false;
-  return timingSafeEqual(bufA, bufB);
+function safeEqual(a: string, b: string): boolean {
+  const aBuffer = Buffer.from(a);
+  const bBuffer = Buffer.from(b);
+  if (aBuffer.length !== bBuffer.length) return false;
+  return timingSafeEqual(aBuffer, bBuffer);
+}
+
+function maskToken(token: string | null): string {
+  if (!token) return "N/A";
+  if (token.length <= 8) return "****";
+  return `${token.slice(0, 4)}…${token.slice(-4)}`;
 }
 
 export interface BridgeMessage {
@@ -52,8 +58,12 @@ function ensureToken(): string {
     }
   } catch { /* ignore */ }
   const token = randomUUID();
-  mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
-  writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
+  try {
+    mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
+    writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
+  } catch (err) {
+    console.warn(`[bridge] Failed to persist token to ${BRIDGE_TOKEN_PATH}: ${err instanceof Error ? err.message : String(err)}. Using in-memory token for this session.`);
+  }
   return token;
 }
 
@@ -302,7 +312,7 @@ export function formatBridgeStatusMarkdown(): string {
     `| **Events** | ${s.events.length} |`,
     ``,
     s.running
-      ? `Token: \`${maskedToken}\``
+      ? `Token: \`${maskToken(loadToken())}\``
       : "Bridge not running. Start with `/bridge-start`.",
   ].join("\n");
 }
@@ -316,7 +326,7 @@ export function registerBridge(pi: ExtensionAPI) {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
         const masked = token.slice(0, 4) + "..." + token.slice(-4);
         ctx.ui?.notify?.(
-          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${masked}\` (full token in ~/.config/devin/bridge-token)\n- URL: ws://127.0.0.1:${actualPort}?token=<see token file>`,
+          `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${maskToken(token)}\`\n- URL: ws://localhost:${actualPort}?token=<stored-token>`,
           "info",
         );
       } catch (e: unknown) {
