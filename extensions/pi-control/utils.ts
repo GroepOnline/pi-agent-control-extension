@@ -13,12 +13,14 @@ const DEFAULT_CURRENCY = "USD";
  * On other platforms uses POSIX single-quote wrapping.
  */
 export function shellEscape(arg: string, platform: NodeJS.Platform = process.platform): string {
+  const safeRegex = platform === "win32"
+    ? /^[a-zA-Z0-9_/:.@\\-]+$/
+    : /^[a-zA-Z0-9_/:.@-]+$/;
+  if (safeRegex.test(arg)) return arg;
   if (platform === "win32") {
-    if (/^[a-zA-Z0-9_/:.@\\-]+$/.test(arg)) return arg;
-    return '"' + arg.replace(/([&|<>^%])/g, "^$1") + '"';
+    return `"${arg.replace(/(["^&|<>()%!\\])/g, "^$1").replace(/\r?\n/g, " ")}"`;
   }
-  if (/^[a-zA-Z0-9_/:.@-]+$/.test(arg)) return arg;
-  return "'" + arg.replace(/'/g, "'\\''") + "'";
+  return `'${arg.replace(/'/g, "'\\''")}'`;
 }
 
 export type UsageInput = {

@@ -13,8 +13,12 @@ describe("shellEscape", () => {
     expect(shellEscape("https://example.com & calc", "linux")).toBe("'https://example.com & calc'");
   });
 
+  it("uses Windows-safe quoting for cmd metacharacters", () => {
+    expect(shellEscape("https://example.com & calc", "win32")).toBe('"https://example.com ^& calc"');
+  });
+
   it("leaves simple arguments unchanged", () => {
-    expect(shellEscape("https://example.com/path")).toBe("https://example.com/path");
+    expect(shellEscape("https://example.com/path", "linux")).toBe("https://example.com/path");
   });
 });
 
