@@ -47,15 +47,16 @@ describe("Browser Control Tool", () => {
     });
 
     it("should call execFileSync for valid actions", async () => {
-      const { execFileSync } = await import("node:child_process");
-      const spy = vi.spyOn({ execFileSync }, "execFileSync").mockReturnValue("");
-      try {
-        const result = await browserCommandTool.execute("id", { action: "snapshot" });
-        expect(result).toBeDefined();
-        expect(result.content).toBeDefined();
-      } finally {
-        spy.mockRestore();
-      }
+      vi.mocked(execFileSync).mockReturnValue("snapshot output");
+      const result = await browserCommandTool.execute("id", { action: "snapshot" });
+
+      expect(execFileSync).toHaveBeenCalledWith(
+        "agent-browser",
+        ["snapshot"],
+        expect.objectContaining({ encoding: "utf8", timeout: 30000 }),
+      );
+      expect(result.content[0].text).toBe("snapshot output");
+      expect(result.details.success).toBe(true);
     });
   });
 });

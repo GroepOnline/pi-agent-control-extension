@@ -1,4 +1,5 @@
 import type { CaptureResult, CaptureFormat } from "./capture.ts";
+import { join } from "node:path";
 import { shellEscape } from "./utils.ts";
 
 export function captureTuiStory(
@@ -17,36 +18,47 @@ export function captureTuiStory(
     warnings: [],
   };
 
+  const safeTarget = shellEscape(target);
+  const castPath = shellEscape(join(evidenceDir, "capture.cast"));
+  const snapshotPath = shellEscape(join(evidenceDir, "snapshot.txt"));
+  const mp4Path = shellEscape(join(evidenceDir, "capture.mp4"));
+
   switch (format) {
-    case "cast":
-      result.commandParts = [
-        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--env", "FORCE_COLOR=3", "--env", "COLORTERM=truecolor", "--", target]
-      ];
-      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
+    case "cast": {
+      const castFile = join(evidenceDir, "capture.cast");
+      result.command = `tctl launch --backend tuistory --record ${castPath} --env FORCE_COLOR=3 --env COLORTERM=truecolor -- ${safeTarget}`;
+      result.commandParts = [["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--env", "FORCE_COLOR=3", "--env", "COLORTERM=truecolor", "--", target]];
       result.validated = true;
       break;
-    case "mp4":
+    }
+    case "mp4": {
+      const castFile = join(evidenceDir, "capture.cast");
+      const mp4File = join(evidenceDir, "capture.mp4");
+      result.command = `tctl launch --backend tuistory --record ${castPath} -- ${safeTarget} && cast2gif ${castPath} ${mp4Path}`;
       result.commandParts = [
-        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--", target],
-        ["cast2gif", `${evidenceDir}/capture.cast`, `${evidenceDir}/capture.mp4`]
+        ["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target],
+        ["cast2gif", castFile, mp4File],
       ];
-      result.command = result.commandParts.map(cmd => cmd.map(p => shellEscape(p)).join(" ")).join(" && ");
       break;
-    case "png":
+    }
+    case "png": {
+      const castFile = join(evidenceDir, "capture.cast");
+      const snapshotFile = join(evidenceDir, "snapshot.txt");
+      result.command = `tctl launch --backend tuistory --record ${castPath} -- ${safeTarget} && tctl snapshot --out ${snapshotPath}`;
       result.commandParts = [
-        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--", target],
-        ["tctl", "snapshot", "--out", `${evidenceDir}/snapshot.txt`]
+        ["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target],
+        ["tctl", "snapshot", "--out", snapshotFile],
       ];
-      result.command = result.commandParts.map(cmd => cmd.map(p => shellEscape(p)).join(" ")).join(" && ");
       result.warnings.push("png for tuistory produces a text snapshot, not an image.");
       break;
-    case "report":
-      result.commandParts = [
-        ["tctl", "launch", "--backend", "tuistory", "--record", `${evidenceDir}/capture.cast`, "--", target]
-      ];
-      result.command = result.commandParts[0].map(p => shellEscape(p)).join(" ");
+    }
+    case "report": {
+      const castFile = join(evidenceDir, "capture.cast");
+      result.command = `tctl launch --backend tuistory --record ${castPath} -- ${safeTarget}`;
+      result.commandParts = [["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target]];
       result.validated = true;
       break;
+    }
   }
 
   return result;
