@@ -27,8 +27,7 @@ export function captureBrowser(
       const out = join(evidenceDir, "screenshot.png");
       result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720 && agent-browser screenshot --out ${shellEscape(out)}`;
       try {
-        const lookupCmd = process.platform === "win32" ? "where" : "which";
-        execFileSync(lookupCmd, ["agent-browser"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 5000 });
+        execFileSync(lookUp, ["agent-browser"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 5000 });
         result.validated = true;
       } catch {
         result.warnings.push("agent-browser CLI not found in PATH. Install it to execute browser captures.");
