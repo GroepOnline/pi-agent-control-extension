@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { opacityWindow } from './opacityWindow';
 
 describe('opacityWindow', () => {
@@ -96,7 +96,7 @@ describe('opacityWindow', () => {
       expect(opacityWindow(0.9999999, 0, 1)).toBeLessThan(0.01);
     });
 
-    it('handles floating point imprecision around boundaries', () => {
+    it('handles non-zero start times', () => {
       // Fade is 0.25
       const start = 0.1;
       const dur = 1;
