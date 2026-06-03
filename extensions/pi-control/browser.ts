@@ -25,7 +25,11 @@ export function captureBrowser(
   switch (format) {
     case "png": {
       const out = join(evidenceDir, "screenshot.png");
-      result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720 && agent-browser screenshot --out ${shellEscape(out)}`;
+      result.command = `agent-browser open --viewport 1280x720 -- ${shellEscape(target)} && agent-browser screenshot --out ${shellEscape(out)}`;
+      result.commandParts = [
+        ["agent-browser", "open", "--viewport", "1280x720", "--", target],
+        ["agent-browser", "screenshot", "--out", out],
+      ];
       try {
         execFileSync(lookUp, ["agent-browser"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 5000 });
         result.validated = true;
@@ -36,17 +40,30 @@ export function captureBrowser(
     }
     case "mp4": {
       const out = join(evidenceDir, "recording.mp4");
-      result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720 && agent-browser record --out ${shellEscape(out)}`;
+      result.command = `agent-browser open --viewport 1280x720 -- ${shellEscape(target)} && agent-browser record --out ${shellEscape(out)}`;
+      result.commandParts = [
+        ["agent-browser", "open", "--viewport", "1280x720", "--", target],
+        ["agent-browser", "record", "--out", out],
+      ];
       break;
     }
-    case "cast":
-      result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720`;
+    case "cast": {
+      result.command = `agent-browser open --viewport 1280x720 -- ${shellEscape(target)}`;
+      result.commandParts = [
+        ["agent-browser", "open", "--viewport", "1280x720", "--", target],
+      ];
       result.warnings.push("asciicast format is not supported for browser captures; use mp4 or png.");
       break;
-    case "report":
-      result.command = `agent-browser open ${shellEscape(target)} --viewport 1280x720 && agent-browser snapshot`;
+    }
+    case "report": {
+      result.command = `agent-browser open --viewport 1280x720 -- ${shellEscape(target)} && agent-browser snapshot`;
+      result.commandParts = [
+        ["agent-browser", "open", "--viewport", "1280x720", "--", target],
+        ["agent-browser", "snapshot"],
+      ];
       result.validated = true;
       break;
+    }
   }
 
   return result;
