@@ -298,7 +298,6 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
 export function formatBridgeStatusMarkdown(): string {
   const s = getBridgeState();
   const token = loadToken() || "";
-  const maskedToken = token.length <= 8 ? "***" : token.slice(0, 4) + "..." + token.slice(-4);
 
   return [
     `## Bridge Status`,
@@ -324,7 +323,6 @@ export function registerBridge(pi: ExtensionAPI) {
       const port = parseInt(args.trim()) || 8765;
       try {
         const { port: actualPort, token } = await startBridge(port, pi, ctx);
-        const masked = token.slice(0, 4) + "..." + token.slice(-4);
         ctx.ui?.notify?.(
           `## Bridge Started\n\n- Port: ${actualPort}\n- Token: \`${maskToken(token)}\`\n- URL: ws://localhost:${actualPort}?token=<stored-token>`,
           "info",
