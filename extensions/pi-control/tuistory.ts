@@ -24,21 +24,41 @@ export function captureTuiStory(
   const mp4Path = shellEscape(join(evidenceDir, "capture.mp4"));
 
   switch (format) {
-    case "cast":
+    case "cast": {
+      const castFile = join(evidenceDir, "capture.cast");
       result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} --env FORCE_COLOR=3 --env COLORTERM=truecolor`;
+      result.commandParts = [["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--env", "FORCE_COLOR=3", "--env", "COLORTERM=truecolor", "--", target]];
       result.validated = true;
       break;
-    case "mp4":
+    }
+    case "mp4": {
+      const castFile = join(evidenceDir, "capture.cast");
+      const mp4File = join(evidenceDir, "capture.mp4");
       result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && cast2gif ${castPath} ${mp4Path}`;
+      result.commandParts = [
+        ["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target],
+        ["cast2gif", castFile, mp4File],
+      ];
       break;
-    case "png":
+    }
+    case "png": {
+      const castFile = join(evidenceDir, "capture.cast");
+      const snapshotFile = join(evidenceDir, "snapshot.txt");
       result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath} && tctl snapshot --out ${snapshotPath}`;
+      result.commandParts = [
+        ["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target],
+        ["tctl", "snapshot", "--out", snapshotFile],
+      ];
       result.warnings.push("png for tuistory produces a text snapshot, not an image.");
       break;
-    case "report":
+    }
+    case "report": {
+      const castFile = join(evidenceDir, "capture.cast");
       result.command = `tctl launch ${safeTarget} --backend tuistory --record ${castPath}`;
+      result.commandParts = [["tctl", "launch", "--backend", "tuistory", "--record", castFile, "--", target]];
       result.validated = true;
       break;
+    }
   }
 
   return result;
