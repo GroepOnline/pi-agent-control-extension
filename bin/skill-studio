@@ -6,10 +6,10 @@ cd "$(dirname "$0")/.."
 
 # Run the Ink TUI app
 if command -v tsx >/dev/null 2>&1; then
-  exec tsx "packages/extension/studio/index.tsx"
+  exec tsx "src/extension/studio/index.tsx"
 elif command -v node >/dev/null 2>&1; then
-  exec node --import tsx "packages/extension/studio/index.tsx"
+  exec node --import tsx "src/extension/studio/index.tsx"
 else
-  echo "skill-studio: tsx or node not found. Install with: npm install -g tsx" >&2
+  echo "skill-studio: tsx or node not found. Install dependencies first." >&2
   exit 1
 fi

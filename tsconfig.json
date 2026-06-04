@@ -19,6 +19,8 @@
     "noEmit": true
   },
   "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "packages/**/*.ts",
     "packages/**/*.tsx",
     "apps/**/*.ts",

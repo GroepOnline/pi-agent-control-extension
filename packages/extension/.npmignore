@@ -1,8 +1,0 @@
-# Subdirectory .npmignore — overrides root .npmignore AND the `files` whitelist
-# in package.json (npm 11 behavior: subdirectory .npmignore beats the root
-# `files` field). Keep this file aligned with the patterns in the root
-# .npmignore test-file block so test/bench files never leak into the tarball.
-*.test.ts
-*.test.tsx
-*.bench.ts
-coverage/
