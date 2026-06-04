@@ -337,15 +337,34 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   });
 
   pi.on("tool_call", async (event: unknown, _ctx: unknown) => {
+    const start = Date.now();
     telemetry.increment("tool_call");
     const guard = inspectToolCall(event) || undefined;
+    const durationMs = Date.now() - start;
+    const toolName = String((event as any)?.toolName ?? (event as any)?.name ?? "unknown").slice(0, 80);
+    telemetry.record("tool_call", { toolName, blocked: !!guard?.block }, durationMs);
     return guard;
   });
 
   const show = (text: string) => async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
   const showFn = (fn: (s: string) => string) => async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
 
-  pi.registerCommand("route-control", { description: "Route a control task: driver + skills + capture + recipe", handler: showFn((a) => formatRouteMarkdown(a)) });
+  pi.registerCommand("route-control", {
+    description: "Route a control task: driver + skills + capture + recipe",
+    handler: async (args: string, ctx: ExtensionContext) => {
+      const start = Date.now();
+      telemetry.increment("command_invoked");
+      try {
+        const result = formatRouteMarkdown(args);
+        telemetry.record("command_complete", { command: "route-control" }, Date.now() - start);
+        ctx.ui?.notify?.(result, "info");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        telemetry.record("command_error", { command: "route-control", error: message }, Date.now() - start);
+        ctx.ui?.notify?.(`Error: ${message}`, "error");
+      }
+    },
+  });
   pi.registerCommand("skills-control", { description: "List bundled skill atoms", handler: async (_a: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(listSkills(rootDir()).map((s) => `- ${s.name}: ${s.description}`).join("\n") || "No skills found.", "info"); } });
   pi.registerCommand("demo-control", { description: "Show tuistory capture recipe", handler: show(recipeFor("tuistory-launch")) });
   pi.registerCommand("verify-control", { description: "Show verification/evidence schema", handler: show(EVIDENCE_SCHEMA) });
@@ -402,6 +421,15 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   registerCapture(pi);
   registerBridge(pi);
   registerTools(pi);
+
+  // Record uncaught errors for telemetry
+  process.on("uncaughtException", (err) => {
+    telemetry.record("uncaught_exception", { error: err.message, name: err.name });
+  });
+  process.on("unhandledRejection", (reason) => {
+    const message = reason instanceof Error ? reason.message : String(reason);
+    telemetry.record("unhandled_rejection", { error: message });
+  });
 
   // Record telemetry snapshot on shutdown
   pi.on("session_end" as any, async () => {
