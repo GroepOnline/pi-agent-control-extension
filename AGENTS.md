@@ -33,7 +33,7 @@ This project is a Pi extension package that provides routing, capture, and verif
 
 - **`bin/`**: Contains the `tctl` terminal control wrapper and other binary helpers.
 - **`remotion/`**: A React-based video rendering engine for creating showcase videos.
-- **`skills/`**: 26 atomized skill definitions registered automatically.
+- **`skills/`**: 21 atomized skill definitions registered automatically.
 
 ### Validation
 

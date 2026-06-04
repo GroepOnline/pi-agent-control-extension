@@ -61,11 +61,11 @@ Ink-based terminal UI for skill management:
 
 ### Skills (`skills/`)
 
-26 skill directories, each with a `SKILL.md` file (YAML frontmatter with `name` and `description`). Skills are auto-discovered by reading `skills/*/SKILL.md`. Key skill groups:
+21 skill directories, each with a `SKILL.md` file (YAML frontmatter with `name` and `description`). Skills are auto-discovered by reading `skills/*/SKILL.md`. Key skill groups:
 - **Core control**: agent-browser, tuistory, true-input, capture, pty-capture, verify, compose, showcase
 - **Meta/init**: init, wiki, review, autoresearch, session-navigation, meta-control
-- **Agent orchestration**: ralph, agent-planner, agent-architect, agent-critic, agent-security-reviewer, e2e-tester
-- **Infrastructure**: pi-agent-cli, pi-agent-control, background-pty, control-narrate, network-audit, notion-linear-bridge
+- **Agent orchestration**: ralph
+- **Infrastructure**: agy-agent-cli, agy-agent-control, background-pty, control-narrate, network-audit, notion-linear-bridge
 
 ### Remotion (`remotion/`)
 
