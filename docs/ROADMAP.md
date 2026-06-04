@@ -1,16 +1,25 @@
-# Roadmap & Future Plans
+# // ROADMAP & FUTURE PLANS
 
-The **Pi Agent Control Extension** is continuously evolving to provide the most robust environment for autonomous AI agent orchestration, verification, and terminal control. Our core philosophy is to focus on **rock-solid automation and deep system control**, avoiding superficial UI features in favor of pure, programmatic power.
+The **Pi Agent Control Extension** enforces continuous evolution to ensure a robust environment for autonomous AI agent orchestration, verification, and terminal control. The core vector prioritizes rock-solid automation and absolute system control. Superficial UI features are strictly discarded in favor of pure, programmatic execution.
 
-## Q3 2026: Hardened Control & Computer Use
-- [ ] **Background PTY Sessions**: Expand `true-input` and `tuistory` to support fully detached, long-running background PTYs with seamless re-attachment, allowing agents to spawn massive asynchronous workflows.
-- [ ] **Advanced Computer Use Integration**: Introduce deeper OS-level control features (e.g., native headless X11/Wayland orchestration, raw keyboard/mouse event injection) to support complex "Computer Use" LLM scenarios beyond basic browser wrappers.
-- [ ] **LLM-Powered Guardrails**: Upgrade the static regex-based `guards.ts` with lightweight semantic analysis to detect complex destructive shell patterns without blocking legitimate deep-system operations.
+---
 
-## Q4 2026: Enhanced Capture & Quality
-- [ ] **High-Fidelity Screen Recording**: Upgrade the `screenshot` and `record` capabilities to support higher frame rates (60fps), 4K resolution scaling, and lossless mp4 encoding via optimized Remotion pipelines.
-- [ ] **Steadier Orchestration Engine**: Hardening the `tctl` wrapper to flawlessly handle edge cases during sudden PTY crashes, orphaned processes, and aggressive terminal escape sequence flooding.
+## // Q3 2026: HARDENED CONTROL & COMPUTER USE
 
-## 2027+: Distributed Control
-- [ ] **Remote Tmux Orchestration**: Allow `tctl` to launch and attach to tmux sessions on remote SSH targets, capturing high-quality PTY evidence from production or staging servers.
-- [ ] **Multi-Agent Swarm Skills**: Expand the chaining capabilities (`mixed` driver) to launch multiple subagents in parallel, all sharing attached background PTYs for massive codebase refactoring.
+- [ ] **Background PTY Sessions**: Extend `true-input` and `tuistory` to manage fully detached, long-running background PTYs with seamless re-attachment, facilitating massive asynchronous workflows.
+- [ ] **Advanced Computer Use Integration**: Deploy deep OS-level control schemas (e.g., native headless X11/Wayland orchestration, raw keyboard/mouse event injection) to process complex "Computer Use" operations independent of basic browser wrappers.
+- [ ] **LLM-Powered Guardrails**: Replace static regex-based `guards.ts` with lightweight semantic analysis engines to intercept destructive shell patterns while maintaining valid deep-system access.
+
+---
+
+## // Q4 2026: ENHANCED CAPTURE & QUALITY
+
+- [ ] **High-Fidelity Screen Recording**: Upgrade `screenshot` and `record` architectures to process 60fps, 4K resolution scaling, and lossless mp4 encoding via strict Remotion pipelines.
+- [ ] **Steadier Orchestration Engine**: Harden the `tctl` wrapper to manage absolute stability during PTY crashes, orphaned process state transitions, and aggressive terminal escape sequence floods.
+
+---
+
+## // 2027+: DISTRIBUTED CONTROL
+
+- [ ] **Remote Tmux Orchestration**: Authorize `tctl` to trigger and attach to tmux sessions on remote SSH targets, mandating high-quality PTY evidence capture from production environments.
+- [ ] **Multi-Agent Swarm Skills**: Expand chaining (`mixed` driver) to execute subagent swarms in parallel, distributing shared background PTY architectures for aggressive codebase restructuring.
