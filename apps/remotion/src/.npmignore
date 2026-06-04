@@ -1,0 +1,5 @@
+# Subdirectory .npmignore — overrides root .npmignore AND the `files` whitelist
+# in package.json (npm 11 behavior: subdirectory .npmignore beats the root
+# `files` field). Excludes remotion test files from the published tarball.
+*.test.ts
+*.test.tsx

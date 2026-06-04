@@ -1,21 +1,30 @@
-# Remotion build artifacts and dev dependencies
-remotion/node_modules/
-remotion/package-lock.json
-remotion/artifacts/
+# Monorepo build artifacts and dev dependencies
+node_modules/
+apps/remotion/node_modules/
+apps/remotion/package-lock.json
+apps/remotion/artifacts/
 
-# Test & dev artifacts
-artifacts/runs/*
-!artifacts/runs/.gitkeep
-artifacts/telemetry/*
+# Test files (~140 kB of bloat — never shipped to consumers)
+packages/extension/**/*.test.ts
+packages/extension/**/*.test.tsx
+packages/extension/**/*.bench.ts
+apps/remotion/src/**/*.test.ts
+
+# Test artifacts and coverage
+packages/extension/coverage/
 coverage/
+
+# Build outputs that should never be in the tarball
+dist/
+
+# Local agent / dev tooling caches
 .factory/
-
-# Local agent config
 .claude/
-
-# Dev tooling
 .ruff_cache/
 .venv/
+
+# Lockfile and runtime noise
+package-lock.json
 *.log
 .env
 .DS_Store
