@@ -60,14 +60,19 @@
   },
   "files": [
     "README.md",
-    "CHANGELOG-v4.md",
     "CHANGELOG-v5.md",
-    "extensions",
-    "skills",
-    "scripts",
+    "packages/extension",
+    "packages/skills",
+    "apps/remotion/src",
+    "apps/remotion/scripts",
+    "apps/remotion/public",
+    "apps/remotion/package.json",
+    "apps/remotion/remotion.config.ts",
+    "apps/remotion/tsconfig.json",
     "bin",
-    "remotion",
-    "artifacts/demo/demo.gif"
+    "scripts",
+    "artifacts/demo/demo.gif",
+    "!apps/remotion/artifacts/**"
   ],
   "devDependencies": {
     "@types/node": "^25.9.1",
