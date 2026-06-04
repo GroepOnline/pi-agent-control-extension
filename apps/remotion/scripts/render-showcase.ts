@@ -1,4 +1,4 @@
-import { renderShowcase, buildShowcasePropsFromRecipe } from "../src/render.js";
+import { renderShowcase, buildShowcasePropsFromRecipe } from "../../../src/showcase/render.js";
 
 async function main() {
   const args = process.argv.slice(2);

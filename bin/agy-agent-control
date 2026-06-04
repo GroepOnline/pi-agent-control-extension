@@ -9,7 +9,7 @@ case "$cmd" in
   verify) prompt="$ROOT/prompts/verify.md" ;;
   qa-test|qa) prompt="$ROOT/prompts/qa-test.md" ;;
   doctor) exec python3 "$ROOT/scripts/validate-package.py" ;;
-  skills) exec npx tsx "$ROOT/packages/extension/cli.ts" "$@" ;;
+  skills) exec npx tsx "$ROOT/src/extension/cli.ts" "$@" ;;
   help|-h|--help) echo "usage: $(basename "$0") demo|verify|qa-test|doctor|skills [arguments]"; exit 0 ;;
   *) echo "unknown command: $cmd" >&2; exit 2 ;;
 esac

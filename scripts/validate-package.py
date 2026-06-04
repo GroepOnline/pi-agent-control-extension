@@ -32,11 +32,11 @@ EXPECTED_SKILLS = {
 }
 REQUIRED_FILES = [
     "package.json",
-    "packages/extension/index.ts",
-    "packages/extension/routing.ts",
-    "packages/extension/guards.ts",
-    "packages/extension/recipes.ts",
-    "packages/extension/schema.ts",
+    "src/extension/index.ts",
+    "src/core/routing/routing.ts",
+    "src/core/verify/guards.ts",
+    "src/core/verify/verify.ts",
+    "src/core/types/schema.ts",
     "scripts/validate-package.py",
     "bin/tctl",
     "scripts/render-showcase.sh",
@@ -59,7 +59,7 @@ for rel in REQUIRED_FILES:
 
 pkg = json.loads((ROOT / "package.json").read_text())
 agy = pkg.get("agy", {})
-check("AGY manifest: extensions", "./packages/extension/index.ts" in agy.get("extensions", []))
+check("AGY manifest: extensions", "./src/extension/index.ts" in agy.get("extensions", []))
 check("AGY manifest: skills", "./packages/skills" in agy.get("skills", []))
 check("Keyword: agy-package", "agy-package" in pkg.get("keywords", []))
 
@@ -99,7 +99,10 @@ if bin_errors and not os.environ.get("CI"):
 
 # Check test count in AGENTS.md matches actual test count
 try:
+    if os.environ.get("VITEST") or os.environ.get("CI"):
+        raise Exception("Skipping test count check inside Vitest/CI to prevent recursion")
     import subprocess
+
     result = subprocess.run(
         ["npx", "vitest", "run", "--reporter=json"],
         cwd=str(ROOT),
@@ -114,13 +117,16 @@ try:
         actual_count = test_data.get("numPassedTests", 0)
 
         # Read AGENTS.md and extract test count
-        agents_md = (ROOT / "AGENTS.md").read_text()
+        agents_md = (ROOT / "docs" / "agents" / "AGENTS.md").read_text()
         import re
+
         match = re.search(r"Run all (\d+) tests", agents_md)
         if match:
             documented_count = int(match.group(1))
             if documented_count != actual_count:
-                print(f"[WARN] AGENTS.md test count {documented_count} does not match actual {actual_count}")
+                print(
+                    f"[WARN] AGENTS.md test count {documented_count} does not match actual {actual_count}"
+                )
 except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError, Exception):
     # Silently ignore - this is informational only
     pass

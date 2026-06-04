@@ -23,7 +23,7 @@
   "scripts": {
     "setup": "bash scripts/setup-deps.sh && npm install && (cd apps/remotion && npm install)",
     "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
-    "check": "agy --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./packages/extension/index.ts --list-models does-not-exist-xyz",
+    "check": "agy --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./src/extension/index.ts --list-models does-not-exist-xyz",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:count": "bash scripts/update-test-count.sh",
@@ -41,7 +41,7 @@
   ],
   "pi": {
     "extensions": [
-      "./packages/extension/index.ts"
+      "./src/extension/index.ts"
     ],
     "skills": [
       "./packages/skills"
@@ -49,7 +49,7 @@
   },
   "agy": {
     "extensions": [
-      "./packages/extension/index.ts"
+      "./src/extension/index.ts"
     ],
     "skills": [
       "./packages/skills"
@@ -62,7 +62,7 @@
   "files": [
     "README.md",
     "CHANGELOG-v5.md",
-    "packages/extension",
+    "src",
     "packages/skills",
     "apps/remotion/src",
     "apps/remotion/scripts",
