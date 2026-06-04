@@ -2,8 +2,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["extensions/**/*.test.ts", "extensions/**/*.test.tsx", "remotion/**/*.test.ts"],
-    exclude: ["node_modules", "remotion/node_modules"],
+    include: ["packages/**/*.test.ts", "packages/**/*.test.tsx", "apps/**/*.test.ts"],
+    exclude: ["node_modules", "apps/remotion/node_modules"],
     environment: "node",
     globals: true,
     coverage: {
@@ -17,8 +17,8 @@ export default defineConfig({
     },
   },
   benchmark: {
-    include: ["extensions/**/*.bench.ts"],
-    exclude: ["node_modules", "remotion/node_modules"],
+    include: ["packages/**/*.bench.ts"],
+    exclude: ["node_modules", "apps/remotion/node_modules"],
     environment: "node",
     time: 200,
     iterations: 10,

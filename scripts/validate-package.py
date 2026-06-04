@@ -37,15 +37,15 @@ EXPECTED_SKILLS = {
 }
 REQUIRED_FILES = [
     "package.json",
-    "extensions/pi-control/index.ts",
-    "extensions/pi-control/routing.ts",
-    "extensions/pi-control/guards.ts",
-    "extensions/pi-control/recipes.ts",
-    "extensions/pi-control/schema.ts",
+    "packages/extension/index.ts",
+    "packages/extension/routing.ts",
+    "packages/extension/guards.ts",
+    "packages/extension/recipes.ts",
+    "packages/extension/schema.ts",
     "scripts/validate-package.py",
     "bin/tctl",
     "scripts/render-showcase.sh",
-    "remotion/package.json",
+    "apps/remotion/package.json",
     "README.md",
 ]
 
@@ -64,11 +64,11 @@ for rel in REQUIRED_FILES:
 
 pkg = json.loads((ROOT / "package.json").read_text())
 pi = pkg.get("pi", {})
-check("PI manifest: extensions", "./extensions/pi-control/index.ts" in pi.get("extensions", []))
-check("PI manifest: skills", "./skills" in pi.get("skills", []))
+check("PI manifest: extensions", "./packages/extension/index.ts" in pi.get("extensions", []))
+check("PI manifest: skills", "./packages/skills" in pi.get("skills", []))
 check("Keyword: pi-package", "pi-package" in pkg.get("keywords", []))
 
-base = ROOT / "skills"
+base = ROOT / "packages" / "skills"
 found = {p.parent.name for p in base.glob("*/SKILL.md")}
 missing = EXPECTED_SKILLS - found
 check(f"All {len(EXPECTED_SKILLS)} skills present", not missing)

@@ -166,16 +166,16 @@ describe("listSkills", () => {
   });
 
   it("returns empty array when skills dir exists but has no valid skill dirs", () => {
-    const skillsDir = join(tmpBase, "skills");
+    const skillsDir = join(tmpBase, "packages", "skills");
     mkdirSync(skillsDir, { recursive: true });
     writeFileSync(join(skillsDir, "not-a-dir.txt"), "hello");
-    const result = listSkills(skillsDir.replace("/skills", ""));
+    const result = listSkills(tmpBase);
     expect(result).toEqual([]);
     rmSync(tmpBase, { recursive: true, force: true });
   });
 
   it("returns skills from directories that contain a SKILL.md", () => {
-    const skillsDir = join(tmpBase, "skills");
+    const skillsDir = join(tmpBase, "packages", "skills");
     const agentDir = join(skillsDir, "agent-foo");
     mkdirSync(agentDir, { recursive: true });
     writeFileSync(join(agentDir, "SKILL.md"), "---\nname: agent-foo\ndescription: Does foo things\n---\n# Agent Foo\n");
@@ -187,7 +187,7 @@ describe("listSkills", () => {
   });
 
   it("ignores directories without a SKILL.md", () => {
-    const skillsDir = join(tmpBase, "skills");
+    const skillsDir = join(tmpBase, "packages", "skills");
     mkdirSync(join(skillsDir, "no-skill"), { recursive: true });
     const agentDir = join(skillsDir, "agent-bar");
     mkdirSync(agentDir, { recursive: true });
@@ -199,7 +199,7 @@ describe("listSkills", () => {
   });
 
   it("strips surrounding quotes from description", () => {
-    const skillsDir = join(tmpBase, "skills");
+    const skillsDir = join(tmpBase, "packages", "skills");
     const agentDir = join(skillsDir, "agent-quoted");
     mkdirSync(agentDir, { recursive: true });
     writeFileSync(join(agentDir, "SKILL.md"), "---\nname: agent-quoted\ndescription: 'Quoted description'\n---\n");
@@ -209,7 +209,7 @@ describe("listSkills", () => {
   });
 
   it("returns empty description when no description field in SKILL.md", () => {
-    const skillsDir = join(tmpBase, "skills");
+    const skillsDir = join(tmpBase, "packages", "skills");
     const agentDir = join(skillsDir, "agent-nodesc");
     mkdirSync(agentDir, { recursive: true });
     writeFileSync(join(agentDir, "SKILL.md"), "# Agent No Desc\nNo frontmatter here.\n");

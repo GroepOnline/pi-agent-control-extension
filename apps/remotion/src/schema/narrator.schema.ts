@@ -10,6 +10,8 @@ export const narratorSchema = z.object({
     durationHintSec: z.number().optional(),
   })).optional(),
   effects: z.array(z.string()).optional(),
+  overlays: z.record(z.string(), z.any()).optional(),
+  transitions: z.array(z.string()).optional(),
 });
 
 export type NarratorProps = z.infer<typeof narratorSchema>;

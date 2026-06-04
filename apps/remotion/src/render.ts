@@ -29,8 +29,8 @@ export async function renderShowcase(options: RenderOptions): Promise<RenderResu
   const outputDir = join(process.cwd(), "artifacts", "showcases");
   mkdirSync(outputDir, { recursive: true });
 
-  const entry = resolve(process.cwd(), "remotion", "src", "index.ts");
-  const bundled = await bundle(entry, {
+  const entry = resolve(process.cwd(), "apps", "remotion", "src", "index.ts");
+  const bundled = await bundle(entry, () => {}, {
     webpackOverride: (config) => config,
   });
 

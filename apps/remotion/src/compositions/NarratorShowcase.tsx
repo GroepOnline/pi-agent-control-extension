@@ -77,7 +77,7 @@ export const NarratorShowcaseComposition: React.FC<NarratorProps> = (props) => {
   }));
 
   return (
-    <AbsoluteFill style={{ backgroundColor: palette.background }}>
+    <AbsoluteFill style={{ backgroundColor: palette.bg }}>
       {/* Title Card (reusing TitleCard component for further polish) */}
       <TitleCard
         props={{
@@ -151,7 +151,7 @@ export const NarratorShowcaseComposition: React.FC<NarratorProps> = (props) => {
       <EffectLayer effects={effectsForLayer} time={time} palette={palette} />
 
       {/* TransitionLayer reuse (further polish: consume real-props transitions + vary by chapter) */}
-      <TransitionLayer transitionStyle={(props.transitions && props.transitions[currentChapterIndex]) || ['motion-blur','fade','light-leak'][currentChapterIndex % 3] || 'fade'} active={!isTitle || currentChapterIndex > 0} frame={frame} />
+      <TransitionLayer transitionStyle={((props.transitions && props.transitions[currentChapterIndex]) || ['motion-blur','fade','light-leak'][currentChapterIndex % 3] || 'fade') as any} active={!isTitle || currentChapterIndex > 0} frame={frame} />
 
       {/* Provenance footer (richer for 4 features + git + iter) */}
       <ProvenanceFooter runId={props.runId ? `${props.runId} • 4 features • tuistory recipe • d1ac426 • iter41` : '4 features • tuistory recipe • d1ac426 • iter41'} palette={palette} />

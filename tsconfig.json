@@ -19,8 +19,10 @@
     "noEmit": true
   },
   "include": [
-    "extensions/**/*.ts",
-    "extensions/**/*.tsx"
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "apps/**/*.ts",
+    "apps/**/*.tsx"
   ],
   "exclude": [
     "node_modules"
