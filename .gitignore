@@ -31,3 +31,23 @@ graphify-out/
 .remember/
 .pi/
 *.patch
+
+# Python bytecode (from running validators)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Showcases & video artifacts
+artifacts/showcases/
+*.mp4
+
+# Coverage reports
+coverage/
+apps/remotion/coverage/
+
+# Remotion build output
+apps/remotion/artifacts/
+
+# Evidence files in proposals (large .cast recordings)
+docs/proposals/**/evidence/**

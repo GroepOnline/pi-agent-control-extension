@@ -28,3 +28,17 @@ package-lock.json
 *.log
 .env
 .DS_Store
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Coverage
+coverage/
+apps/remotion/coverage/
+
+# Remotion build output
+apps/remotion/artifacts/
+
+# Large evidence recordings
+docs/proposals/**/evidence/**
