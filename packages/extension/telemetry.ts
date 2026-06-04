@@ -1,5 +1,6 @@
-import { existsSync, mkdirSync, appendFileSync } from "node:fs";
+import { existsSync, mkdirSync, appendFileSync, chmodSync } from "node:fs";
 import { join } from "node:path";
+import { homedir } from "node:os";
 import { rootDir } from "./utils.ts";
 
 export interface TelemetryEvent {
@@ -20,6 +21,54 @@ export interface TelemetrySnapshot {
   startTime: string;
 }
 
+// ─── PII / Secret Exclusion ─────────────────────────────────────────────
+// Keys whose values are always redacted (matched case-insensitively).
+const SENSITIVE_KEYS = new Set([
+  "token", "secret", "password", "api_key", "apikey", "authorization",
+  "auth", "credential", "private_key", "privatekey", "access_token",
+]);
+
+// Keys whose values are truncated (not fully removed) to prevent large-data leaks.
+const TRUNCATED_KEYS = new Set(["stdout", "stderr", "args", "command", "output"]);
+
+const MAX_TRUNCATED_LENGTH = 120;
+
+/**
+ * Sanitize a metadata object before it is flushed to disk.  Redacts
+ * known-sensitive keys and truncates large string values so that
+ * tokens, paths, and raw command output never leak into JSONL files.
+ */
+export function sanitizeMetadata(meta?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!meta) return undefined;
+  const sanitized: Record<string, unknown> = {};
+  const home = homedir();
+
+  for (const [key, value] of Object.entries(meta)) {
+    const lower = key.toLowerCase();
+
+    // 1. Redact sensitive keys entirely.
+    if (SENSITIVE_KEYS.has(lower)) {
+      sanitized[key] = "[REDACTED]";
+      continue;
+    }
+
+    // 2. Truncate large string values.
+    if (TRUNCATED_KEYS.has(lower) && typeof value === "string" && value.length > MAX_TRUNCATED_LENGTH) {
+      sanitized[key] = value.slice(0, MAX_TRUNCATED_LENGTH) + "…[truncated]";
+      continue;
+    }
+
+    // 3. Strip home directory from path-like strings.
+    if (typeof value === "string" && home && value.startsWith(home)) {
+      sanitized[key] = "~" + value.slice(home.length);
+      continue;
+    }
+
+    sanitized[key] = value;
+  }
+  return sanitized;
+}
+
 class MetricsRegistry {
   private counters: Map<string, number> = new Map();
   private events: TelemetryEvent[] = [];
@@ -35,6 +84,14 @@ class MetricsRegistry {
     } catch { /* ignore */ }
     const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     this.logPath = join(dir, `telemetry-${ts}.jsonl`);
+    // Ensure the log file exists with restrictive permissions (0o600) so
+    // that only the owning user can read secrets-free telemetry data.
+    try {
+      if (!existsSync(this.logPath)) {
+        appendFileSync(this.logPath, "");
+      }
+      chmodSync(this.logPath, 0o600);
+    } catch { /* ignore — not all filesystems support chmod */ }
   }
 
   init() {
@@ -52,7 +109,7 @@ class MetricsRegistry {
     const event: TelemetryEvent = {
       ts: new Date().toISOString(),
       type,
-      metadata,
+      metadata: sanitizeMetadata(metadata),
       durationMs,
       error,
     };
