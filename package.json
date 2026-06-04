@@ -26,6 +26,7 @@
     "check": "agy --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./packages/extension/index.ts --list-models does-not-exist-xyz",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:count": "bash scripts/update-test-count.sh",
     "test:e2e": "bash scripts/test-e2e.sh",
     "lint": "tsc --noEmit",
     "lint:python": "ruff check . && ruff format --check .",
