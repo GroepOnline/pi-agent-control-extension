@@ -83,8 +83,8 @@ const ROUTE_RULES: Rule[] = [
     apply: (s) => { s.deliverable = "qa-report"; s.skills.push("verify"); }
   },
   {
-    keywords: ["tctl", "pi agent", "pi cli", "pi coding", "control cli"],
-    apply: (s) => { s.skills.push("pi-agent-cli"); }
+    keywords: ["tctl", "agy agent", "agy cli", "antigravity", "control cli", "pi agent", "pi cli", "pi coding"],
+    apply: (s) => { s.skills.push("agy-agent-cli"); }
   },
   {
     keywords: ["initialize workspace", "setup workspace", "workspace init", "onboard", "scaffold"],
@@ -186,7 +186,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     driver: "tuistory",
     capture: "report",
     deliverable: "proof-report",
-    skills: ["pi-agent-control"],
+    skills: ["agy-agent-control"],
     warnings: []
   };
 

