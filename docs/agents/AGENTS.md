@@ -21,18 +21,18 @@ This project is a Pi extension package that provides routing, capture, and verif
 
 ### Core Components
 
-- **Extension Entry Point ([index.ts](packages/extension/index.ts))**: Registers slash commands (e.g., `/route-control`, `/browser-control`) and LLM tools (e.g., `control_route`, `control_browser_command`) with the Pi Extension API.
-- **Routing ([routing.ts](packages/extension/routing.ts))**: Contains the logic for mapping user task intents to specific drivers (`agent-browser`, `tuistory`, `true-input`).
-- **Browser Control ([browser.ts](packages/extension/tools/browser.ts))**: Provides native tools and guidance for web and Electron automation.
-- **Guardrails ([guards.ts](packages/extension/guards.ts))**: Security checks for destructive actions and sensitive data access (including cloud metadata IPs).
-- **Skill Merge ([skill-merge.ts](packages/extension/skill-merge.ts))**: 3-way merge engine with patience-diff anchors for resolving user vs PI skill overrides.
-- **Remote Bridge ([bridge.ts](packages/extension/bridge.ts))**: WebSocket server for remote agent communication with token-based auth.
-- **CLI ([cli.ts](packages/extension/cli.ts))**: Skill Studio TUI and skill management commands.
+- **Extension Entry Point ([index.ts](src/extension/index.ts))**: Registers slash commands (e.g., `/route-control`, `/browser-control`) and LLM tools (e.g., `control_route`, `control_browser_command`) with the Pi Extension API.
+- **Routing ([routing.ts](src/core/routing/routing.ts))**: Contains the logic for mapping user task intents to specific drivers (`agent-browser`, `tuistory`, `true-input`).
+- **Browser Control ([browser.ts](src/drivers/browser/browser.ts))**: Provides native tools and guidance for web and Electron automation.
+- **Guardrails ([guards.ts](src/core/verify/guards.ts))**: Security checks for destructive actions and sensitive data access (including cloud metadata IPs).
+- **Skill Merge ([skill-merge.ts](src/skill/skill-merge.ts))**: 3-way merge engine with patience-diff anchors for resolving user vs PI skill overrides.
+- **Remote Bridge ([bridge.ts](src/extension/bridge.ts))**: WebSocket server for remote agent communication with token-based auth.
+- **CLI ([cli.ts](src/extension/cli.ts))**: Skill Studio TUI and skill management commands.
 
 ### Core Assets
 
 - **`bin/`**: Contains the `tctl` terminal control wrapper and other binary helpers.
-- **`remotion/`**: A React-based video rendering engine for creating showcase videos.
+- **`apps/remotion/`**: A React-based video rendering engine for creating showcase videos.
 - **`skills/`**: 21 atomized skill definitions registered automatically.
 
 ### Validation
