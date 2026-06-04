@@ -71,6 +71,7 @@
     "apps/remotion/tsconfig.json",
     "bin",
     "scripts",
+    "prompts",
     "artifacts/demo/demo.gif",
     "!apps/remotion/artifacts/**"
   ],
