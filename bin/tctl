@@ -144,7 +144,9 @@ write_meta() {
   local dir
   dir="$(session_dir "$session")"
   mkdir -p "$dir"
-  cat > "$(meta_file "$session")" <<META
+  local tmp
+  tmp="$(mktemp "$dir/.meta.XXXXXX")"
+  cat > "$tmp" <<META
 SESSION=$(quote_sh "${SESSION:-$session}")
 BACKEND=$(quote_sh "${BACKEND:-}")
 TERMINAL=$(quote_sh "${TERMINAL:-}")
@@ -164,6 +166,7 @@ CAGE_PID=$(quote_sh "${CAGE_PID:-}")
 WARMED_UP=$(quote_sh "${WARMED_UP:-0}")
 REPO_ROOT=$(quote_sh "${REPO_ROOT:-}")
 META
+  mv -f "$tmp" "$(meta_file "$session")"
 }
 
 command_uses_pi_agent() {
@@ -280,6 +283,8 @@ write_session_runner() {
   mkdir -p "$dir"
   printf '%s\n' "$command" > "$command_path"
 
+  local tmp_runner
+  tmp_runner="$(mktemp "$dir/.runner.XXXXXX")"
   {
     echo '#!/usr/bin/env bash'
     echo 'set -euo pipefail'
@@ -309,9 +314,10 @@ write_session_runner() {
     # shell profile may have set (e.g. FORCE_COLOR=0 from CI tooling).
     # shellcheck disable=SC2016
     echo 'exec env FORCE_COLOR=3 COLORTERM=truecolor bash -lc "$(< "$COMMAND_FILE")"'
-  } > "$runner"
+  } > "$tmp_runner"
 
-  chmod +x "$runner"
+  chmod +x "$tmp_runner"
+  mv -f "$tmp_runner" "$runner"
   RUNNER_FILE="$runner"
 }
 
@@ -323,7 +329,9 @@ write_tmux_runner() {
   tmux_runner="$(tmux_runner_file "$session")"
   tmux_socket_name="tctl-$(session_slug "$session")"
 
-  cat > "$tmux_config" <<'TMUX'
+  local tmp_tmux_config
+  tmp_tmux_config="$(mktemp "$(session_dir "$session")/.tmux-config.XXXXXX")"
+  cat > "$tmp_tmux_config" <<'TMUX'
 set -g default-terminal "tmux-256color"
 set -qas terminal-features ",xterm-256color:RGB"
 set -as terminal-overrides ",xterm-256color:Tc"
@@ -331,7 +339,10 @@ set-environment -g COLORTERM truecolor
 set -g escape-time 50
 set -g mode-keys vi
 TMUX
+  mv -f "$tmp_tmux_config" "$tmux_config"
 
+  local tmp_tmux_runner
+  tmp_tmux_runner="$(mktemp "$(session_dir "$session")/.tmux-runner.XXXXXX")"
   {
     echo '#!/usr/bin/env bash'
     echo 'set -euo pipefail'
@@ -341,9 +352,10 @@ TMUX
     printf 'TMUX_SESSION_NAME=%q\n' "$tmux_socket_name"
     echo 'export TERM=xterm-256color'
     echo 'exec tmux -f "$TMUX_CONFIG" -L "$TMUX_SOCKET_NAME" new-session -s "$TMUX_SESSION_NAME" "$RUNNER_FILE"'
-  } > "$tmux_runner"
+  } > "$tmp_tmux_runner"
 
-  chmod +x "$tmux_runner"
+  chmod +x "$tmp_tmux_runner"
+  mv -f "$tmp_tmux_runner" "$tmux_runner"
   RUNNER_FILE="$tmux_runner"
   TMUX_SOCKET_NAME="$tmux_socket_name"
 }
@@ -355,6 +367,8 @@ write_logged_runner() {
   runner="${RUNNER_FILE:-$(runner_file "$session")}"
   logged_runner="$(logged_runner_file "$session")"
 
+  local tmp_logged
+  tmp_logged="$(mktemp "$(session_dir "$session")/.logged-runner.XXXXXX")"
   {
     echo '#!/usr/bin/env bash'
     echo 'set -euo pipefail'
@@ -362,9 +376,10 @@ write_logged_runner() {
     printf 'RUNNER_FILE=%q\n' "$runner"
     # shellcheck disable=SC2016
     echo 'exec script -q -f -O "$LOG_FILE" -c "$RUNNER_FILE"'
-  } > "$logged_runner"
+  } > "$tmp_logged"
 
-  chmod +x "$logged_runner"
+  chmod +x "$tmp_logged"
+  mv -f "$tmp_logged" "$logged_runner"
   LOGGED_RUNNER_FILE="$logged_runner"
 }
 
@@ -376,6 +391,8 @@ write_tuistory_recording_runner() {
   pid_file="$(asciinema_pid_file "$session")"
   wrapper="$(tuistory_recording_runner_file "$session")"
 
+  local tmp_wrapper
+  tmp_wrapper="$(mktemp "$(session_dir "$session")/.wrapper.XXXXXX")"
   {
     echo '#!/usr/bin/env bash'
     echo 'set -euo pipefail'
@@ -391,9 +408,10 @@ rm -f "$PID_FILE"
 echo "$$" > "$PID_FILE"
 exec asciinema rec --overwrite --command "$RUNNER_FILE" "$RECORD_PATH"
 SH
-  } > "$wrapper"
+  } > "$tmp_wrapper"
 
-  chmod +x "$wrapper"
+  chmod +x "$tmp_wrapper"
+  mv -f "$tmp_wrapper" "$wrapper"
   printf '%s\n' "$wrapper"
 }
 
@@ -764,6 +782,7 @@ cmd_launch() {
   local background_enabled="0"
   local record_path=""
   local envs=()
+  local _launch_success=0
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -842,6 +861,25 @@ cmd_launch() {
   fi
 
   [[ ! -e "$(session_dir "$session")/meta" ]] || die "session already exists: $session"
+
+  # --- signal trap: clean up session dir if launch fails ---
+  local _cleanup_session="$session"
+  _cleanup_session_handler() {
+    if [[ "$_launch_success" != "1" ]]; then
+      rm -rf "$(session_dir "$_cleanup_session")" 2>/dev/null || true
+    fi
+  }
+  trap _cleanup_session_handler EXIT INT TERM
+
+  # --- lockfile: prevent concurrent launches for the same session ---
+  local _lockfile
+  mkdir -p "$(session_dir "$session")"
+  _lockfile="$(session_dir "$session")/.lock"
+  exec 9>"$_lockfile"
+  if ! flock -n 9; then
+    die "session is currently being created by another process: $session"
+  fi
+
   resolve_backend "$backend" "$terminal_override"
   if [[ "$tmux_enabled" == "1" && "$BACKEND" != "tuistory" ]]; then
     die "--tmux is only supported with --backend tuistory"
@@ -885,6 +923,10 @@ cmd_launch() {
     TMUX_SOCKET_NAME="$socket_name"
     tmux -L "$socket_name" new-session -d -s "$session" "$runner" 2>&1 || die "tmux new-session failed"
     echo "tctl: launched background session '$session' (tmux socket: $socket_name)"
+    _launch_success=1
+    rm -f "$_lockfile"
+    exec 9>&-
+    trap - EXIT INT TERM
     return 0
   fi
 
@@ -893,6 +935,11 @@ cmd_launch() {
   else
     launch_true_input "$session" "$record_path"
   fi
+
+  _launch_success=1
+  rm -f "$_lockfile"
+  exec 9>&-
+  trap - EXIT INT TERM
 }
 
 cmd_sessions() {
