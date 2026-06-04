@@ -16,12 +16,7 @@ export const SKILL_NAMES = [
   "wiki",
   "background-pty",
   "meta-control",
-  "e2e-tester",
   "ralph",
-  "agent-planner",
-  "agent-architect",
-  "agent-critic",
-  "agent-security-reviewer",
 ] as const;
 
 export type ControlSkillName = (typeof SKILL_NAMES)[number];

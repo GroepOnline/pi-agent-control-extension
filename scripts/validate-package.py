@@ -8,17 +8,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILLS = {
-    "agent-architect",
     "agent-browser",
-    "agent-critic",
-    "agent-planner",
-    "agent-security-reviewer",
     "autoresearch",
     "background-pty",
     "capture",
     "compose",
     "control-narrate",
-    "e2e-tester",
     "init",
     "meta-control",
     "network-audit",

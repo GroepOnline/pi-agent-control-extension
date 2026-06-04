@@ -129,42 +129,37 @@ const ROUTE_RULES: Rule[] = [
   {
     keywords: ["e2e", "end-to-end", "end to end", "integration test", "user journey", "cross-service", "workflow test"],
     apply: (s) => {
-      s.skills.push("e2e-tester");
       s.driver = "mixed";
     }
   },
   {
     keywords: ["ralph", "consensus", "ralplan", "review plan", "hardening review", "plan review"],
     apply: (s) => {
-      s.skills.push("ralph", "agent-planner", "agent-architect", "agent-critic", "agent-security-reviewer");
+      s.skills.push("ralph");
       s.driver = "mixed";
     }
   },
   {
     keywords: ["create a plan", "plan this task", "break down this work", "implementation plan"],
     apply: (s) => {
-      s.skills.push("agent-planner");
       s.driver = "mixed";
     }
   },
   {
     keywords: ["architect review", "technical feasibility", "dependency analysis", "scalability assessment"],
     apply: (s) => {
-      s.skills.push("agent-architect");
       s.driver = "mixed";
     }
   },
   {
     keywords: ["critic review", "adversarial review", "challenge assumptions", "find weak spots"],
     apply: (s) => {
-      s.skills.push("agent-critic");
       s.driver = "mixed";
     }
   },
   {
     keywords: ["security review", "security check", "OWASP review", "security audit"],
     apply: (s) => {
-      s.skills.push("agent-security-reviewer");
       s.driver = "mixed";
     }
   },
@@ -223,19 +218,9 @@ function buildRecipe(driver: RouteDecision["driver"], deliverable: RouteDecision
     steps.push("Collect PTY bytes or VM screenshots and preserve raw logs under evidence/.");
   } else if (driver === "mixed") {
     if (skills.includes("ralph")) {
-      steps.push("Use the ralph skill to orchestrate the Review-Approve Loop Protocol: load agent-planner to create/refine plan, then run agent-architect, agent-critic, and agent-security-reviewer for adversarial hardening, iterate until consensus or max 3 cycles.");
-    } else if (skills.includes("e2e-tester")) {
-      steps.push("Use the e2e-tester skill to orchestrate end-to-end testing: identify user journeys, map workflows, design test scenarios, implement tests with proper isolation, execute and report results.");
-    } else if (skills.includes("agent-planner")) {
-      steps.push("Use the agent-planner skill to create a structured work plan: interview user (max 3 rounds), break down work into actionable steps, identify dependencies and risks, save to ~/.omc/plans/{name}.md.");
-    } else if (skills.includes("agent-architect")) {
-      steps.push("Use the agent-architect skill for architectural analysis: evaluate technical feasibility, check dependency conflicts, assess scalability, identify integration risks, provide specific recommendations.");
-    } else if (skills.includes("agent-critic")) {
-      steps.push("Use the agent-critic skill for adversarial review: challenge assumptions, find weak spots, check error handling, evaluate over/under-engineering, identify failure modes.");
-    } else if (skills.includes("agent-security-reviewer")) {
-      steps.push("Use the agent-security-reviewer skill for security analysis: check OWASP vulnerabilities, secrets exposure, auth bypass, CSRF/XSS, insecure defaults, provide specific mitigations.");
+      steps.push("Use the ralph skill to orchestrate the Review-Approve Loop Protocol: invoke the Planner subagent to create/refine plan, then invoke Architect, Critic, and SecurityReviewer subagents for adversarial hardening, iterate until consensus or max 3 cycles.");
     } else {
-      steps.push("Use subagents and chained orchestration (e.g., init -> wiki -> review -> autoresearch) to complete complex logical goals.");
+      steps.push("Use subagents and chained orchestration: invoke Explorer, Planner, Architect, Critic, SecurityReviewer, Executor, or E2ETester depending on the target task.");
     }
   } else {
     steps.push("Use tctl with backend tuistory for deterministic TUI automation and text snapshots.");
