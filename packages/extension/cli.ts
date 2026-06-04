@@ -376,62 +376,173 @@ function runMerge(name: string) {
   }
 }
 
+export interface CliOptions {
+  argv: string[];
+  exit?: (code: number) => never;
+  stdout?: (text: string) => void;
+  stderr?: (text: string) => void;
+}
+
+/**
+ * Result captured from a CLI invocation for testing.
+ */
+export interface CliResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number | null;
+}
+
+/** Sentinel thrown by the patched process.exit so createCli can catch it. */
+class ExitSignal extends Error {
+  constructor(public code: number) {
+    super(`process.exit(${code})`);
+  }
+}
+
+/**
+ * Create a testable CLI runner.  All I/O is routed through the provided
+ * callbacks so tests can capture output without touching process.exit or
+ * console.*.  Internally it temporarily patches console.log, console.error,
+ * and process.exit for the duration of run().
+ *
+ * @example
+ *   const cli = createCli({ argv: ['list', '--json'] });
+ *   const result = cli.run();
+ *   expect(result.stdout).toContain('"name"');
+ */
+export function createCli(options: CliOptions) {
+  const {
+    argv,
+    exit: exitFn,
+    stdout: stdoutFn,
+    stderr: stderrFn,
+  } = options;
+
+  const command = argv[0] || 'help';
+  let captured = '';
+
+  return {
+    /** Expose parsed command for assertions. */
+    command,
+
+    /**
+     * Run the CLI and return captured output.
+     * When exit/stdout/stderr are provided (test mode), I/O is captured
+     * without touching the real console or process.exit.
+     */
+    run(): CliResult {
+      const result: CliResult = { stdout: '', stderr: '', exitCode: null };
+
+      // Always capture output so run() returns structured results.
+      const origLog = console.log;
+      const origErr = console.error;
+      const origWarn = console.warn;
+      const origExit = process.exit;
+
+      const outBuf: string[] = [];
+      const errBuf: string[] = [];
+
+      // Redirect console and process.exit to capture buffers.  When
+      // user-provided callbacks are present they receive the same output.
+      const capturedLog: typeof console.log = (...args: any[]) => {
+        const line = args.join(' ') + '\n';
+        outBuf.push(line);
+        if (stdoutFn) stdoutFn(line);
+      };
+      const capturedErr: typeof console.error = (...args: any[]) => {
+        const line = args.join(' ') + '\n';
+        errBuf.push(line);
+        if (stderrFn) stderrFn(line);
+      };
+      console.log = capturedLog;
+      console.error = capturedErr;
+      console.warn = capturedErr;
+      const patchExit: typeof process.exit = (code?: number) => {
+        throw new ExitSignal(code ?? 1);
+      };
+      process.exit = patchExit;
+
+      try {
+        this.dispatch(command, argv);
+      } catch (e) {
+        if (e instanceof ExitSignal) {
+          result.exitCode = e.code;
+        } else {
+          throw e;
+        }
+      } finally {
+        console.log = origLog;
+        console.error = origErr;
+        console.warn = origWarn;
+        process.exit = origExit;
+        result.stdout = outBuf.join('');
+        result.stderr = errBuf.join('');
+      }
+
+      return result;
+    },
+
+    /** Route to the appropriate command handler. */
+    dispatch(cmd: string, args: string[]) {
+      switch (cmd) {
+        case 'list':
+          runList(args.slice(1));
+          break;
+        case 'view':
+          if (!args[1]) {
+            console.error(`Error: Missing skill name. Usage: skills view <name>`);
+            process.exit(1);
+          }
+          runView(args[1]);
+          break;
+        case 'enable':
+          if (!args[1]) {
+            console.error(`Error: Missing skill name. Usage: skills enable <name>`);
+            process.exit(1);
+          }
+          runToggle(args[1], true);
+          break;
+        case 'disable':
+          if (!args[1]) {
+            console.error(`Error: Missing skill name. Usage: skills disable <name>`);
+            process.exit(1);
+          }
+          runToggle(args[1], false);
+          break;
+        case 'validate':
+          runValidate(args[1]);
+          break;
+        case 'diff':
+          if (!args[1]) {
+            console.error(`Error: Missing skill name. Usage: skills diff <name>`);
+            process.exit(1);
+          }
+          runDiff(args[1]);
+          break;
+        case 'merge':
+          if (!args[1]) {
+            console.error(`Error: Missing skill name. Usage: skills merge <name>`);
+            process.exit(1);
+          }
+          runMerge(args[1]);
+          break;
+        case 'help':
+        case '-h':
+        case '--help':
+          showHelp();
+          break;
+        default:
+          console.error(`Unknown skills command: ${cmd}`);
+          showHelp();
+          process.exit(2);
+      }
+    },
+  };
+}
+
 function main() {
   const args = process.argv.slice(2);
-  const command = args[0] || 'help';
-
-  switch (command) {
-    case 'list':
-      runList(args.slice(1));
-      break;
-    case 'view':
-      if (!args[1]) {
-        console.error(`${C_RED}Error: Missing skill name. Usage: skills view <name>${C_RESET}`);
-        process.exit(1);
-      }
-      runView(args[1]);
-      break;
-    case 'enable':
-      if (!args[1]) {
-        console.error(`${C_RED}Error: Missing skill name. Usage: skills enable <name>${C_RESET}`);
-        process.exit(1);
-      }
-      runToggle(args[1], true);
-      break;
-    case 'disable':
-      if (!args[1]) {
-        console.error(`${C_RED}Error: Missing skill name. Usage: skills disable <name>${C_RESET}`);
-        process.exit(1);
-      }
-      runToggle(args[1], false);
-      break;
-    case 'validate':
-      runValidate(args[1]);
-      break;
-    case 'diff':
-      if (!args[1]) {
-        console.error(`${C_RED}Error: Missing skill name. Usage: skills diff <name>${C_RESET}`);
-        process.exit(1);
-      }
-      runDiff(args[1]);
-      break;
-    case 'merge':
-      if (!args[1]) {
-        console.error(`${C_RED}Error: Missing skill name. Usage: skills merge <name>${C_RESET}`);
-        process.exit(1);
-      }
-      runMerge(args[1]);
-      break;
-    case 'help':
-    case '-h':
-    case '--help':
-      showHelp();
-      break;
-    default:
-      console.error(`${C_RED}Unknown skills command: ${command}${C_RESET}`);
-      showHelp();
-      process.exit(2);
-  }
+  createCli({ argv: args }).run();
 }
 
 if (process.env.NODE_ENV !== "test") {
