@@ -195,11 +195,14 @@ write_provenance() {
 
   branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null || printf 'unknown')"
   commit="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || printf 'unknown')"
-  cat > "$file" <<PROVENANCE
+  local tmp
+  tmp="$(mktemp "$(dirname "$file")/.provenance.XXXXXX")"
+  cat > "$tmp" <<PROVENANCE
 repo_root=$repo_root
 branch=$branch
 commit=$commit
 PROVENANCE
+  mv -f "$tmp" "$file"
 }
 
 resolve_backend() {
@@ -833,6 +836,8 @@ cmd_launch() {
   # --- signal trap: clean up session dir if launch fails ---
   local _cleanup_session="$session"
   _cleanup_session_handler() {
+    exec 9>&- 2>/dev/null || true
+    rm -f "$_lockfile" 2>/dev/null || true
     if [[ "$_launch_success" != "1" ]]; then
       rm -rf "$(session_dir "$_cleanup_session")" 2>/dev/null || true
     fi
