@@ -9,7 +9,7 @@
 ## Commands
 
 - `npm run setup`: Install all dependencies including the Remotion engine.
-- `npm run test`: Run all 364 tests (vitest).
+- `npm run test`: Run all 500 tests (vitest).
 - `npm run validate`: Validate package structure, skills, and manifest.
 - `npm run check`: Verify the extension entry point via `pi` CLI.
 - `npm run lint`: Run TypeScript type checking (`tsc --noEmit`).
