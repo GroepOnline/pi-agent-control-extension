@@ -215,10 +215,12 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
       return new Promise<{ port: number; token: string }>((resolve, reject) => {
         httpServer!.listen(port, "127.0.0.1", () => {
+          const addr = httpServer!.address();
+          const actualPort = typeof addr === "object" && addr ? addr.port : port;
           bridgeState.running = true;
-          bridgeState.port = port;
+          bridgeState.port = actualPort;
           bridgeState.startTime = new Date();
-          resolve({ port, token });
+          resolve({ port: actualPort, token });
         });
 
         httpServer!.on("error", (err) => {
