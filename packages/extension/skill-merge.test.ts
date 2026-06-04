@@ -15,7 +15,16 @@ vi.mock("node:fs", async (importOriginal) => {
       if (path.includes("agent-browser")) return true;
       return false;
     }),
+    // The migrated callers (saveMergeState, resolveMerge) go through
+    // atomicWriteSync which uses openSync/writeFileSync/fsyncSync/closeSync/
+    // renameSync/unlinkSync. Mock all of them so the unit tests do not
+    // hit the real filesystem.
+    openSync: vi.fn(() => 1),
     writeFileSync: vi.fn(),
+    fsyncSync: vi.fn(),
+    closeSync: vi.fn(),
+    renameSync: vi.fn(),
+    unlinkSync: vi.fn(),
     mkdirSync: vi.fn(),
     statSync: vi.fn(() => ({ mtimeMs: Date.now() } as any)),
   };
