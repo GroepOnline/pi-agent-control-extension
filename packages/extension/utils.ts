@@ -69,7 +69,7 @@ export function clearSkillsCache() {
 
 export function listSkills(base: string) {
   if (cachedSkills.has(base)) return cachedSkills.get(base)!;
-  const dir = join(base, "skills");
+  const dir = join(base, "packages", "skills");
   if (!existsSync(dir)) {
     cachedSkills.set(base, []);
     return [];

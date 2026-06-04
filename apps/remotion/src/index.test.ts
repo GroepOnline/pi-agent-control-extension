@@ -12,7 +12,7 @@ vi.mock('./Root', () => ({
 
 describe('remotion index', () => {
   it('should register RemotionRoot', async () => {
-    await import('./index');
+    await import('./index.ts');
     expect(registerRoot).toHaveBeenCalledWith(RemotionRoot);
   });
 });

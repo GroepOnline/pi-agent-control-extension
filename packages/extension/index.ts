@@ -168,7 +168,7 @@ function skillDiff(args: string) {
   if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
 
   const repoRoot = rootDir();
-  const piPath = join(repoRoot, "skills", name, "SKILL.md");
+  const piPath = join(repoRoot, "packages", "skills", name, "SKILL.md");
   const userPaths = [
     join(homedir(), ".agents", "skills", name, "SKILL.md"),
     join(homedir(), ".devin", "skills", name, "SKILL.md"),
@@ -207,7 +207,7 @@ export function skillInfo(args: string) {
   if (!VALID_SKILL_NAME.test(name)) return `Invalid skill name "${name}". Use only letters, numbers, hyphens, and underscores.`;
   const repoRoot = rootDir();
   const paths = [
-    join(repoRoot, "skills", name, "SKILL.md"),
+    join(repoRoot, "packages", "skills", name, "SKILL.md"),
     join(homedir(), ".agents", "skills", name, "SKILL.md"),
     join(homedir(), ".devin", "skills", name, "SKILL.md"),
     join(homedir(), ".claude", "skills", name, "SKILL.md"),
@@ -273,7 +273,7 @@ export function showcasePreview(args: string) {
     `| **Recipe** | ${recipe} |`,
     `| **Capture binding** | ${capturePath || "(none)"} |`,
     `| **Output path** | ${outPath} |`,
-    `| **Command** | \`npx tsx remotion/scripts/render-showcase.ts ${recipe}${capturePath ? ` ${capturePath}` : ""}${outPath ? ` ${outPath}` : ""}\` |`,
+    `| **Command** | \`npx tsx apps/remotion/scripts/render-showcase.ts ${recipe}${capturePath ? ` ${capturePath}` : ""}${outPath ? ` ${outPath}` : ""}\` |`,
     "",
     `Preset, layout, and transition are auto-selected per recipe.`,
     `Run \`/showcase-render ${recipe}\` to execute.`,
@@ -300,7 +300,7 @@ export async function showcaseRender(args: string): Promise<string> {
   if (outPath) extraArgs.push(outPath);
 
   try {
-    const { stdout, stderr } = await execAsync("npx", ["tsx", "remotion/scripts/render-showcase.ts", recipe, ...extraArgs], 300000);
+    const { stdout, stderr } = await execAsync("npx", ["tsx", "apps/remotion/scripts/render-showcase.ts", recipe, ...extraArgs], 300000);
     const lines = stdout.split("\n").filter(Boolean);
     const lastLine = lines[lines.length - 1];
     let result: { ok?: boolean; outputPath?: string; sizeInBytes?: number; durationInFrames?: number; error?: string } = {};

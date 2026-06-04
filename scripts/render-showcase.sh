@@ -17,7 +17,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REMOTION_DIR="${SCRIPT_DIR}/../remotion"
+REMOTION_DIR="${SCRIPT_DIR}/../apps/remotion"
 PI_CLI_THEME='181818,e0d0c0,15161e,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,a9b1d6,414868,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,c0caf5'
 
 PROPS_FILE="" PROPS_INLINE="" OUTPUT="" FIDELITY_OVERRIDE="auto" CLIPS=()
