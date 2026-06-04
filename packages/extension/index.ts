@@ -170,13 +170,14 @@ function skillDiff(args: string) {
   const repoRoot = rootDir();
   const piPath = join(repoRoot, "packages", "skills", name, "SKILL.md");
   const userPaths = [
+    join(homedir(), ".gemini", "config", "skills", name, "SKILL.md"),
     join(homedir(), ".agents", "skills", name, "SKILL.md"),
     join(homedir(), ".devin", "skills", name, "SKILL.md"),
     join(homedir(), ".claude", "skills", name, "SKILL.md"),
   ];
 
   const userPath = userPaths.find((p) => existsSync(p));
-  if (!existsSync(piPath)) return `PI skill "${name}" not found at ${piPath}`;
+  if (!existsSync(piPath)) return `Bundled skill "${name}" not found at ${piPath}`;
   if (!userPath) return `User skill "${name}" not found in any user skill directory.`;
 
   try {
@@ -208,6 +209,7 @@ export function skillInfo(args: string) {
   const repoRoot = rootDir();
   const paths = [
     join(repoRoot, "packages", "skills", name, "SKILL.md"),
+    join(homedir(), ".gemini", "config", "skills", name, "SKILL.md"),
     join(homedir(), ".agents", "skills", name, "SKILL.md"),
     join(homedir(), ".devin", "skills", name, "SKILL.md"),
     join(homedir(), ".claude", "skills", name, "SKILL.md"),
@@ -325,10 +327,10 @@ export async function showcaseRender(args: string): Promise<string> {
   }
 }
 
-export default function piControlExtension(pi: ExtensionAPI) {
+export default function agyControlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
-    ctx.ui?.notify?.(`pi-agent-control loaded (${n} skills)`, "info");
+    ctx.ui?.notify?.(`agy-agent-control loaded (${n} skills)`, "info");
   });
 
   pi.on("tool_call", async (event: unknown, _ctx: unknown) => inspectToolCall(event) || undefined);

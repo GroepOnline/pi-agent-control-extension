@@ -1,8 +1,8 @@
 ---
-name: pi-agent-control
-description: Main orchestrator for Pi agent control workflows — route tasks to the right driver, then chain capture, compose, and verify atoms. Use for any terminal/browser automation, demo recording, or QA evidence task. Examples: "record a demo", "automate this terminal app", "make a showcase video", "qa proof", "browser automation", "control workflow"
+name: agy-agent-control
+description: Main orchestrator for Antigravity agent control workflows — route tasks to the right driver, then chain capture, compose, and verify atoms. Use for any terminal/browser automation, demo recording, or QA evidence task. Examples: "record a demo", "automate this terminal app", "make a showcase video", "qa proof", "browser automation", "control workflow"
 ---
-# Pi Agent CLI Control
+# Antigravity Agent CLI Control
 
 Automate terminals and browsers. Three routing decisions, then atoms guide you the rest of the way.
 
@@ -11,11 +11,11 @@ Automate terminals and browsers. Three routing decisions, then atoms guide you t
 1. **Real apps, real environments.** Non-deterministic behavior (LLM responses, network latency, variable output) is expected. Handle it with `wait` / `wait-idle`. Never substitute fixtures or mocked data.
 2. **Commit to execution.** Once you've chosen a driver, run the plan. If something fails mid-run, recover and retry -- don't re-evaluate the approach.
 3. **Atoms are self-contained.** Load one and follow its mechanics. No cross-referencing needed.
-4. **`tctl` is the ONLY way to launch recorded sessions.** `tctl` manages recording by wrapping `asciinema rec` around the PTY — raw `tuistory` has no recording capability and never will. Never call `tuistory launch` directly; unknown flags crash `tuistory-relay`. Always resolve `TCTL` to its absolute filesystem path before use, especially when delegating to workers (they don't inherit `${PI_AGENT_CONTROL_ROOT}`).
+4. **`tctl` is the ONLY way to launch recorded sessions.** `tctl` manages recording by wrapping `asciinema rec` around the PTY — raw `tuistory` has no recording capability and never will. Never call `tuistory launch` directly; unknown flags crash `tuistory-relay`. Always resolve `TCTL` to its absolute filesystem path before use, especially when delegating to workers (they don't inherit `${AGY_AGENT_CONTROL_ROOT}`).
 5. **Isolate every run.** Multiple agent-control sessions may be filming simultaneously on the same machine. Session names and output paths share a global namespace (`/tmp/tctl-sessions/`). At the start of every workflow, generate a run ID (`RUN_ID=$(date +%s)-$$` or similar) and use it as a prefix for all session names and a scoped temp directory for all output files:
    ```bash
    RUN_ID="$(date +%s)-$$"
-   RUN_DIR="$(mktemp -d /tmp/pi-agent-control-run-${RUN_ID}-XXXXXX)"
+   RUN_DIR="$(mktemp -d /tmp/agy-agent-control-run-${RUN_ID}-XXXXXX)"
    # Session names: -s ${RUN_ID}-before, -s ${RUN_ID}-after
    # Output paths: ${RUN_DIR}/before.cast, ${RUN_DIR}/after.cast
    ```
@@ -29,9 +29,9 @@ Three independent lookups. Do all three, then load the union of skills they prod
 
 | Target | Load these skills |
 |---|---|
-| Pi Coding Agent CLI (`pi`, `pi -p`) | **pi-agent-cli** + tuistory backend via `${PI_AGENT_CONTROL_ROOT}/bin/tctl` |
-| Pi Coding Agent CLI (real terminal proof) | **true-input** + **pi-agent-cli** |
-| Other terminal TUI | tuistory backend via `${PI_AGENT_CONTROL_ROOT}/bin/tctl` |
+| Antigravity Agent CLI (`agy`, `agy -p`) | **agy-agent-cli** + tuistory backend via `${AGY_AGENT_CONTROL_ROOT}/bin/tctl` |
+| Antigravity Agent CLI (real terminal proof) | **true-input** + **agy-agent-cli** |
+| Other terminal TUI | tuistory backend via `${AGY_AGENT_CONTROL_ROOT}/bin/tctl` |
 | Other terminal TUI (real terminal proof) | **true-input** |
 | Web page or Electron app | **agent-browser** |
 | Raw terminal byte sequences | **true-input** + **pty-capture** |
@@ -87,7 +87,7 @@ Do not synthesize a "before" state to justify `side-by-side`. If there is no rea
 
 ## Delegation
 
-The parent agent plans and orchestrates. Mechanical work runs in **worker subagents** via focused Pi sessions, forks, or separate terminal sessions. This keeps the parent's context clean and enables parallelism.
+The parent agent plans and orchestrates. Mechanical work runs in **worker subagents** via focused sessions, forks, or separate terminal sessions. This keeps the parent's context clean and enables parallelism.
 
 ### What to delegate
 
@@ -103,25 +103,25 @@ The parent agent plans and orchestrates. Mechanical work runs in **worker subage
 
 ### How to delegate
 
-**Step 0: Resolve paths and generate a run ID.** Workers don't inherit `${PI_AGENT_CONTROL_ROOT}`. Resolve once, paste everywhere:
+**Step 0: Resolve paths and generate a run ID.** Workers don't inherit `${AGY_AGENT_CONTROL_ROOT}`. Resolve once, paste everywhere:
 
 ```bash
-TCTL="$(realpath "${PI_AGENT_CONTROL_ROOT}/bin/tctl")"
-RENDER="$(realpath "${PI_AGENT_CONTROL_ROOT}/scripts/render-showcase.sh")"
+TCTL="$(realpath "${AGY_AGENT_CONTROL_ROOT}/bin/tctl")"
+RENDER="$(realpath "${AGY_AGENT_CONTROL_ROOT}/scripts/render-showcase.sh")"
 RUN_ID="$(date +%s)-$$"
-RUN_DIR="$(mktemp -d /tmp/pi-agent-control-run-${RUN_ID}-XXXXXX)"
+RUN_DIR="$(mktemp -d /tmp/agy-agent-control-run-${RUN_ID}-XXXXXX)"
 ```
 
 Use `${RUN_DIR}` for all output files (recordings, props, rendered video). Use `${RUN_ID}-` as a prefix for all session names. Never use bare names like `-s before` or hardcoded paths like `/tmp/before.cast`.
 
-Give workers **exact commands** with the resolved absolute paths — not abstract instructions, not `tuistory`, not `${PI_AGENT_CONTROL_ROOT}`. The parent does the thinking; the worker executes:
+Give workers **exact commands** with the resolved absolute paths — not abstract instructions, not `tuistory`, not `${AGY_AGENT_CONTROL_ROOT}`. The parent does the thinking; the worker executes:
 
 ```
 Task prompt for a capture worker:
   "Run these commands in order. Report the output file path and any errors.
-   1. /abs/path/to/bin/tctl launch "pi" -s 1712345678-42-before --backend tuistory \
+   1. /abs/path/to/bin/tctl launch "agy" -s 1712345678-42-before --backend tuistory \
         --repo-root /abs/path/to/baseline/worktree \
-        --cols 120 --rows 36 --record /tmp/pi-agent-control-run-1712345678-42-xxxx/before.cast \
+        --cols 120 --rows 36 --record /tmp/agy-agent-control-run-1712345678-42-xxxx/before.cast \
         --env FORCE_COLOR=3 --env COLORTERM=truecolor
    2. /abs/path/to/bin/tctl -s 1712345678-42-before wait ">" --timeout 15000
    3. /abs/path/to/bin/tctl -s 1712345678-42-before type "hello world"
@@ -134,9 +134,9 @@ Task prompt for a capture worker:
 Task prompt for a Remotion render worker:
   "Run this command. Report the output file path and any errors.
    /abs/path/to/scripts/render-showcase.sh \
-     --props /tmp/pi-agent-control-run-1712345678-42-xxxx/showcase-props.json \
-     --output /tmp/pi-agent-control-run-1712345678-42-xxxx/demo.mp4 \
-     /tmp/pi-agent-control-run-1712345678-42-xxxx/before.cast /tmp/pi-agent-control-run-1712345678-42-xxxx/after.cast"
+     --props /tmp/agy-agent-control-run-1712345678-42-xxxx/showcase-props.json \
+     --output /tmp/agy-agent-control-run-1712345678-42-xxxx/demo.mp4 \
+     /tmp/agy-agent-control-run-1712345678-42-xxxx/before.cast /tmp/agy-agent-control-run-1712345678-42-xxxx/after.cast"
 ```
 
 ### Parallel capture pattern (comparison flows only)
@@ -166,8 +166,8 @@ Drivers can be combined in one workflow — e.g., `tctl` for a CLI and `agent-br
 |---|---|---|---|
 | tuistory | All | `tuistory`, `asciinema`, `agg` | `tmux` |
 | true-input | Linux/Wayland | `cage`, `wtype`, Wayland terminal, `/dev/dri/*` | `grim`, `wf-recorder` |
-| true-input | Windows (KVM) | `libvirt`, `qemu`, KVM VM with SPICE + SSH, `PI_AGENT_CONTROL_VM_*` env vars | `virt-manager` |
-| true-input | macOS (QEMU) | `qemu`, `socat`, macOS VM with SSH, `PI_AGENT_CONTROL_MAC_*` env vars | — |
+| true-input | Windows (KVM) | `libvirt`, `qemu`, KVM VM with SPICE + SSH, `AGY_AGENT_CONTROL_VM_*` env vars | `virt-manager` |
+| true-input | macOS (QEMU) | `qemu`, `socat`, macOS VM with SSH, `AGY_AGENT_CONTROL_MAC_*` env vars | — |
 | agent-browser | All | `agent-browser` (+ `agent-browser install`) | — |
 | compose | All | `ffmpeg`, `ffprobe`, `agg` | — |
 | showcase | All | Node.js (>= 18), Chrome/Chromium | — |
@@ -189,6 +189,6 @@ agent-browser install                                # one-time: downloads bundl
 
 # compose + showcase (video rendering)
 sudo apt-get install -y ffmpeg                       # video processing (includes ffprobe)
-cd ${PI_AGENT_CONTROL_ROOT}/remotion && npm install       # Remotion dependencies
+cd ${AGY_AGENT_CONTROL_ROOT}/remotion && npm install       # Remotion dependencies
 # Chrome or Chromium must be installed for Remotion rendering
 ```

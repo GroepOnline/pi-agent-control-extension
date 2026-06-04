@@ -23,8 +23,8 @@ EXPECTED_SKILLS = {
     "meta-control",
     "network-audit",
     "notion-linear-bridge",
-    "pi-agent-cli",
-    "pi-agent-control",
+    "agy-agent-cli",
+    "agy-agent-control",
     "pty-capture",
     "ralph",
     "review",
@@ -63,10 +63,10 @@ for rel in REQUIRED_FILES:
     check(f"Required file: {rel}", (ROOT / rel).exists())
 
 pkg = json.loads((ROOT / "package.json").read_text())
-pi = pkg.get("pi", {})
-check("PI manifest: extensions", "./packages/extension/index.ts" in pi.get("extensions", []))
-check("PI manifest: skills", "./packages/skills" in pi.get("skills", []))
-check("Keyword: pi-package", "pi-package" in pkg.get("keywords", []))
+agy = pkg.get("agy", {})
+check("AGY manifest: extensions", "./packages/extension/index.ts" in agy.get("extensions", []))
+check("AGY manifest: skills", "./packages/skills" in agy.get("skills", []))
+check("Keyword: agy-package", "agy-package" in pkg.get("keywords", []))
 
 base = ROOT / "packages" / "skills"
 found = {p.parent.name for p in base.glob("*/SKILL.md")}
