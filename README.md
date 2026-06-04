@@ -187,7 +187,7 @@ npm run pack:dry
 
 ## Roadmap & Future Plans
 
-Interested in what's next for the extension? Check out our [ROADMAP.md](ROADMAP.md) for upcoming features like LLM-powered guardrails, native Playwright integration, and remote tmux orchestration.
+Interested in what's next for the extension? Check out our [ROADMAP.md](docs/ROADMAP.md) for upcoming features like LLM-powered guardrails, native Playwright integration, and remote tmux orchestration.
 
 ## Demo
 
