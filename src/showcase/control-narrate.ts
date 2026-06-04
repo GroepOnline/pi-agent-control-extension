@@ -32,10 +32,16 @@ function parseVerificationMd(content: string): Claim[] {
   const lines = content.split("\n");
   const claims: Claim[] = [];
   let currentClaim: Claim | null = null;
+  let inCommitmentSection = false;
 
   for (const line of lines) {
+    if (/^## Commitment checks/i.test(line)) {
+      inCommitmentSection = true;
+      continue;
+    }
+
     const claimMatch = line.match(/^###\s+\d+\.\s+(.+)$/);
-    if (claimMatch) {
+    if (claimMatch && inCommitmentSection) {
       if (currentClaim) claims.push(currentClaim);
       currentClaim = {
         step: claimMatch[1]!.trim(),
@@ -44,48 +50,101 @@ function parseVerificationMd(content: string): Claim[] {
         hasVisuals: false,
         hasKeystrokes: false,
       };
+      continue;
     }
+
     if (currentClaim) {
-      if (/tuistory|terminal|TUI|snapshot/i.test(line)) {
+      const lower = line.toLowerCase();
+
+      // Detect driver and evidence type from context
+      if (/tuistory|terminal|tui|snapshot|skill studio/i.test(line)) {
         currentClaim.driver = "tuistory";
         currentClaim.evidenceType = "terminal-snapshot";
         currentClaim.hasVisuals = true;
+        currentClaim.hasKeystrokes =
+          /keystroke|type|press|input/i.test(line) ||
+          currentClaim.hasKeystrokes;
+      }
+
+      if (/remotion|compose|showcase|cinematic|render/i.test(line)) {
+        currentClaim.driver =
+          currentClaim.driver === "mixed" ? "remotion" : currentClaim.driver;
+      }
+
+      if (/browser|web|electron/i.test(line)) {
+        currentClaim.driver =
+          currentClaim.driver === "mixed" ? "browser" : currentClaim.driver;
+        currentClaim.evidenceType = "screenshot";
+        currentClaim.hasVisuals = true;
+      }
+
+      // Look for evidence mentions in the claim body
+      if (/visual|snapshot|cast|recording|video/i.test(line)) {
+        currentClaim.hasVisuals = true;
+      }
+      if (/keystroke|typing|keyboard|press/i.test(line)) {
         currentClaim.hasKeystrokes = true;
       }
     }
   }
+
   if (currentClaim) claims.push(currentClaim);
+
+  // Fallback with better defaults if parsing was weak
   if (claims.length === 0) {
-    claims.push({
-      step: "Evidence capture",
-      driver: "tuistory",
-      evidenceType: "terminal-snapshot",
-      hasVisuals: true,
-      hasKeystrokes: true,
-    });
+    claims.push(
+      {
+        step: "Terminal / TUI capture",
+        driver: "tuistory",
+        evidenceType: "terminal-snapshot",
+        hasVisuals: true,
+        hasKeystrokes: true,
+      },
+      {
+        step: "Verification & commitments",
+        driver: "mixed",
+        evidenceType: "structured-report",
+        hasVisuals: false,
+        hasKeystrokes: false,
+      }
+    );
   }
+
   return claims;
+}
+
+function estimateDuration(verificationContent: string, proofContent: string): number {
+  const durationMatch = (verificationContent + proofContent).match(/duration[:\s]+(\d+)/i);
+  if (durationMatch) {
+    return parseInt(durationMatch[1]!, 10);
+  }
+  const claimCount = (verificationContent.match(/^###\s+\d+\./gm) || []).length;
+  return Math.max(45, Math.min(120, claimCount * 18));
 }
 
 export function generateNarratorProps(runDir: string): NarratorProps {
   const absoluteRunDir = resolve(runDir);
   const verificationMd = join(absoluteRunDir, "verification.md");
+  const proofReport = join(absoluteRunDir, "proof-report.md");
 
   if (!existsSync(verificationMd)) {
     throw new Error(`No verification.md found in ${absoluteRunDir}`);
   }
 
   const verificationContent = readFileSync(verificationMd, "utf8");
+  const proofContent = existsSync(proofReport) ? readFileSync(proofReport, "utf8") : "";
+
   const claims = parseVerificationMd(verificationContent);
+  const durationSec = estimateDuration(verificationContent, proofContent);
 
   const isHighVisual = claims.some(
     (c) => c.evidenceType === "terminal-snapshot" || c.hasKeystrokes
   );
-  const durationSec = 75; // default duration
 
-  const selectPreset = (highVisual: boolean, longMixed: boolean) => {
+  const selectPreset = (highVisual: boolean, longMixed: boolean, allClaims: Claim[]) => {
     if (highVisual) return "pi-hero";
     if (longMixed) return "dark-pro";
+    if (allClaims.every((c) => c.evidenceType === "structured-report")) return "paper";
     return "pi-warm";
   };
 
@@ -97,11 +156,15 @@ export function generateNarratorProps(runDir: string): NarratorProps {
   };
 
   const buildChapters = (cls: Claim[]) => {
-    return cls.map((c, idx) => ({
+    // Filter out structured reports if we have many claims, to keep it engaging
+    const filtered = cls.filter(
+      (c) => c.evidenceType !== "structured-report" || cls.length < 5
+    );
+    return filtered.map((c, idx) => ({
       id: `chapter-${idx + 1}`,
       title: `${c.step} (${c.driver})`,
       durationHintSec: Math.max(
-        8,
+        6,
         Math.floor(durationSec / Math.max(3, cls.length))
       ),
     }));
@@ -110,14 +173,14 @@ export function generateNarratorProps(runDir: string): NarratorProps {
   return {
     version: "0.1-control-narrate",
     runId: basename(absoluteRunDir),
-    preset: selectPreset(isHighVisual, claims.length > 4),
+    preset: selectPreset(isHighVisual, claims.length > 4, claims),
     transitions: claims.length > 4 ? ["whip-pan", "scan-line"] : ["motion-blur"],
     effects: buildEffects(
       isHighVisual,
       claims.some(
         (c) =>
-          c.evidenceType.includes("snapshot") ||
-          c.evidenceType.includes("listing")
+          c.evidenceType === "terminal-snapshot" ||
+          c.evidenceType === "directory-listing"
       )
     ),
     chapters: buildChapters(claims),

@@ -5,13 +5,13 @@ apps/remotion/package-lock.json
 apps/remotion/artifacts/
 
 # Test files (~140 kB of bloat — never shipped to consumers)
-packages/extension/**/*.test.ts
-packages/extension/**/*.test.tsx
-packages/extension/**/*.bench.ts
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/*.bench.ts
 apps/remotion/src/**/*.test.ts
 
 # Test artifacts and coverage
-packages/extension/coverage/
+src/coverage/
 coverage/
 
 # Build outputs that should never be in the tarball
