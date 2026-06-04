@@ -97,6 +97,34 @@ for cmd, install in BINARIES.items():
 if bin_errors and not os.environ.get("CI"):
     errors.extend(f"Binary: {cmd}" for cmd in bin_errors)
 
+# Check test count in AGENTS.md matches actual test count
+try:
+    import subprocess
+    result = subprocess.run(
+        ["npx", "vitest", "run", "--reporter=json"],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    # Get last line (JSON summary)
+    lines = result.stdout.strip().split("\n")
+    if lines:
+        test_data = json.loads(lines[-1])
+        actual_count = test_data.get("numPassedTests", 0)
+
+        # Read AGENTS.md and extract test count
+        agents_md = (ROOT / "AGENTS.md").read_text()
+        import re
+        match = re.search(r"Run all (\d+) tests", agents_md)
+        if match:
+            documented_count = int(match.group(1))
+            if documented_count != actual_count:
+                print(f"[WARN] AGENTS.md test count {documented_count} does not match actual {actual_count}")
+except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError, Exception):
+    # Silently ignore - this is informational only
+    pass
+
 if errors:
     print(f"\n[FAIL] {len(errors)} check(s) failed")
 else:
