@@ -1,8 +1,9 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { execFileSync } from "node:child_process";
 import { rootDir } from "./utils.ts";
+import { atomicWriteSync } from "./atomic-write.ts";
 
 export interface MergeConflict {
   line: number;
@@ -54,7 +55,7 @@ function saveMergeState(merges: Map<string, MergeState>) {
     const raw = existsSync(MERGE_STATE_PATH) ? readFileSync(MERGE_STATE_PATH, "utf8") : "{}";
     const data = JSON.parse(raw);
     data.merges = Object.fromEntries(merges);
-    writeFileSync(MERGE_STATE_PATH, JSON.stringify(data, null, 2));
+    atomicWriteSync(MERGE_STATE_PATH, JSON.stringify(data, null, 2));
   } catch (e: any) {
     console.warn(`[skill-merge] Failed to save merge state: ${e.message}`);
   }
@@ -218,12 +219,12 @@ export function resolveMerge(name: string, resolution: "pi" | "user" | "manual",
 
     if (resolution === "pi") {
       const content = readFileSync(piPath, "utf8");
-      writeFileSync(dest, content);
+      atomicWriteSync(dest, content);
     } else if (resolution === "user") {
       const content = readFileSync(userPath!, "utf8");
-      writeFileSync(dest, content);
+      atomicWriteSync(dest, content);
     } else if (resolution === "manual" && manualContent) {
-      writeFileSync(dest, manualContent);
+      atomicWriteSync(dest, manualContent);
     } else {
       return { saved: false, path: dest, error: "No content provided for manual resolution" };
     }

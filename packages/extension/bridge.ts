@@ -1,10 +1,11 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
-import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, chmodSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { atomicWriteSync } from "./atomic-write.ts";
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
 
@@ -60,7 +61,7 @@ function ensureToken(): string {
   const token = randomUUID();
   try {
     mkdirSync(dirname(BRIDGE_TOKEN_PATH), { recursive: true });
-    writeFileSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
+    atomicWriteSync(BRIDGE_TOKEN_PATH, token, { mode: 0o600 });
   } catch (err) {
     console.warn(`[bridge] Failed to persist token to ${BRIDGE_TOKEN_PATH}: ${err instanceof Error ? err.message : String(err)}. Using in-memory token for this session.`);
   }

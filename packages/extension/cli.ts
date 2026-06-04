@@ -1,9 +1,10 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, mkdirSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { mergeSkill } from './skill-merge.ts';
+import { atomicWriteSync } from './atomic-write.ts';
 
 // CLI Colors (Vibrant HSL-tailored ANSI)
 const C_RESET = '\x1b[0m';
@@ -53,7 +54,7 @@ function saveDisabledSet(disabled: Set<string>) {
     const raw = existsSync(STUDIO_STATE_PATH) ? readFileSync(STUDIO_STATE_PATH, 'utf8') : '{}';
     const data = JSON.parse(raw);
     data.disabled = Array.from(disabled);
-    writeFileSync(STUDIO_STATE_PATH, JSON.stringify(data, null, 2));
+    atomicWriteSync(STUDIO_STATE_PATH, JSON.stringify(data, null, 2));
   } catch (e: any) {
     console.warn(`[skills] Failed to save state to ${STUDIO_STATE_PATH}: ${e.message}`);
   }
