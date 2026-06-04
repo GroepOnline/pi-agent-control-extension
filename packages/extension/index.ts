@@ -13,6 +13,7 @@ import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
 import { mergeSkill, listMergeStates } from "./skill-merge.ts";
 import { registerTools } from "./tools/index.ts";
+import { telemetry } from "./telemetry.ts";
 
 const CONTROL_HUB = `# Control Hub
 
@@ -329,11 +330,17 @@ export async function showcaseRender(args: string): Promise<string> {
 
 export default function agyControlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
+    telemetry.init();
+    telemetry.increment("session_start");
     const n = listSkills(rootDir()).length;
     ctx.ui?.notify?.(`agy-agent-control loaded (${n} skills)`, "info");
   });
 
-  pi.on("tool_call", async (event: unknown, _ctx: unknown) => inspectToolCall(event) || undefined);
+  pi.on("tool_call", async (event: unknown, _ctx: unknown) => {
+    telemetry.increment("tool_call");
+    const guard = inspectToolCall(event) || undefined;
+    return guard;
+  });
 
   const show = (text: string) => async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
   const showFn = (fn: (s: string) => string) => async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
@@ -395,4 +402,9 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   registerCapture(pi);
   registerBridge(pi);
   registerTools(pi);
+
+  // Record telemetry snapshot on shutdown
+  pi.on("session_end" as any, async () => {
+    telemetry.record("session_end", telemetry.snapshot() as unknown as Record<string, unknown>);
+  });
 }
