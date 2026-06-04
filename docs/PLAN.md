@@ -1,6 +1,6 @@
 # Comprehensive Master Plan
 
-This document outlines the strategic roadmap and execution plan for the Pi Agent Control Extension, aligning with the objectives specified in [ROADMAP.md](ROADMAP.md).
+This document outlines the strategic roadmap and execution plan for the Pi Agent Control Extension, aligning with the objectives specified in [ROADMAP.md](./ROADMAP.md).
 
 ## Phase 1: Hardened Control & Computer Use (Q3 2026)
 
