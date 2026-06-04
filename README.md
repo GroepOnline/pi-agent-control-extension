@@ -2,15 +2,15 @@
 
 Pi Agent Control Extension is a Pi extension package for terminal, CLI, browser-routing, capture, verification, QA proof, and showcase workflows. It provides commands and LLM tools that turn loose automation requests into a repeatable driver, skill stack, capture format, and evidence recipe.
 
-[![CI](https://github.com/OnlineChef/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
+[![CI](https://github.com/OnlineChefGroep/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
 [![Package](https://img.shields.io/badge/pi-extension-blue)](#)
-[![Version](https://img.shields.io/badge/version-5.1.4-informational)](#)
+[![Version](https://img.shields.io/badge/version-5.2.0-informational)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 
 ## Install
 
 ```bash
-pi install git:github.com/OnlineChef/pi-agent-control-extension
+pi install npm:@onlinechefgroep/pi-agent-control-extension
 ```
 
 Then start or reload a Pi session. The extension registers commands, tools, bundled skills, routing rules, and package validation helpers.

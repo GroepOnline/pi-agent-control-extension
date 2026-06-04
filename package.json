@@ -1,6 +1,6 @@
 {
-  "name": "pi-agent-control-extension",
-  "version": "5.1.1",
+  "name": "@onlinechefgroep/pi-agent-control-extension",
+  "version": "5.2.0",
   "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
   "type": "module",
   "keywords": [
@@ -18,6 +18,13 @@
     "showcase"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OnlineChefGroep/pi-agent-control-extension.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "setup": "bash scripts/setup-deps.sh && npm install && (cd apps/remotion && npm install)",
     "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
