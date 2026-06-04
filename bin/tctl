@@ -94,46 +94,16 @@ session_dir() {
   printf '%s/%s\n' "$ROOT_DIR" "$1"
 }
 
-command_file() {
-  printf '%s/command.txt\n' "$(session_dir "$1")"
-}
-
-runner_file() {
-  printf '%s/run-child.sh\n' "$(session_dir "$1")"
-}
-
-tmux_config_file() {
-  printf '%s/tmux.conf\n' "$(session_dir "$1")"
-}
-
-tmux_runner_file() {
-  printf '%s/run-tmux-child.sh\n' "$(session_dir "$1")"
-}
-
-logged_runner_file() {
-  printf '%s/run-logged-child.sh\n' "$(session_dir "$1")"
-}
-
-tuistory_recording_runner_file() {
-  printf '%s/run-tuistory-recording.sh\n' "$(session_dir "$1")"
-}
-
-asciinema_pid_file() {
-  printf '%s/asciinema.pid\n' "$(session_dir "$1")"
-}
-
-provenance_file() {
-  printf '%s/provenance\n' "$(session_dir "$1")"
-}
-
-meta_file() {
-  printf '%s/meta\n' "$(session_dir "$1")"
+session_file() {
+  local session="$1"
+  local name="$2"
+  printf '%s/%s\n' "$(session_dir "$session")" "$name"
 }
 
 load_meta() {
   local session="$1"
   local meta
-  meta="$(meta_file "$session")"
+  meta="$(session_file "$session" "meta")"
   [[ -f "$meta" ]] || die "unknown session: $session"
   # shellcheck disable=SC1090
   source "$meta"
@@ -166,7 +136,7 @@ CAGE_PID=$(quote_sh "${CAGE_PID:-}")
 WARMED_UP=$(quote_sh "${WARMED_UP:-0}")
 REPO_ROOT=$(quote_sh "${REPO_ROOT:-}")
 META
-  mv -f "$tmp" "$(meta_file "$session")"
+  mv -f "$tmp" "$(session_file "$session" "meta")"
 }
 
 command_uses_pi_agent() {
@@ -216,7 +186,7 @@ write_provenance() {
   local session="$1"
   local repo_root="$2"
   local file branch commit
-  file="$(provenance_file "$session")"
+  file="$(session_file "$session" "provenance")"
 
   if [[ -z "$repo_root" ]]; then
     rm -f "$file"
@@ -278,8 +248,8 @@ write_session_runner() {
 
   local dir runner command_path
   dir="$(session_dir "$session")"
-  runner="$(runner_file "$session")"
-  command_path="$(command_file "$session")"
+  runner="$(session_file "$session" "run-child.sh")"
+  command_path="$(session_file "$session" "command.txt")"
   mkdir -p "$dir"
   printf '%s\n' "$command" > "$command_path"
 
@@ -324,9 +294,9 @@ write_session_runner() {
 write_tmux_runner() {
   local session="$1"
   local runner tmux_config tmux_runner tmux_socket_name
-  runner="${RUNNER_FILE:-$(runner_file "$session")}"
-  tmux_config="$(tmux_config_file "$session")"
-  tmux_runner="$(tmux_runner_file "$session")"
+  runner="${RUNNER_FILE:-$(session_file "$session" "run-child.sh")}"
+  tmux_config="$(session_file "$session" "tmux.conf")"
+  tmux_runner="$(session_file "$session" "run-tmux-child.sh")"
   tmux_socket_name="tctl-$(session_slug "$session")"
 
   local tmp_tmux_config
@@ -364,8 +334,8 @@ write_logged_runner() {
   local session="$1"
   local log_file="$2"
   local runner logged_runner
-  runner="${RUNNER_FILE:-$(runner_file "$session")}"
-  logged_runner="$(logged_runner_file "$session")"
+  runner="${RUNNER_FILE:-$(session_file "$session" "run-child.sh")}"
+  logged_runner="$(session_file "$session" "run-logged-child.sh")"
 
   local tmp_logged
   tmp_logged="$(mktemp "$(session_dir "$session")/.logged-runner.XXXXXX")"
@@ -387,9 +357,9 @@ write_tuistory_recording_runner() {
   local session="$1"
   local record_path="$2"
   local runner pid_file wrapper
-  runner="${RUNNER_FILE:-$(runner_file "$session")}"
-  pid_file="$(asciinema_pid_file "$session")"
-  wrapper="$(tuistory_recording_runner_file "$session")"
+  runner="${RUNNER_FILE:-$(session_file "$session" "run-child.sh")}"
+  pid_file="$(session_file "$session" "asciinema.pid")"
+  wrapper="$(session_file "$session" "run-tuistory-recording.sh")"
 
   local tmp_wrapper
   tmp_wrapper="$(mktemp "$(session_dir "$session")/.wrapper.XXXXXX")"
@@ -434,24 +404,29 @@ pid_is_expected_asciinema_recording() {
   return 0
 }
 
+kill_with_timeout() {
+  local pid="$1"
+  local timeout_ms="${2:-2000}"
+  kill -0 "$pid" >/dev/null 2>&1 || return 0
+  kill -TERM "$pid" >/dev/null 2>&1 || true
+  local deadline=$(( $(date +%s%3N) + timeout_ms ))
+  while kill -0 "$pid" >/dev/null 2>&1 && (( $(date +%s%3N) <= deadline )); do
+    sleep 0.05
+  done
+  if kill -0 "$pid" >/dev/null 2>&1; then
+    kill -KILL "$pid" >/dev/null 2>&1 || true
+  fi
+}
+
 cleanup_tuistory_asciinema() {
   local session="$1"
   local record_path="$2"
   local pid_file pid
-  pid_file="$(asciinema_pid_file "$session")"
+  pid_file="$(session_file "$session" "asciinema.pid")"
   pid="$(cat "$pid_file" 2>/dev/null || true)"
 
-  if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
-    if pid_is_expected_asciinema_recording "$pid" "$record_path"; then
-      kill -TERM "$pid" >/dev/null 2>&1 || true
-      local deadline=$(( $(date +%s%3N) + 2000 ))
-      while kill -0 "$pid" >/dev/null 2>&1 && (( $(date +%s%3N) <= deadline )); do
-        sleep 0.05
-      done
-      if kill -0 "$pid" >/dev/null 2>&1; then
-        kill -KILL "$pid" >/dev/null 2>&1 || true
-      fi
-    fi
+  if [[ -n "$pid" ]] && pid_is_expected_asciinema_recording "$pid" "$record_path"; then
+    kill_with_timeout "$pid" 2000
   fi
 
   rm -f "$pid_file"
@@ -467,14 +442,7 @@ cleanup_tuistory_asciinema() {
     [[ "$orphan_args" == *" rec "* ]] || continue
     [[ "$orphan_args" == *"$record_path"* ]] || continue
 
-    kill -TERM "$orphan_pid" >/dev/null 2>&1 || true
-    local deadline=$(( $(date +%s%3N) + 2000 ))
-    while kill -0 "$orphan_pid" >/dev/null 2>&1 && (( $(date +%s%3N) <= deadline )); do
-      sleep 0.05
-    done
-    if kill -0 "$orphan_pid" >/dev/null 2>&1; then
-      kill -KILL "$orphan_pid" >/dev/null 2>&1 || true
-    fi
+    kill_with_timeout "$orphan_pid" 2000
   done < <(ps -eo pid=,ppid=,comm=,args= 2>/dev/null || true)
 }
 
@@ -917,7 +885,7 @@ cmd_launch() {
     save_session_state "$session"
     write_provenance "$session" "$repo_root"
     local runner
-    runner="$(tmux_runner_file "$session")"
+    runner="$(session_file "$session" "run-tmux-child.sh")"
     local socket_name
     socket_name="tctl-$(session_slug "$session")"
     TMUX_SOCKET_NAME="$socket_name"
@@ -950,7 +918,7 @@ cmd_provenance() {
   local session="$1"
   load_meta "$session"
   local file
-  file="$(provenance_file "$session")"
+  file="$(session_file "$session" "provenance")"
   [[ -f "$file" ]] || die "no launch provenance recorded for session: $session"
   cat "$file"
 }
