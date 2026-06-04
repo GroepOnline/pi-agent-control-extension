@@ -1,6 +1,6 @@
 {
   "name": "@onlinechefgroep/pi-agent-control-extension",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
   "type": "module",
   "keywords": [
