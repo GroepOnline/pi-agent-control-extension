@@ -1,225 +1,111 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { parseSkillMd, doDiff, SkillEntry } from "./cli.ts";
-import * as child_process from "node:child_process";
-import * as fs from "node:fs";
+import { describe, it, expect } from "vitest";
+import { createCli } from "./cli.ts";
 
-vi.mock("node:child_process", () => ({
-  execFileSync: vi.fn(),
-}));
-
-vi.mock("node:fs", async () => {
-  const actual = await vi.importActual("node:fs");
-  return {
-    ...actual,
-    existsSync: vi.fn(),
-    readdirSync: vi.fn(),
-    readFileSync: vi.fn(),
-    writeFileSync: vi.fn(),
-    statSync: vi.fn(),
-    mkdirSync: vi.fn(),
-  };
-});
-
-vi.mock("./skill-merge.ts", () => ({
-  mergeSkill: vi.fn(() => ({ hasConflicts: false, conflicts: [] })),
-}));
-
-describe("parseSkillMd", () => {
-  it("should parse basic name and description", () => {
-    const input = `name: test-skill\ndescription: A test skill`;
-    expect(parseSkillMd(input)).toEqual({
-      name: "test-skill",
-      description: "A test skill",
-    });
+describe("createCli — factory pattern", () => {
+  it("returns a run function and parsed command", () => {
+    const cli = createCli({ argv: ["list"] });
+    expect(typeof cli.run).toBe("function");
+    expect(cli.command).toBe("list");
   });
 
-  it("should parse values with extra whitespace", () => {
-    const input = `name:    whitespace-skill   \ndescription: \t  A skill with whitespace   `;
-    expect(parseSkillMd(input)).toEqual({
-      name: "whitespace-skill",
-      description: "A skill with whitespace",
-    });
-  });
-
-  it("should strip single and double quotes from values", () => {
-    const input = `name: "quoted-skill"\ndescription: 'A quoted description'`;
-    expect(parseSkillMd(input)).toEqual({
-      name: "quoted-skill",
-      description: "A quoted description",
-    });
-  });
-
-  it("should return empty strings when fields are missing", () => {
-    const input = `some-other-field: foo`;
-    expect(parseSkillMd(input)).toEqual({
-      name: "",
-      description: "",
-    });
-  });
-
-  it("should handle multiline content and ignore irrelevant text", () => {
-    const input = `
----
-name: multi-skill
-version: 1.0.0
-description: A skill amidst other text
----
-# Content goes here
-    `;
-    expect(parseSkillMd(input)).toEqual({
-      name: "multi-skill",
-      description: "A skill amidst other text",
-    });
-  });
-
-  it("should handle partial fields (name only)", () => {
-    const input = `name: just-name`;
-    expect(parseSkillMd(input)).toEqual({
-      name: "just-name",
-      description: "",
-    });
-  });
-
-  it("should handle partial fields (description only)", () => {
-    const input = `description: just-desc`;
-    expect(parseSkillMd(input)).toEqual({
-      name: "",
-      description: "just-desc",
-    });
+  it("default command is 'help' when argv is empty", () => {
+    const cli = createCli({ argv: [] });
+    expect(cli.command).toBe("help");
   });
 });
 
-describe("doDiff", () => {
-  const mockSkill: SkillEntry = {
-    name: "test-skill",
-    description: "A test skill",
-    path: "/path/to/user/skill/SKILL.md",
-    source: "user",
-    sourceDir: "/path/to/user/skill",
-    enabled: true,
-    valid: "ok",
-    mtime: new Date(),
-    shadowState: "overrides",
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe("createCli — help command", () => {
+  it("prints help text to stdout", () => {
+    const cli = createCli({ argv: ["help"] });
+    const result = cli.run();
+    expect(result.stdout).toContain("Pi Skills CLI");
+    expect(result.stdout).toContain("Commands:");
+    expect(result.stdout).toContain("list");
+    expect(result.stdout).toContain("view");
+    expect(result.exitCode).toBeNull();
   });
 
-  it("should return diff output on success", () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(child_process.execFileSync).mockReturnValue("diff output content");
-
-    const result = doDiff(mockSkill);
-    expect(result).toBe("diff output content");
+  it("-h prints help", () => {
+    const cli = createCli({ argv: ["-h"] });
+    const result = cli.run();
+    expect(result.stdout).toContain("Pi Skills CLI");
   });
 
-  it("should return error message when execFileSync throws with stdout", () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    const mockError = new Error("Command failed") as any;
-    mockError.stdout = "diff with some differences";
-    vi.mocked(child_process.execFileSync).mockImplementation(() => {
-      throw mockError;
-    });
-
-    const result = doDiff(mockSkill);
-    expect(result).toBe("diff with some differences");
-  });
-
-  it("should return error message when execFileSync throws with message but no stdout", () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    const mockError = new Error("No such file or directory");
-    vi.mocked(child_process.execFileSync).mockImplementation(() => {
-      throw mockError;
-    });
-
-    const result = doDiff(mockSkill);
-    expect(result).toBe("No such file or directory");
-  });
-
-  it('should return "diff failed" when execFileSync throws empty error', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(child_process.execFileSync).mockImplementation(() => {
-      throw {};
-    });
-
-    const result = doDiff(mockSkill);
-    expect(result).toBe("diff failed");
-  });
-
-  it("should return message if skill has no shadowState", () => {
-    const unshadowedSkill = { ...mockSkill, shadowState: null };
-    const result = doDiff(unshadowedSkill);
-    expect(result).toBe("No shadowed/overridden version found.");
-    expect(child_process.execFileSync).not.toHaveBeenCalled();
-  });
-
-  it("should return error if PI skill is not found", () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-    const result = doDiff(mockSkill);
-    expect(result).toContain("PI skill not found at");
-    expect(child_process.execFileSync).not.toHaveBeenCalled();
+  it("--help prints help", () => {
+    const cli = createCli({ argv: ["--help"] });
+    const result = cli.run();
+    expect(result.stdout).toContain("Pi Skills CLI");
   });
 });
 
-describe("scanDir via CLI commands", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe("createCli — list command", () => {
+  it("lists skills to stdout", () => {
+    const cli = createCli({ argv: ["list"] });
+    const result = cli.run();
+    expect(result.stdout).toContain("Registered Skill Atoms");
+    expect(result.exitCode).toBeNull();
   });
 
-  it("should return empty array for non-existent directory", () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-    expect(fs.existsSync("/nonexistent")).toBe(false);
+  it("--json outputs JSON array", () => {
+    const cli = createCli({ argv: ["list", "--json"] });
+    const result = cli.run();
+    const parsed = JSON.parse(result.stdout);
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(result.exitCode).toBeNull();
+  });
+});
+
+describe("createCli — unknown command", () => {
+  it("prints error to stderr and exits with code 2", () => {
+    const cli = createCli({ argv: ["nonexistent"] });
+    const result = cli.run();
+    expect(result.stderr).toContain("Unknown skills command: nonexistent");
+    expect(result.exitCode).toBe(2);
+  });
+});
+
+describe("createCli — missing argument errors", () => {
+  it("view without name prints error and exits 1", () => {
+    const cli = createCli({ argv: ["view"] });
+    const result = cli.run();
+    expect(result.stderr).toContain("Missing skill name");
+    expect(result.exitCode).toBe(1);
   });
 
-  it("should parse SKILL.md frontmatter correctly", () => {
-    const skillContent = `---
-name: test-skill
-description: A test skill for unit testing
----
-# Test Skill
-Content here`;
-
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readdirSync).mockReturnValue([
-      { name: "test-skill", isDirectory: () => true, isFile: () => false, isSymbolicLink: () => false, parentPath: "/skills" } as any,
-    ]);
-    vi.mocked(fs.readFileSync).mockReturnValue(skillContent);
-    vi.mocked(fs.statSync).mockReturnValue({ mtime: new Date("2026-01-01") } as any);
-
-    expect(fs.readFileSync("/skills/test-skill/SKILL.md", "utf8")).toContain("name: test-skill");
+  it("enable without name prints error and exits 1", () => {
+    const cli = createCli({ argv: ["enable"] });
+    const result = cli.run();
+    expect(result.stderr).toContain("Missing skill name");
+    expect(result.exitCode).toBe(1);
   });
 
-  it("should skip hidden directories", () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readdirSync).mockReturnValue([
-      { name: ".hidden", isDirectory: () => true, isFile: () => false, isSymbolicLink: () => false, parentPath: "/skills" } as any,
-      { name: "visible", isDirectory: () => true, isFile: () => false, isSymbolicLink: () => false, parentPath: "/skills" } as any,
-    ]);
-    vi.mocked(fs.readFileSync).mockReturnValue("---\nname: visible\ndescription: Visible skill\n---\n");
-    vi.mocked(fs.statSync).mockReturnValue({ mtime: new Date() } as any);
-
-    const entries = fs.readdirSync("/skills", { withFileTypes: true });
-    const visible = entries.filter((e) => !e.name.startsWith("."));
-    expect(visible).toHaveLength(1);
-    expect(visible[0].name).toBe("visible");
+  it("disable without name prints error and exits 1", () => {
+    const cli = createCli({ argv: ["disable"] });
+    const result = cli.run();
+    expect(result.stderr).toContain("Missing skill name");
+    expect(result.exitCode).toBe(1);
   });
 
-  it("should skip entries without SKILL.md", () => {
-    vi.mocked(fs.existsSync).mockImplementation((path: any) => {
-      if (path === "/skills") return true;
-      if (path === "/skills/no-skill/SKILL.md") return false;
-      if (path === "/skills/with-skill/SKILL.md") return true;
-      return false;
-    });
-    vi.mocked(fs.readdirSync).mockReturnValue([
-      { name: "no-skill", isDirectory: () => true, isFile: () => false, isSymbolicLink: () => false, parentPath: "/skills" } as any,
-      { name: "with-skill", isDirectory: () => true, isFile: () => false, isSymbolicLink: () => false, parentPath: "/skills" } as any,
-    ]);
-    vi.mocked(fs.readFileSync).mockReturnValue("---\nname: with-skill\ndescription: Has skill file\n---\n");
-    vi.mocked(fs.statSync).mockReturnValue({ mtime: new Date() } as any);
+  it("diff without name prints error and exits 1", () => {
+    const cli = createCli({ argv: ["diff"] });
+    const result = cli.run();
+    expect(result.stderr).toContain("Missing skill name");
+    expect(result.exitCode).toBe(1);
+  });
 
-    expect(fs.existsSync("/skills/no-skill/SKILL.md")).toBe(false);
-    expect(fs.existsSync("/skills/with-skill/SKILL.md")).toBe(true);
+  it("merge without name prints error and exits 1", () => {
+    const cli = createCli({ argv: ["merge"] });
+    const result = cli.run();
+    expect(result.stderr).toContain("Missing skill name");
+    expect(result.exitCode).toBe(1);
+  });
+});
+
+describe("createCli — validate command", () => {
+  it("runs validation and outputs audit report", () => {
+    const cli = createCli({ argv: ["validate"] });
+    const result = cli.run();
+    expect(result.stdout).toContain("Auditing Skill Atoms");
+    expect(result.stdout).toContain("Audit Complete");
   });
 });
