@@ -7,7 +7,7 @@ Pi Agent Control Extension operates as a strictly structured Pi extension packag
 
 [![CI](https://github.com/OnlineChefGroep/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
 [![Package](https://img.shields.io/badge/pi-extension-blue)](#)
-[![Version](https://img.shields.io/badge/version-5.2.0-informational)](#)
+[![Version](https://img.shields.io/badge/version-5.2.1-informational)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 
 ---
@@ -32,7 +32,7 @@ Initialize or reload a Pi session. Registers commands, tools, bundled skills, ro
 | QA | Enforces QA report structures with expected, observed, result, and evidence states |
 | Showcase | Executes recipes for demo capture and Remotion-based composition |
 | Guardrails | Intercepts risky capture and shell patterns prior to execution |
-| Testing | Mandates unit, E2E, strict TypeScript, and Ruff Python validation in CI/CD |
+| Testing | Mandates unit, E2E, strict TypeScript (Vitest), and Ruff Python validation |
 
 ---
 
@@ -139,9 +139,9 @@ Permitted message types: `ping`, `skill.list`, `capture.start`, `render.start`, 
 
 ---
 
-## // ROUTING MODEL
+## // ARCHITECTURE & ROUTING
 
-Execution logic is bound to three primary vectors: intent, required proof format, and target runtime.
+The project follows a **Clean Architecture** pattern (`src/core`, `src/drivers`, `src/extension`, `src/skill`). Consult [ARCHITECTURE.md](ARCHITECTURE.md) for a deep dive into the layer boundaries and universal routing keywords (`agent-cli`, `control-cli`, `tctl`, `agy`, `antigravity`).
 
 ```mermaid
 graph TD
@@ -198,11 +198,22 @@ Defense-in-depth is enforced across all user input and network I/O modules:
 
 ---
 
-## // VALIDATE
+## // VALIDATE & TEST
 
 ```bash
+# Validation
 npm run validate
 npm run pack:dry
+
+# Unit Tests (Vitest & tsx)
+npm test
+npm run test:watch
+
+# E2E Tests
+npm run test:e2e
+
+# Python Skills (unittest)
+pytest packages/skills
 ```
 
 `npm run validate` executes structure, manifest, skill inventory, and demo artifact verifications.
