@@ -20,7 +20,7 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci && (cd remotion && npm install)
+      run: npm ci && (cd apps/remotion && npm install)
 
     - name: Run TypeScript type check
       run: npx -p typescript tsc --noEmit
