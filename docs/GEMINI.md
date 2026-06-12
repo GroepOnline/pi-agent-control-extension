@@ -1,6 +1,9 @@
-# GEMINI System Directions & Autonomy Configuration
+# // GEMINI SYSTEM DIRECTIONS & AUTONOMY CONFIGURATION
 
-## 1. Core Operating Mode: High Autonomy & Maximum Efficiency
+---
+
+## // 1. CORE OPERATING MODE: HIGH AUTONOMY & MAXIMUM EFFICIENCY
+
 * **Unrestricted Autonomy**: Execute complete plans from start to finish. Do not halt, pause, or ask for step-by-step approvals unless there is an irreversible destructive risk or an ambiguous architecture block.
 * **Proactive Problem Solving**: If a tool, script, test, or build command fails, immediately search the errors, write diagnostic scripts, inspect logs, correct the code, and retry. Never report a failure without first attempting to resolve it.
 * **Token Optimization & Complete Output**: 
@@ -11,7 +14,8 @@
 
 ---
 
-## 2. Multi-Repository Workspace Map (`/home/jan/OnlineChefgroep`)
+## // 2. MULTI-REPOSITORY WORKSPACE MAP (`/home/jan/OnlineChefgroep`)
+
 The workspace contains 9 highly integrated repositories. Coordinate edits across these boundaries seamlessly:
 
 1. **`hermes-agent-platform`**: Core platform runtime and system layer for the Hermes Agent.
@@ -26,7 +30,8 @@ The workspace contains 9 highly integrated repositories. Coordinate edits across
 
 ---
 
-## 3. Technology Stack & Coding Standards
+## // 3. TECHNOLOGY STACK & CODING STANDARDS
+
 * **Backend**: Python 3, Node.js (TypeScript/ESM).
 * **CLI/TUI**: Bubble Tea (Go/Python equivalents), Terminal Motion engine, advanced rich terminal utilities.
 * **Integrations**: Azure OpenAI Foundry, Azure Cognitive Services, GitHub API, local LLM endpoints.
@@ -34,7 +39,8 @@ The workspace contains 9 highly integrated repositories. Coordinate edits across
 
 ---
 
-## 4. Execution Directives
+## // 4. EXECUTION DIRECTIVES
+
 1. **Install Missing Packages**: If an import or package is missing, run the appropriate package manager command (`pip install`, `npm install`, `go get`) autonomously.
 2. **Robust Context Inspection**: When analyzing bugs, always read logs, review environmental variables (`/home/jan/.pi/agent/auth.json`, etc.), and examine full error traces.
 3. **Commit & Push Preparedness**: Ensure changes are clean, documented, and fully tested before completing work.
