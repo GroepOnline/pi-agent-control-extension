@@ -1,12 +1,16 @@
-# Pi Agent Control Extension
+# // PI AGENT CONTROL EXTENSION
 
-## Core Principles
+---
+
+## // CORE PRINCIPLES
 
 1. **Absolute Confidence**: Assume all tools (`tctl`, `tuistory`, etc.) are available or can be made available. If a tool is missing, run `npm run setup` or `doctor-control`, install it, and proceed. Never apologize or doubt the environment.
 2. **Autonomous Recovery**: If a command fails due to a missing dependency, fix it yourself. You have the `run_command` tool. Use it to install what is needed.
 3. **No Placeholders**: Never use placeholder paths or session names. Use absolute paths and unique run IDs as described in the skills.
 
-## Commands
+---
+
+## // COMMANDS
 
 - `npm run setup`: Install all dependencies including the Remotion engine.
 - `npm run test`: Run all 364 tests (vitest).
@@ -15,11 +19,13 @@
 - `npm run lint`: Run TypeScript type checking (`tsc --noEmit`).
 - `npm run pack:dry`: Preview the files included in the npm package.
 
-## Architecture
+---
+
+## // ARCHITECTURE
 
 This project is a Pi extension package that provides routing, capture, and verification capabilities for AI agents.
 
-### Core Components
+### // CORE COMPONENTS
 
 - **Extension Entry Point ([index.ts](extensions/pi-control/index.ts))**: Registers slash commands (e.g., `/route-control`, `/browser-control`) and LLM tools (e.g., `control_route`, `control_browser_command`) with the Pi Extension API.
 - **Routing ([routing.ts](extensions/pi-control/routing.ts))**: Contains the logic for mapping user task intents to specific drivers (`agent-browser`, `tuistory`, `true-input`).
@@ -29,12 +35,16 @@ This project is a Pi extension package that provides routing, capture, and verif
 - **Remote Bridge ([bridge.ts](extensions/pi-control/bridge.ts))**: WebSocket server for remote agent communication with token-based auth.
 - **CLI ([cli.ts](extensions/pi-control/cli.ts))**: Skill Studio TUI and skill management commands.
 
-### Core Assets
+---
+
+### // CORE ASSETS
 
 - **`bin/`**: Contains the `tctl` terminal control wrapper and other binary helpers.
 - **`remotion/`**: A React-based video rendering engine for creating showcase videos.
 - **`skills/`**: 21 atomized skill definitions registered automatically.
 
-### Validation
+---
+
+### // VALIDATION
 
 The project uses a Python-based validator ([validate-package.py](scripts/validate-package.py)) to ensure all required files, skills, and manifest entries are present.

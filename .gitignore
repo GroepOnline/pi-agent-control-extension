@@ -31,3 +31,4 @@ graphify-out/
 .remember/
 .pi/
 *.patch
+__pycache__/

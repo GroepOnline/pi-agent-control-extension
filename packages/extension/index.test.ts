@@ -1,5 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList } from "./index.ts";
+import * as utils from "./utils.ts";
+
+vi.mock("./utils.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./utils.ts")>();
+  return {
+    ...actual,
+    listSkills: vi.fn(),
+  };
+});
 
 function buildExecArgs(p: { action: string; target?: string; args?: string[]; session?: string }) {
   const execArgs = [p.action];
@@ -53,11 +62,54 @@ describe("recipeList", () => {
 describe("skillSearch", () => {
   it("returns usage message when no query provided", () => {
     expect(skillSearch("")).toContain("Usage");
+    expect(skillSearch("   ")).toContain("Usage");
   });
 
-  it("finds matching skills", () => {
-    const result = skillSearch("browser");
-    expect(result).toContain("Skill Search");
+  it("finds matching skills by name", () => {
+    vi.mocked(utils.listSkills).mockReturnValue([
+      { name: "test-skill", description: "a cool skill" },
+      { name: "other", description: "not this one" }
+    ]);
+    const result = skillSearch("test");
+    expect(result).toContain('## Skill Search: "test"');
+    expect(result).toContain("- **test-skill**: a cool skill");
+    expect(result).not.toContain("other");
+  });
+
+  it("finds matching skills by description", () => {
+    vi.mocked(utils.listSkills).mockReturnValue([
+      { name: "test-skill", description: "a cool skill about apples" },
+      { name: "other", description: "not this one" }
+    ]);
+    const result = skillSearch("apples");
+    expect(result).toContain("- **test-skill**: a cool skill about apples");
+    expect(result).not.toContain("other");
+  });
+
+  it("is case-insensitive for queries and results", () => {
+    vi.mocked(utils.listSkills).mockReturnValue([
+      { name: "Upper-Skill", description: "Description with MIXED case" }
+    ]);
+    const result1 = skillSearch("upper");
+    expect(result1).toContain("Upper-Skill");
+    const result2 = skillSearch("MIXED");
+    expect(result2).toContain("Upper-Skill");
+  });
+
+  it("returns 'no skills matching' message when no matches found", () => {
+    vi.mocked(utils.listSkills).mockReturnValue([
+      { name: "test", description: "something" }
+    ]);
+    const result = skillSearch("nonexistent");
+    expect(result).toBe('No skills matching "nonexistent".');
+  });
+
+  it("handles empty descriptions gracefully", () => {
+    vi.mocked(utils.listSkills).mockReturnValue([
+      { name: "quiet-skill", description: "" }
+    ]);
+    const result = skillSearch("quiet");
+    expect(result).toContain("- **quiet-skill**: (no description)");
   });
 });
 
@@ -104,6 +156,9 @@ describe("Command Handlers Invocation", () => {
   });
 
   it("skillSearch computes result at call time", () => {
+    vi.mocked(utils.listSkills).mockReturnValue([
+      { name: "browser", description: "browser skill" }
+    ]);
     const result = skillSearch("browser");
     expect(result).toContain("Skill Search");
   });

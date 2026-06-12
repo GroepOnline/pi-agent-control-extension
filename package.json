@@ -1,11 +1,9 @@
 {
-  "name": "agy-agent-control-extension",
-  "version": "5.1.1",
-  "description": "Antigravity extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
+  "name": "@onlinechefgroep/pi-agent-control-extension",
+  "version": "5.2.1",
+  "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
   "type": "module",
   "keywords": [
-    "agy-package",
-    "agy-extension",
     "pi-package",
     "pi-extension",
     "agent-control",
@@ -20,10 +18,17 @@
     "showcase"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OnlineChefGroep/pi-agent-control-extension.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "setup": "bash scripts/setup-deps.sh && npm install && (cd apps/remotion && npm install)",
     "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
-    "check": "agy --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./packages/extension/index.ts --list-models does-not-exist-xyz",
+    "check": "pi --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./packages/extension/index.ts --list-models does-not-exist-xyz",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "bash scripts/test-e2e.sh",
@@ -31,7 +36,7 @@
     "lint:python": "ruff check . && ruff format --check .",
     "pack:dry": "npm pack --dry-run",
     "showcase:render": "npx tsx apps/remotion/scripts/render-showcase.ts",
-    "showcase:preview": "echo 'Run /showcase-preview <recipe> in an agy session'",
+    "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'",
     "clean": "rm -rf coverage reports artifacts/telemetry/*.jsonl apps/remotion/node_modules/.cache apps/remotion/node_modules/.remotion && echo 'Caches en tijdelijke bestanden succesvol opgeruimd!'"
   },
   "workspaces": [
@@ -39,14 +44,6 @@
     "packages/*"
   ],
   "pi": {
-    "extensions": [
-      "./packages/extension/index.ts"
-    ],
-    "skills": [
-      "./packages/skills"
-    ]
-  },
-  "agy": {
     "extensions": [
       "./packages/extension/index.ts"
     ],
