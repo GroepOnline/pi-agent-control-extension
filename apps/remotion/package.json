@@ -8,13 +8,13 @@
     "still": "npx remotion still"
   },
   "dependencies": {
-    "@remotion/bundler": "4.0.471",
-    "@remotion/cli": "4.0.471",
+    "@remotion/bundler": "4.0.484",
+    "@remotion/cli": "4.0.484",
     "@remotion/layout-utils": "4.0.445",
     "@remotion/light-leaks": "4.0.445",
     "@remotion/media": "4.0.445",
-    "@remotion/renderer": "^4.0.471",
-    "@remotion/tailwind": "4.0.471",
+    "@remotion/renderer": "^4.0.484",
+    "@remotion/tailwind": "4.0.484",
     "@remotion/transitions": "4.0.445",
     "prism-react-renderer": "^2.4.1",
     "react": "^19",
