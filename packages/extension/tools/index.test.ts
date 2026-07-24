@@ -43,8 +43,9 @@ vi.mock("./browser.ts", () => ({
 }));
 
 vi.mock("./os.ts", () => ({
-  osControlGuidance: vi.fn(() => "# OS Control\nStatus: prototype"),
-  OS_CONTROL_STATUS: { implemented: false, driver: "os-control" },
+  osControlGuidance: vi.fn(() => "# OS Control\nStatus: implemented"),
+  osControlCommand: vi.fn(() => ({ output: "No active tmux sessions", success: true })),
+  OS_CONTROL_STATUS: { implemented: true, driver: "os-control" },
 }));
 
 vi.mock("./browser_command.ts", () => ({
@@ -81,12 +82,13 @@ describe("registerTools", () => {
     expect(toolNames).toContain("control_parallel_verify");
     expect(toolNames).toContain("control_browser_guidance");
     expect(toolNames).toContain("control_os_guidance");
+    expect(toolNames).toContain("control_os_command");
     expect(toolNames).toContain("control_browser_command");
   });
 
-  it("registers exactly 12 tools", () => {
+  it("registers exactly 13 tools", () => {
     const registered = getRegisteredTools();
-    expect(registered).toHaveLength(12);
+    expect(registered).toHaveLength(13);
   });
 
   it("each tool has a name, description, and execute function", () => {
@@ -382,7 +384,7 @@ describe("control_os_guidance tool", () => {
     expect(osTool).toBeDefined();
     const result = await osTool.execute();
     expect(result.content[0].text).toContain("OS Control");
-    expect(result.details.status.implemented).toBe(false);
+    expect(result.details.status.implemented).toBe(true);
   });
 
   it("returns OS_CONTROL_STATUS in details", async () => {

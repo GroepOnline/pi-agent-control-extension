@@ -49,7 +49,7 @@ Run a single test file: `npx vitest run extensions/pi-control/routing.test.ts`
 - **index.ts** — Registers all LLM tools with TypeBox parameter schemas.
 - **browser.ts** — `agent-browser` guidance and status constants.
 - **browser_command.ts** — Browser command tool implementation.
-- **os.ts** — OS-level computer use guidance (prototype, ETA Q3 2026).
+- **os.ts** — OS-level computer use guidance plus `osControlCommand` (tmux-based session management: launch/send/type/capture/snapshot/list/kill).
 
 ### Studio TUI (`extensions/pi-control/studio/`)
 
