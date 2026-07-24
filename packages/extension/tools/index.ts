@@ -4,7 +4,7 @@ import { EVIDENCE_SCHEMA, SKILL_NAMES } from "../schema.ts";
 import { renderRoute, routeControlTask } from "../routing.ts";
 import { recipeFor, verifyCommitments } from "../recipes.ts";
 import { browserControlGuidance, BROWSER_CONTROL_STATUS } from "./browser.ts";
-import { osControlGuidance, OS_CONTROL_STATUS } from "./os.ts";
+import { osControlGuidance, osControlCommand, OS_CONTROL_STATUS } from "./os.ts";
 import { browserCommandTool } from "./browser_command.ts";
 import { shellCommandTool } from "./shell_command.ts";
 import {
@@ -127,6 +127,23 @@ const TOOLS = [
     parameters: Type.Object({}),
     async execute() {
       return { content: [{ type: "text" as const, text: osControlGuidance() }], details: { status: OS_CONTROL_STATUS } };
+    },
+  },
+  {
+    name: "control_os_command",
+    label: "OS Command",
+    description: "Execute an OS-level command via tmux session management (launch, send, type, capture, snapshot, list, kill, close).",
+    parameters: Type.Object({
+      action: Type.String({ description: "The OS control action: launch, send, type, capture, snapshot, list, kill, close" }),
+      target: Type.Optional(Type.String({ description: "Session name (required for send, type, capture, snapshot, kill, close)" })),
+      args: Type.Optional(Type.Array(Type.String(), { description: "Additional arguments (command for launch, text for send/type)" })),
+    }),
+    async execute(_id: string, p: { action: string; target?: string; args?: string[] }) {
+      const result = osControlCommand(p.action, p.target, p.args);
+      return {
+        content: [{ type: "text" as const, text: result.output }],
+        details: { action: p.action, target: p.target, args: p.args, success: result.success, sessionName: result.sessionName },
+      };
     },
   },
   browserCommandTool,

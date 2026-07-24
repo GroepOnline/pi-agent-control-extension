@@ -8,6 +8,7 @@ import { renderRoute, routeControlTask } from "./routing.ts";
 import { recipeFor } from "./recipes.ts";
 import { inspectToolCall } from "./guards.ts";
 import { browserControlGuidance } from "./tools/browser.ts";
+import { osControlGuidance } from "./tools/os.ts";
 import { rootDir, listSkills, runValidator, buildUsageReport } from "./utils.ts";
 import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
@@ -348,6 +349,7 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
   pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(formatBrowserControl(), "info"); } });
+  pi.registerCommand("os-control", { description: "Show OS control status and guidance", handler: show(osControlGuidance()) });
 
   // New commands
   pi.registerCommand("skill-studio", { description: "Launch the Skill Studio TUI (terminal dashboard)", handler: show("Run `bin/skill-studio` from the repo root to launch the interactive terminal UI for skill management.") });

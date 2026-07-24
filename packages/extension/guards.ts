@@ -14,6 +14,20 @@ export function inspectToolCall(event: any) {
   if (!command) return null;
 
   if (["bash", "shell", "terminal", "exec"].some((t) => toolName.includes(t))) {
+    return checkShellCommand(command);
+  }
+
+  return null;
+}
+
+/**
+ * Apply the shell-command guardrails to a raw command string, independent of the
+ * tool-call envelope. Returns a block decision or null when the command is allowed.
+ * Used by both inspectToolCall and any code path that shells out (e.g. OS control).
+ */
+export function checkShellCommand(command: string): { block: true; reason: string } | null {
+  if (!command) return null;
+  {
     const lower = command.toLowerCase();
 
     // Destructive filesystem commands
