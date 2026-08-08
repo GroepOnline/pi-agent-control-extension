@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 export interface Claim {
   step: string;
@@ -282,13 +282,28 @@ Options:
       finalOut.endsWith(".jpeg");
     const cmd = isStill ? "still" : "render";
 
-    const commandStr = `PI_CLI_THEME='${theme}' FORCE_COLOR=3 COLORTERM=truecolor npm run ${cmd} -- src/index.ts "${composition}" "${finalOut}" --props "${finalPropsFile}"`;
-    console.log(`[control-narrate] Running in ${remotionDir}: ${commandStr}`);
+    const commandArgs = [
+      "run",
+      cmd,
+      "--",
+      "src/index.ts",
+      composition,
+      finalOut,
+      "--props",
+      finalPropsFile,
+    ];
+    console.log(`[control-narrate] Running in ${remotionDir}: npm ${commandArgs.join(" ")}`);
 
     try {
-      execSync(commandStr, {
+      execFileSync("npm", commandArgs, {
         cwd: remotionDir,
         stdio: "inherit",
+        env: {
+          ...process.env,
+          PI_CLI_THEME: theme,
+          FORCE_COLOR: "3",
+          COLORTERM: "truecolor",
+        },
       });
       console.log(`[control-narrate] Render completed successfully: ${finalOut}`);
     } catch (e: any) {
