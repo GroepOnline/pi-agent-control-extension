@@ -2,14 +2,14 @@
 **Date:** 2026-05-27  
 **Scope:** Pi Agent System, Droid/Factory, OpenCode  
 **Environments:** Azure AI Foundry (we01/westeurope, eus01/eastus, eus02/eastus2, westus2)  
-**Prepared for:** OnlineChefGroep Techstack Repository  
+**Prepared for:** GroepOnline Techstack Repository  
 **Status:** Ready for import into techstack/azure/
 
 ---
 
 ## Executive Summary
 
-A multi-environment Azure model health verification and configuration cleanup was executed across the three primary agent runtimes used in the OnlineChefGroep stack:
+A multi-environment Azure model health verification and configuration cleanup was executed across the three primary agent runtimes used in the GroepOnline stack:
 
 - **Pi** (`~/.pi/agent/`)
 - **Factory/Droid** (`~/.factory/`)
@@ -39,7 +39,7 @@ A multi-environment Azure model health verification and configuration cleanup wa
 
 ## Techstack Repository Structure Proposal
 
-**Recommended location in OnlineChefGroep techstack repo:**
+**Recommended location in GroepOnline techstack repo:**
 
 ```
 techstack/
@@ -166,7 +166,7 @@ All changes were made with backups. No production keys are stored in this report
 ---
 
 **Prepared as continuation of opencode session `ses_1950e0fcbffe9NWh35hY9KVCY8`.**  
-Ready for review and import into the OnlineChefGroep techstack repository.
+Ready for review and import into the GroepOnline techstack repository.
 
 ---
 
@@ -207,7 +207,7 @@ commit a80afc1a
 docs(azure): add 2026-05-27 consolidated health & cleanup report + techstack proposal
 ```
 
-The artifacts are now tracked in this repo and ready to be promoted/copied into the central OnlineChefGroep techstack repo under `azure/`.
+The artifacts are now tracked in this repo and ready to be promoted/copied into the central GroepOnline techstack repo under `azure/`.
 
 **Configs are now in a clean, healthy state** aligned with the health verification results and the original intent of the interrupted opencode session. 
 

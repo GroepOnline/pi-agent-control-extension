@@ -5,7 +5,7 @@ This directory contains the deliverables from the Azure AI Foundry model health 
 ## Contents
 
 - `consolidated-azure-model-health-and-config-cleanup.md` — Main report with executive summary, health results (Pi focus with full verification), exact changes, Responses API decision record, and recommendations.
-- `techstack-structure-proposal.md` — Recommended layout for importing these artefacts (and future ones) into the OnlineChefGroep techstack repository.
+- `techstack-structure-proposal.md` — Recommended layout for importing these artefacts (and future ones) into the GroepOnline techstack repository.
 - `session-resume-notes.md` — Context from the interrupted opencode session `ses_1950e0fcbffe9NWh35hY9KVCY8` that was driving this work.
 
 ## How These Were Produced

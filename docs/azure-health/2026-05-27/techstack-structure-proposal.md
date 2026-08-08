@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-27  
 **Context:** Continuation of opencode session `ses_1950e0fcbffe9NWh35hY9KVCY8`  
-**Goal:** Decide canonical location and layout for all Azure model configs, health reports, and cleanup history across OnlineChefGroep environments.
+**Goal:** Decide canonical location and layout for all Azure model configs, health reports, and cleanup history across GroepOnline environments.
 
 ---
 

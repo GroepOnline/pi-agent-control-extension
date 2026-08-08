@@ -474,7 +474,7 @@
   },
   {
     "name": "agent-onlinechef-cicd",
-    "description": "Manage CI/CD across OnlineChefGroep repositories, including GitHub Actions workflows, organization secrets, variables, runner groups, and reusable deployment pipelines.",
+    "description": "Manage CI/CD across GroepOnline repositories, including GitHub Actions workflows, organization secrets, variables, runner groups, and reusable deployment pipelines.",
     "path": "/home/jan/.agents/skills/agent-onlinechef-cicd/SKILL.md",
     "source": "user",
     "sourceDir": "global",
