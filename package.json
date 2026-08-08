@@ -20,13 +20,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OnlineChefGroep/pi-agent-control-extension.git"
+    "url": "git+https://github.com/GroepOnline/pi-agent-control-extension.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
-    "setup": "bash scripts/setup-deps.sh && npm install && (cd apps/remotion && npm install)",
+    "setup": "bash scripts/setup-deps.sh && bun install && (cd apps/remotion && bun install)",
     "validate": "py -3 scripts/validate-package.py || python3 scripts/validate-package.py || python scripts/validate-package.py",
     "check": "pi --offline --no-session --no-tools --no-skills --no-prompt-templates --no-extensions -e ./packages/extension/index.ts --list-models does-not-exist-xyz",
     "test": "vitest run",
@@ -35,7 +35,7 @@
     "lint": "tsc --noEmit",
     "lint:python": "ruff check . && ruff format --check .",
     "pack:dry": "npm pack --dry-run",
-    "showcase:render": "npx tsx apps/remotion/scripts/render-showcase.ts",
+    "showcase:render": "bunx tsx apps/remotion/scripts/render-showcase.ts",
     "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'",
     "clean": "rm -rf coverage reports artifacts/telemetry/*.jsonl apps/remotion/node_modules/.cache apps/remotion/node_modules/.remotion && echo 'Caches en tijdelijke bestanden succesvol opgeruimd!'"
   },
