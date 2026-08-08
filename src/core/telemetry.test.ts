@@ -3,7 +3,7 @@ import { existsSync, readFileSync, statSync, mkdirSync, readdirSync, rmSync, app
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
-import { sanitizeMetadata } from "./telemetry.ts";
+import { sanitizeMetadata, telemetry } from "./telemetry.ts";
 
 /**
  * Helper: create a temporary MetricsRegistry that writes to a temp directory.
@@ -213,7 +213,6 @@ describe("MetricsRegistry — JSONL write and ring buffer", () => {
   it("ring buffer caps at 500 events (in-memory)", () => {
     // The MetricsRegistry has maxBuffer = 500
     // We simulate this behavior by checking the snapshot
-    const { telemetry } = require("./telemetry.ts");
     const initialSnapshot = telemetry.snapshot();
     const initialCount = initialSnapshot.eventsLogged;
 
@@ -228,7 +227,6 @@ describe("MetricsRegistry — JSONL write and ring buffer", () => {
   });
 
   it("increment() tracks counters correctly", () => {
-    const { telemetry } = require("./telemetry.ts");
     const before = telemetry.snapshot();
     telemetry.increment("test_counter");
     telemetry.increment("test_counter");
@@ -242,7 +240,6 @@ describe("MetricsRegistry — JSONL write and ring buffer", () => {
   });
 
   it("snapshot() returns valid telemetry data", () => {
-    const { telemetry } = require("./telemetry.ts");
     const snapshot = telemetry.snapshot();
 
     expect(snapshot).toHaveProperty("sessionCount");
@@ -260,7 +257,6 @@ describe("MetricsRegistry — JSONL write and ring buffer", () => {
   });
 
   it("formatReport() returns markdown with metrics", () => {
-    const { telemetry } = require("./telemetry.ts");
     const report = telemetry.formatReport();
 
     expect(report).toContain("## Telemetry Report");

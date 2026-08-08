@@ -14,6 +14,7 @@ import {
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
+import * as fsPromises from "node:fs/promises";
 import { atomicWrite, atomicWriteSync, cleanupDir } from "./atomic-write.ts";
 
 // ESM namespaces are not configurable, so vi.spyOn cannot instrument them.
@@ -51,7 +52,7 @@ const fsAsyncSpy = { writeFile: hoistedWriteFileSpy };
 // function. Tests that need to simulate failures override it with
 // mockImplementationOnce / mockRejectedValueOnce.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-fsAsyncSpy.writeFile.mockImplementation((...args: any[]) => require("node:fs/promises").writeFile(...args));
+fsAsyncSpy.writeFile.mockImplementation((...args: any[]) => fsPromises.writeFile(...args));
 
 /**
  * Tests the shared atomic-write utility (write to temp in same dir → fsync
@@ -429,7 +430,7 @@ describe("atomic write pattern — real filesystem", () => {
       } finally {
         fsAsyncSpy.writeFile.mockRestore();
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        fsAsyncSpy.writeFile.mockImplementation((...args: any[]) => require("node:fs/promises").writeFile(...args));
+        fsAsyncSpy.writeFile.mockImplementation((...args: any[]) => fsPromises.writeFile(...args));
       }
     });
 
