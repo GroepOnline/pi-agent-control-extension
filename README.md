@@ -5,7 +5,7 @@
 
 Pi Agent Control Extension operates as a strictly structured Pi extension package for terminal, CLI, browser-routing, capture, verification, QA proof, and showcase workflows. It enforces repeatable drivers, skill stacks, capture formats, and evidence recipes from unformatted automation requests.
 
-[![CI](https://github.com/OnlineChefGroep/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
+[![CI](https://github.com/GroepOnline/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
 [![Package](https://img.shields.io/badge/pi-extension-blue)](#)
 [![Version](https://img.shields.io/badge/version-5.2.1-informational)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)

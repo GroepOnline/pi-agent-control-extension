@@ -9,7 +9,7 @@
 ## Recommended Top-Level Placement
 
 ```
-org-techstack/ (or OnlineChefGroep/techstack)
+org-techstack/ (or GroepOnline/techstack)
 └── azure/
     ├── README.md
     ├── decisions.md
