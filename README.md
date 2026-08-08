@@ -15,7 +15,7 @@ Pi Agent Control Extension operates as a strictly structured Pi extension packag
 ## // INSTALLATION
 
 ```bash
-pi install npm:@onlinechefgroep/pi-agent-control-extension
+pi install npm:@groeponline/pi-agent-control-extension
 ```
 
 Initialize or reload a Pi session. Registers commands, tools, bundled skills, routing rules, and package validation functions.

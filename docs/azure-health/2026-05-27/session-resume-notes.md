@@ -40,7 +40,7 @@ Pending high-priority items:
 - Persist the cleaned configs + health results separately in the techstack repo
 - Review changes and report exactly what was changed
 
-User direction (from session): "Ja volledig en dit ook allemaal apart in @techstack repo van org onlinechefgroep"
+User direction (from session): "Ja volledig en dit ook allemaal apart in @techstack repo van org groeponline"
 
 ## Continuation
 

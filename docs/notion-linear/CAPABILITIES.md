@@ -1,6 +1,6 @@
 # MCP Integration Capabilities Reference
 
-> Full inventory of all MCP servers and tools available in the Devin + OnlineChefGroep environment.
+> Full inventory of all MCP servers and tools available in the Devin + GroepOnline environment.
 
 ---
 

@@ -17,7 +17,7 @@ Pi extension package: slash commands, LLM tools, 21 atomized skills in `packages
 | Layer | Package / repo | Injected at spawn | This repo's role |
 |-------|----------------|-------------------|------------------|
 | **Orchestrator** | `pi-agent-orchestrator` | Permissions, parent log | Spawns sub-agents with control skills when `skills: true` |
-| **Subagent TUI** | `@onlinechefgroep/pi-subagents-tui` | Parent telemetry | Monitor long `tuistory` / browser sessions |
+| **Subagent TUI** | `@groeponline/pi-subagents-tui` | Parent telemetry | Monitor long `tuistory` / browser sessions |
 | **Memory hooks** | `Pi-Helios-Memory-Private` + context-mode | Prior routing decisions, failure memories | `ctx_search` before repeat automation |
 | **Control extension** | **this repo** | `agent-browser`, `tuistory`, `true-input`, `tctl`, capture skills | `/route-control` · `control_browser_command` |
 

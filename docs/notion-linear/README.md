@@ -174,7 +174,7 @@ See [CAPABILITIES.md](./CAPABILITIES.md) for the full tool-by-tool breakdown of 
 
 ### Short-term (low cost)
 
-5. **Custom Domain**: Set up `ops.onlinechefgroep.nl` on Cloudflare for the webhook bridge and dashboard
+5. **Custom Domain**: Set up `ops.groeponline.nl` on Cloudflare for the webhook bridge and dashboard
 6. **Cloudflare Workers**: Deploy the sync logic as a Worker for sub-50ms response times
 7. **D1 Database**: Use Cloudflare D1 to store sync state and deduplication hashes
 
