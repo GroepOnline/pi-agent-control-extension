@@ -423,8 +423,11 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   registerTools(pi);
 
   // Record uncaught errors for telemetry
-  process.on("uncaughtException", (err) => {
+  process.once("uncaughtException", (err) => {
     telemetry.record("uncaught_exception", { error: err.message, name: err.name });
+    // An uncaught exception is fatal; preserve the nonzero status while
+    // allowing the runtime to perform its normal shutdown sequence.
+    process.exitCode = 1;
   });
   process.on("unhandledRejection", (reason) => {
     const message = reason instanceof Error ? reason.message : String(reason);
