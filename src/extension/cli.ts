@@ -516,7 +516,10 @@ export function createCli(options: CliOptions) {
 
 function main() {
   const args = process.argv.slice(2);
-  createCli({ argv: args }).run();
+  const result = createCli({ argv: args }).run();
+  if (result.exitCode !== null) {
+    process.exitCode = result.exitCode;
+  }
 }
 
 if (process.env.NODE_ENV !== "test") {
