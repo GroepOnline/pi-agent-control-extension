@@ -158,7 +158,7 @@ sentry.search_issues(org, project, query="is:unresolved")
 **Use Case**: Generate context for Linear issues from repo documentation:
 
 ```javascript
-deepwiki.ask_question(repo="OnlineChefGroep/pi-agent-control-extension", question="How does routing work?")
+deepwiki.ask_question(repo="GroepOnline/pi-agent-control-extension", question="How does routing work?")
   → linear.save_comment(issueId="CHE-64", body="Context from DeepWiki: ...")
 ```
 

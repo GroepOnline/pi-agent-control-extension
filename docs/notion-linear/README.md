@@ -1,6 +1,6 @@
 # Notion-Linear Integration Report
 
-> Generated: 2026-05-29 | Repository: `OnlineChefGroep/pi-agent-control-extension`
+> Generated: 2026-05-29 | Repository: `GroepOnline/pi-agent-control-extension`
 > Author: Devin (automated) | Session: [View](https://app.devin.ai/sessions/0b8dafc179224310a0c9ed60ae3646bf)
 
 ## Executive Summary

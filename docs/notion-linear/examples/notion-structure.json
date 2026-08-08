@@ -32,15 +32,15 @@
         "GitHub Repo": {
           "type": "select",
           "options": [
-            "OnlineChefGroep/pi-agent-control-extension",
-            "OnlineChefGroep/Pi-Helios-Memory-Private",
-            "OnlineChefGroep/pi-agent-orchestrator",
-            "OnlineChefGroep/agent-skill-quality",
-            "OnlineChefGroep/hermes-agent-platform",
-            "OnlineChefGroep/utrecht-data-os",
-            "OnlineChefGroep/autoresearch-skill",
-            "OnlineChefGroep/claude-rag",
-            "OnlineChefGroep/opencode-rag"
+            "GroepOnline/pi-agent-control-extension",
+            "GroepOnline/Pi-Helios-Memory-Private",
+            "GroepOnline/pi-agent-orchestrator",
+            "GroepOnline/agent-skill-quality",
+            "GroepOnline/hermes-agent-platform",
+            "GroepOnline/utrecht-data-os",
+            "GroepOnline/autoresearch-skill",
+            "GroepOnline/claude-rag",
+            "GroepOnline/opencode-rag"
           ]
         }
       }

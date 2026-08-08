@@ -172,12 +172,12 @@
     "GitHub Repo": {
       "type": "select",
       "options": [
-        "OnlineChefGroep/pi-agent-control-extension",
-        "OnlineChefGroep/Pi-Helios-Memory-Private",
-        "OnlineChefGroep/pi-agent-orchestrator",
-        "OnlineChefGroep/agent-skill-quality",
-        "OnlineChefGroep/hermes-agent-platform",
-        "OnlineChefGroep/utrecht-data-os",
+        "GroepOnline/pi-agent-control-extension",
+        "GroepOnline/Pi-Helios-Memory-Private",
+        "GroepOnline/pi-agent-orchestrator",
+        "GroepOnline/agent-skill-quality",
+        "GroepOnline/hermes-agent-platform",
+        "GroepOnline/utrecht-data-os",
         "..."
       ]
     }
@@ -200,7 +200,7 @@
         "Name": "[Agent Spec] Pi Orchestrator Core",
         "Status": "To Do",
         "Priority": "Medium",
-        "GitHub Repo": "OnlineChefGroep/pi-agent-orchestrator"
+        "GitHub Repo": "GroepOnline/pi-agent-orchestrator"
       },
       "content": "> Synced from Linear: [CHE-64](https://linear.app/chefclawsheesh/issue/CHE-64/agent-spec-pi-orchestrator-core)\n\nYou are **Pi Orchestrator**, the central nervous system of the agent swarm...\n\n---\n**Project**: Pi Agent Platform\n**Status**: Backlog\n**Labels**: agent, automation"
     }
@@ -258,7 +258,7 @@
 // Tool: deepwiki.ask_question
 // Args:
 {
-  "repoName": "OnlineChefGroep/pi-agent-control-extension",
+  "repoName": "GroepOnline/pi-agent-control-extension",
   "question": "What skills are available and how does routing work?"
 }
 
