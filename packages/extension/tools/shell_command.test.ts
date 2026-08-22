@@ -162,6 +162,55 @@ describe("isAllowedCwd", () => {
   });
 });
 
+// ── allowedCwdPrefixes env extension ────────────────────────────────
+
+describe("SHELL_COMMAND_ALLOWED_CWD_PREFIXES env extension", () => {
+  const ENV_KEY = "SHELL_COMMAND_ALLOWED_CWD_PREFIXES";
+
+  it("is a no-op when unset", () => {
+    const orig = process.env[ENV_KEY];
+    delete process.env[ENV_KEY];
+    try {
+      expect(isAllowedCwd(varDir)).toBe(false);
+      expect(isAllowedCwd(tmpDir)).toBe(true);
+    } finally {
+      if (orig !== undefined) process.env[ENV_KEY] = orig;
+    }
+  });
+
+  it("extends the allowlist from the environment", () => {
+    const orig = process.env[ENV_KEY];
+    process.env[ENV_KEY] = isWin ? "C:\\chef;D:\\runner-home" : "/opt/chef:/var/lib/chef";
+    try {
+      if (isWin) {
+        expect(isAllowedCwd(join("C:\\chef", "runner-pr-home"))).toBe(true);
+        expect(isAllowedCwd(join("D:\\runner-home", "work", "repo"))).toBe(true);
+      } else {
+        expect(isAllowedCwd("/var/lib/chef/runner-pr-home")).toBe(true);
+        expect(isAllowedCwd("/opt/chef/lib/actions-runner/_work/repo")).toBe(true);
+      }
+      // built-in behavior preserved
+      expect(isAllowedCwd(etcDir)).toBe(false);
+      expect(isAllowedCwd(varTmpDir)).toBe(true);
+    } finally {
+      if (orig === undefined) delete process.env[ENV_KEY];
+      else process.env[ENV_KEY] = orig;
+    }
+  });
+
+  it("ignores empty entries and whitespace", () => {
+    const orig = process.env[ENV_KEY];
+    process.env[ENV_KEY] = "  :  /var/lib/chef : ";
+    try {
+      expect(isAllowedCwd("/var/lib/chef/runner-pr-home")).toBe(true);
+      expect(isAllowedCwd(varDir)).toBe(false);
+    } finally {
+      if (orig === undefined) delete process.env[ENV_KEY];
+      else process.env[ENV_KEY] = orig;
+    }
+  });
+});
+
 // ── Allowlist blocking ──────────────────────────────────────────────
 
 describe("allowlist blocking", () => {

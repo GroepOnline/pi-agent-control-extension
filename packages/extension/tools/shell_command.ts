@@ -41,6 +41,24 @@ export const ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
 export const ALLOWED_CWD_PREFIXES: readonly string[] = [rootDir(), "/home", "/tmp", "/var/tmp"];
 
 /**
+ * Effective allowed cwd prefixes: the built-in list plus any extra entries
+ * from SHELL_COMMAND_ALLOWED_CWD_PREFIXES (colon-separated on POSIX,
+ * semicolon on Windows). Lets fleet/CI hosts (e.g. runners whose HOME or
+ * workspace lives outside /home and /tmp) extend the allowlist via the
+ * environment without code changes. Unset means defaults only.
+ * Read at call time so tests can exercise it.
+ */
+export function allowedCwdPrefixes(): readonly string[] {
+  const raw = process.env.SHELL_COMMAND_ALLOWED_CWD_PREFIXES;
+  if (!raw) return ALLOWED_CWD_PREFIXES;
+  const extra = raw
+    .split(process.platform === "win32" ? ";" : ":")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return [...ALLOWED_CWD_PREFIXES, ...extra];
+}
+
+/**
  * Parse leading VAR=value pairs from a command string.
  * Returns the env map and the remaining command part.
  */
@@ -116,7 +134,7 @@ export function isAllowedCwd(cwd: string): boolean {
   } catch {
     resolved = resolve(cwd);
   }
-  return ALLOWED_CWD_PREFIXES.some((prefix) => {
+  return allowedCwdPrefixes().some((prefix) => {
     let allowed: string;
     try {
       allowed = realpathSync(prefix);
@@ -199,7 +217,7 @@ export const shellCommandTool = {
   parameters: Type.Object({
     command: Type.String({ description: "The command to execute (must start with an allowed base command; no shell operators)" }),
     cwd: Type.Optional(
-      Type.String({ description: "Working directory (must be under /home, /tmp, or project root; defaults to $HOME)" }),
+      Type.String({ description: "Working directory (must be under /home, /tmp, the project root, or a SHELL_COMMAND_ALLOWED_CWD_PREFIXES entry; defaults to $HOME)" }),
     ),
     timeout: Type.Optional(
       Type.Number({

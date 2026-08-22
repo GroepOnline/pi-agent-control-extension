@@ -10,10 +10,14 @@ fail() { echo "  FAIL: $1"; ((FAIL++)) || true; }
 echo "=== Phase 1: Structural Validation ==="
 
 echo "--- 1a. Extension check (pi --offline) ---"
-if npm run check 2>&1; then
-  pass "pi extension check"
+if command -v pi >/dev/null 2>&1; then
+  if npm run check 2>&1; then
+    pass "pi extension check"
+  else
+    fail "pi extension check"
+  fi
 else
-  fail "pi extension check"
+  echo "--- 1a. pi extension check --- SKIP: pi not installed"
 fi
 
 echo "--- 1b. Package validation ---"
