@@ -1,6 +1,6 @@
 ---
 name: background-pty
-description: Manage persistent, long-running terminal sessions via tmux/dtach integration. Use for detached workflows, async jobs, or sessions that must survive disconnects. Examples: "run in background", "detached session", "long running task", "tmux session", "persistent terminal"
+description: "Manage persistent, long-running terminal sessions via tmux/dtach integration. Use for detached workflows, async jobs, or sessions that must survive disconnects. Examples: \"run in background\", \"detached session\", \"long running task\", \"tmux session\", \"persistent terminal\""
 ---
 # Background PTY
 

@@ -1,6 +1,6 @@
 ---
 name: agy-agent-control
-description: Main orchestrator for Antigravity agent control workflows — route tasks to the right driver, then chain capture, compose, and verify atoms. Use for any terminal/browser automation, demo recording, or QA evidence task. Examples: "record a demo", "automate this terminal app", "make a showcase video", "qa proof", "browser automation", "control workflow"
+description: "Main orchestrator for Antigravity agent control workflows — route tasks to the right driver, then chain capture, compose, and verify atoms. Use for any terminal/browser automation, demo recording, or QA evidence task. Examples: \"record a demo\", \"automate this terminal app\", \"make a showcase video\", \"qa proof\", \"browser automation\", \"control workflow\""
 ---
 # Antigravity Agent CLI Control
 

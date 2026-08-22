@@ -1,6 +1,6 @@
 ---
 name: compose
-description: Assemble polished demo videos from raw captures using Remotion. Use after capture to add title cards, transitions, effects, and branded window chrome. Examples: "compose the video", "render the demo", "assemble showcase", "create final video", "Remotion pipeline"
+description: "Assemble polished demo videos from raw captures using Remotion. Use after capture to add title cards, transitions, effects, and branded window chrome. Examples: \"compose the video\", \"render the demo\", \"assemble showcase\", \"create final video\", \"Remotion pipeline\""
 ---
 # Compose
 

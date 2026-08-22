@@ -1,6 +1,6 @@
 ---
 name: showcase
-description: Polish demo videos with branded window chrome, animations, and cinematic backgrounds via Remotion. Use for marketing clips, PR demos, and landing page videos. Examples: "make a showcase video", "polish the demo", "branded video", "cinematic demo", "Remotion render"
+description: "Polish demo videos with branded window chrome, animations, and cinematic backgrounds via Remotion. Use for marketing clips, PR demos, and landing page videos. Examples: \"make a showcase video\", \"polish the demo\", \"branded video\", \"cinematic demo\", \"Remotion render\""
 ---
 # Showcase Polish
 

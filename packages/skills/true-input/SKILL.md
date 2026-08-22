@@ -1,6 +1,6 @@
 ---
 name: true-input
-description: Automate real terminal emulators via headless Wayland compositor for keyboard encoding proofs. Use when you need to prove what Ghostty, Kitty, or Alacritty actually emits for keystrokes. Examples: "real terminal proof", "keyboard encoding test", "Wayland terminal automation", "prove escape sequences", "true terminal input"
+description: "Automate real terminal emulators via headless Wayland compositor for keyboard encoding proofs. Use when you need to prove what Ghostty, Kitty, or Alacritty actually emits for keystrokes. Examples: \"real terminal proof\", \"keyboard encoding test\", \"Wayland terminal automation\", \"prove escape sequences\", \"true terminal input\""
 ---
 # True-Input Driver
 

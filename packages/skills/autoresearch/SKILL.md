@@ -1,6 +1,6 @@
 ---
 name: autoresearch
-description: Autonomous research loop using subagents and web search. Use to investigate complex bugs, research architectural decisions, or optimize metrics without blocking the main orchestrator. Examples: "research this bug", "find solutions", "investigate architecture", "optimize metric", "deep dive"
+description: "Autonomous research loop using subagents and web search. Use to investigate complex bugs, research architectural decisions, or optimize metrics without blocking the main orchestrator. Examples: \"research this bug\", \"find solutions\", \"investigate architecture\", \"optimize metric\", \"deep dive\""
 ---
 # Autoresearch via Pi Subagents
 

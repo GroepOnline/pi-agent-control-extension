@@ -1,6 +1,6 @@
 ---
 name: ralph
-description: Review-Approve Loop Protocol for Hardening - iterative Plan → Critique → Revise → Approve cycle to ensure plans are hardened through adversarial review before execution. Examples: "ralph", "consensus", "ralplan", "review my plan", "hardening review"
+description: "Review-Approve Loop Protocol for Hardening - iterative Plan → Critique → Revise → Approve cycle to ensure plans are hardened through adversarial review before execution. Examples: \"ralph\", \"consensus\", \"ralplan\", \"review my plan\", \"hardening review\""
 ---
 
 # Ralph (Review-Approve Loop Protocol for Hardening)

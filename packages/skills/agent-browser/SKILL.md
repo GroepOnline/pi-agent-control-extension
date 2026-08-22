@@ -1,6 +1,6 @@
 ---
 name: agent-browser
-description: Automate web pages and Electron desktop apps via agent-browser. Use for browser screenshots, navigation, clicking, form filling, and recording web interactions. Examples: "open a website", "take a screenshot", "automate browser", "click a button", "fill out a form", "web app testing"
+description: "Automate web pages and Electron desktop apps via agent-browser. Use for browser screenshots, navigation, clicking, form filling, and recording web interactions. Examples: \"open a website\", \"take a screenshot\", \"automate browser\", \"click a button\", \"fill out a form\", \"web app testing\""
 ---
 # Agent-Browser Driver
 

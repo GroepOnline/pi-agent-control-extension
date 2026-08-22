@@ -1,6 +1,6 @@
 ---
 name: tuistory
-description: Automate terminal TUI applications via virtual PTY using tuistory. Use for deterministic terminal automation, text snapshots, and .cast recordings. Examples: "automate terminal app", "record terminal session", "tuistory capture", "virtual pty automation", "terminal regression test"
+description: "Automate terminal TUI applications via virtual PTY using tuistory. Use for deterministic terminal automation, text snapshots, and .cast recordings. Examples: \"automate terminal app\", \"record terminal session\", \"tuistory capture\", \"virtual pty automation\", \"terminal regression test\""
 ---
 # Tuistory Driver
 
