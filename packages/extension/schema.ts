@@ -1,6 +1,5 @@
 export const SKILL_NAMES = [
   "agent-browser",
-  "autoresearch",
   "capture",
   "compose",
   "init",

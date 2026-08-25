@@ -81,7 +81,6 @@ describe("Routing Logic", () => {
   it("routes research and optimize tasks", () => {
     const result = routeControlTask("investigate with a subagent");
     expect(result.driver).toBe("mixed");
-    expect(result.skills).toContain("autoresearch");
     expect(result.skills).toContain("session-navigation");
   });
 
@@ -91,7 +90,6 @@ describe("Routing Logic", () => {
     expect(result.skills).toContain("init");
     expect(result.skills).toContain("wiki");
     expect(result.skills).toContain("review");
-    expect(result.skills).toContain("autoresearch");
   });
 
   it("adds warnings for tctl without repo-root", () => {

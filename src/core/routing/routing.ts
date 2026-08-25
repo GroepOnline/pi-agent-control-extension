@@ -94,11 +94,11 @@ const ROUTE_RULES: Rule[] = [
   },
   {
     keywords: ["research", "optimize", "investigate", "subagent"],
-    apply: (s) => { s.skills.push("autoresearch", "session-navigation"); s.driver = "mixed"; }
+    apply: (s) => { s.skills.push("session-navigation"); s.driver = "mixed"; }
   },
   {
     keywords: ["analyze and improve", "full improvement", "chain skills"],
-    apply: (s) => { s.skills.push("init", "wiki", "review", "autoresearch"); s.driver = "mixed"; }
+    apply: (s) => { s.skills.push("init", "wiki", "review"); s.driver = "mixed"; }
   },
   {
     keywords: ["meta skill", "meta-skill", "chain", "pipeline", "workflow orchestrat"],
