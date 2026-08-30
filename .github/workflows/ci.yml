@@ -8,13 +8,7 @@ on:
 
 jobs:
   build:
-    # GitHub-hosted runners banned until Actions spending restored (fleet only).
-    runs-on: ${{ github.event_name == 'pull_request' && fromJSON('["self-hosted","Linux","X64","pr-isolated"]') || fromJSON('["self-hosted","Linux","X64","heavy"]') }}
-    env:
-      # chef-runner layout: workspace under /opt/chef, HOME under /var/lib/chef.
-      # Extends the shell_command tool cwd allowlist (see packages/extension/tools/shell_command.ts).
-      SHELL_COMMAND_ALLOWED_CWD_PREFIXES: /opt/chef:/var/lib/chef
-
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
