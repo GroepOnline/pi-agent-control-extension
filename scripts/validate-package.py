@@ -4,6 +4,7 @@
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +42,8 @@ REQUIRED_FILES = [
     "scripts/render-showcase.sh",
     "apps/remotion/package.json",
     "README.md",
+    "LICENSE",
+    "scripts/verify-package.mjs",
 ]
 
 
@@ -57,10 +60,11 @@ for rel in REQUIRED_FILES:
     check(f"Required file: {rel}", (ROOT / rel).exists())
 
 pkg = json.loads((ROOT / "package.json").read_text())
-agy = pkg.get("agy", {})
-check("AGY manifest: extensions", "./packages/extension/index.ts" in agy.get("extensions", []))
-check("AGY manifest: skills", "./packages/skills" in agy.get("skills", []))
-check("Keyword: agy-package", "agy-package" in pkg.get("keywords", []))
+pi_manifest = pkg.get("pi", {})
+check("PI manifest: extensions", "./packages/extension/index.ts" in pi_manifest.get("extensions", []))
+check("PI manifest: skills", "./packages/skills" in pi_manifest.get("skills", []))
+check("Keyword: pi-package", "pi-package" in pkg.get("keywords", []))
+check("Keyword: pi-extension", "pi-extension" in pkg.get("keywords", []))
 
 base = ROOT / "packages" / "skills"
 found = {p.parent.name for p in base.glob("*/SKILL.md")}
@@ -92,13 +96,13 @@ for cmd, install in BINARIES.items():
         print(f"  [WARN] Binary: {cmd} (optional — to fix: {install})")
         bin_errors.append(cmd)
 
-# Only treat missing binaries as fatal when NOT in CI (dev machines should have them)
-if bin_errors and not os.environ.get("CI"):
-    errors.extend(f"Binary: {cmd}" for cmd in bin_errors)
+# Driver/capture binaries are optional capabilities. Their absence must not make
+# the npm/Pi package structurally invalid; runtime commands report capability gaps.
 
 if errors:
     print(f"\n[FAIL] {len(errors)} check(s) failed")
-else:
-    print(
-        f"\n[OK] {pkg['name']} {pkg['version']}: clean package with {len(EXPECTED_SKILLS)} skills + extension + demo"
-    )
+    sys.exit(1)
+
+print(
+    f"\n[OK] {pkg['name']} {pkg['version']}: clean Pi package with {len(EXPECTED_SKILLS)} skills + extension + demo"
+)
