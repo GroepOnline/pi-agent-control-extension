@@ -32,3 +32,6 @@ graphify-out/
 .pi/
 *.patch
 __pycache__/
+
+# Compound Engineering checkout-local settings (tracked: config.yaml + example)
+.compound-engineering/*.local.yaml

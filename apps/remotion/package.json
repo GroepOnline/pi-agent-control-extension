@@ -8,18 +8,18 @@
     "still": "npx remotion still"
   },
   "dependencies": {
-    "@remotion/bundler": "4.0.484",
-    "@remotion/cli": "4.0.484",
-    "@remotion/layout-utils": "4.0.445",
-    "@remotion/light-leaks": "4.0.445",
-    "@remotion/media": "4.0.445",
-    "@remotion/renderer": "^4.0.484",
-    "@remotion/tailwind": "4.0.484",
-    "@remotion/transitions": "4.0.445",
+    "@remotion/bundler": "4.0.519",
+    "@remotion/cli": "4.0.519",
+    "@remotion/layout-utils": "4.0.519",
+    "@remotion/light-leaks": "4.0.519",
+    "@remotion/media": "4.0.519",
+    "@remotion/renderer": "4.0.519",
+    "@remotion/tailwind": "4.0.519",
+    "@remotion/transitions": "4.0.519",
     "prism-react-renderer": "^2.4.1",
     "react": "^19",
     "react-dom": "^19",
-    "remotion": "4.0.445",
+    "remotion": "4.0.519",
     "zod": "4.3.6"
   },
   "devDependencies": {
