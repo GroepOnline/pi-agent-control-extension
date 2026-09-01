@@ -110,3 +110,48 @@ describe("bridge runtime jobs", () => {
     await stopBridge();
   });
 });
+
+
+describe("bridge render and registry jobs", () => {
+  it("returns live skills and completes render jobs", async () => {
+    const { port, token } = await startBridge(0, undefined, undefined, {
+      skills: () => [{ name: "capture", description: "Capture evidence" }],
+      render: async (args) => `rendered:${args}`,
+    });
+    const ws = new WebSocket(`ws://127.0.0.1:${port}?token=${token}`);
+    const messages: any[] = [];
+    ws.on("message", (data) => messages.push(JSON.parse(data.toString())));
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+
+    ws.send(JSON.stringify({ id: "skills", type: "skill.list" }));
+    ws.send(JSON.stringify({ id: "r1", type: "render.start", payload: { recipe: "qa-report" } }));
+    let renderStart: any;
+    for (let i = 0; i < 50 && !renderStart; i++) {
+      await new Promise((r) => setTimeout(r, 10));
+      renderStart = messages.find((m) => m.id === "r1" && m.type === "render.start.response");
+    }
+    expect(renderStart?.payload?.jobId).toBeTruthy();
+    const skillReply = messages.find((m) => m.id === "skills" && m.type === "skill.list.response");
+    expect(skillReply?.payload?.skills).toEqual([{ name: "capture", description: "Capture evidence" }]);
+
+    let completed: any;
+    for (let i = 0; i < 50 && !completed; i++) {
+      ws.send(JSON.stringify({
+        id: `rs${i}`,
+        type: "render.status",
+        payload: { jobId: renderStart.payload.jobId },
+      }));
+      await new Promise((r) => setTimeout(r, 10));
+      completed = messages.find(
+        (m) => m.type === "render.status.response" && m.payload?.status === "completed",
+      );
+    }
+    expect(completed?.payload?.result).toBe("rendered:qa-report");
+
+    ws.close();
+    await stopBridge();
+  });
+});
