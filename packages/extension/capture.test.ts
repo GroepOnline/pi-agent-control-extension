@@ -1,16 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { capture, parseCaptureArgs, routeToDriver, formatCaptureMarkdown, registerCapture } from "./capture.ts";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { capture, executeCapturePlan, parseCaptureArgs, routeToDriver, formatCaptureMarkdown, registerCapture } from "./capture.ts";
 
-vi.mock("node:child_process", () => ({
-  execFileSync: vi.fn((cmd: string) => {
-    if (cmd === "which") throw new Error("not found");
-    return "";
-  }),
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    execFileSync: vi.fn((cmd: string) => {
+      if (cmd === "which") throw new Error("not found");
+      return "";
+    }),
+  };
+});
 
-vi.mock("node:fs", () => ({
-  mkdirSync: vi.fn(),
-}));
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return {
+    ...actual,
+    mkdirSync: vi.fn(actual.mkdirSync),
+  };
+});
 
 vi.mock("./utils.ts", () => ({
   rootDir: vi.fn(() => "/mock/root"),
@@ -81,30 +92,77 @@ describe("capture", () => {
     expect(Array.isArray(result.warnings)).toBe(true);
   });
 
-  it("returns a capture result for tuistory target", () => {
+  it("returns a structurally valid capture plan for tuistory without claiming runtime proof", () => {
     const result = capture("run tui app", "cast");
     expect(result.driver).toBe("tuistory");
     expect(result.format).toBe("cast");
     expect(result.command).toContain("tctl");
-    expect(result.validated).toBe(true);
+    expect(result.structurallyValid).toBe(true);
+    expect(result.validated).toBe(false);
+    expect(result.executed).toBe(false);
   });
 
-  it("returns a capture result for true-input target", () => {
+  it("returns a structurally valid capture plan for true-input without claiming runtime proof", () => {
     const result = capture("real terminal test", "mp4");
     expect(result.driver).toBe("true-input");
     expect(result.format).toBe("mp4");
-    expect(result.command).toContain("true-input");
-    expect(result.validated).toBe(true);
+    expect(result.structurallyValid).toBe(true);
+    expect(result.validated).toBe(false);
+    expect(result.executed).toBe(false);
   });
 
-  it("validates evidence automatically", () => {
+  it("keeps structural validation separate from runtime evidence validation", () => {
     const result = capture("https://example.com", "report");
-    expect(result.validated).toBe(true);
+    expect(result.structurallyValid).toBe(true);
+    expect(result.validated).toBe(false);
   });
 
   it("includes warnings from routing and driver", () => {
     const result = capture("tctl launch some-task", "mp4");
     expect(result.warnings.length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("executeCapturePlan", () => {
+  it("executes argv steps and validates the artifact that was actually produced", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "capture-exec-"));
+    const artifact = join(dir, "result.txt");
+    const result = await executeCapturePlan({
+      evidenceId: "capture-exec-ok",
+      format: "report",
+      path: dir,
+      validated: false,
+      structurallyValid: true,
+      driver: "test",
+      command: "node writes artifact",
+      commandParts: [[process.execPath, "-e", `require('fs').writeFileSync(${JSON.stringify(artifact)}, 'proof')`]],
+      expectedArtifacts: [artifact],
+      warnings: [],
+    });
+    expect(result.executed).toBe(true);
+    expect(result.success).toBe(true);
+    expect(result.validated).toBe(true);
+    expect(result.artifacts?.[0]?.sha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it("fails truthfully when the command cannot run", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "capture-exec-"));
+    const result = await executeCapturePlan({
+      evidenceId: "capture-exec-fail",
+      format: "report",
+      path: dir,
+      validated: false,
+      structurallyValid: true,
+      driver: "test",
+      command: "missing binary",
+      commandParts: [["definitely-not-a-real-control-binary-xyz"]],
+      expectedArtifacts: [join(dir, "result.txt")],
+      warnings: [],
+    });
+    expect(result.executed).toBe(true);
+    expect(result.success).toBe(false);
+    expect(result.validated).toBe(false);
+    expect(result.error).toBeTruthy();
   });
 });
 
@@ -117,7 +175,7 @@ describe("formatCaptureMarkdown", () => {
     expect(md).toContain("Driver");
     expect(md).toContain("Format");
     expect(md).toContain("Path");
-    expect(md).toContain("Validated");
+    expect(md).toContain("Evidence validated");
   });
 
   it("includes warnings when present", () => {
@@ -188,7 +246,7 @@ describe("registerCapture", () => {
     expect(pi.registerCommand).toHaveBeenCalledWith(
       "capture",
       expect.objectContaining({
-        description: "Unified evidence capture: kiest driver + format automatisch",
+        description: "Unified evidence capture: executes the routed driver and validates produced artifacts",
       }),
     );
   });
