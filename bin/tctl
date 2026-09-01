@@ -474,7 +474,7 @@ launch_tuistory() {
     launch_cmd="$(write_tuistory_recording_runner "$session" "$record_path")"
   fi
   local args=(launch "$launch_cmd" -s "$session" --cols "$cols" --rows "$rows")
-  [[ "$background" == "1" ]] && args+=(--background)
+  [[ "$background" == "1" ]] && args+=(--background --no-wait)
   tuistory "${args[@]}"
 }
 
