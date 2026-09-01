@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "n
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { capture, executeCapturePlan, type CaptureFormat, type CaptureResult } from "./capture.ts";
+import { listSkills, rootDir } from "./utils.ts";
 
 const BRIDGE_TOKEN_PATH = join(homedir(), ".config", "devin", "bridge-token");
 
@@ -41,6 +43,19 @@ export interface BridgeState {
   events: BridgeMessage[];
   startTime: Date | null;
 }
+
+export interface BridgeRuntimeDeps {
+  capture?: (target: string, format: CaptureFormat) => Promise<CaptureResult>;
+  render?: (args: string) => Promise<string>;
+  skills?: () => { name: string; description: string }[];
+}
+
+type BridgeJob = {
+  id: string;
+  status: "running" | "completed" | "failed";
+  result?: unknown;
+  error?: string;
+};
 
 interface InternalBridgeState {
   running: boolean;
@@ -86,6 +101,21 @@ let pingInterval: ReturnType<typeof setInterval> | null = null;
 let httpServer: ReturnType<typeof createServer> | null = null;
 let wss: WebSocketServer | null = null;
 let starting: Promise<{ port: number; token: string }> | null = null;
+const captureJobs = new Map<string, BridgeJob>();
+const renderJobs = new Map<string, BridgeJob>();
+
+async function defaultCapture(target: string, format: CaptureFormat): Promise<CaptureResult> {
+  return executeCapturePlan(capture(target, format));
+}
+
+async function defaultRender(args: string): Promise<string> {
+  const mod = await import("./index.ts");
+  return mod.showcaseRender(args);
+}
+
+function isCaptureFormat(value: string): value is CaptureFormat {
+  return ["mp4", "cast", "png", "report"].includes(value);
+}
 
 function broadcast(msg: BridgeMessage, exclude?: string) {
   const payload = JSON.stringify(msg);
@@ -136,6 +166,8 @@ export async function stopBridge(): Promise<void> {
   bridgeState.clients = [];
   bridgeState.events.length = 0;
   bridgeState.startTime = null;
+  captureJobs.clear();
+  renderJobs.clear();
 }
 
 export function getBridgeState(): BridgeState {
@@ -148,7 +180,7 @@ export function getBridgeState(): BridgeState {
   };
 }
 
-export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionContext): Promise<{ port: number; token: string }> {
+export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionContext, deps: BridgeRuntimeDeps = {}): Promise<{ port: number; token: string }> {
   if (starting) {
     return starting;
   }
@@ -181,7 +213,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
         socket.on("message", (data) => {
           try {
             const msg: BridgeMessage = JSON.parse(data.toString());
-            handleMessage(msg, client, pi, ctx);
+            void handleMessage(msg, client, pi, ctx, deps);
           } catch {
             socket.send(JSON.stringify({ id: "", type: "error", payload: { message: "Invalid JSON" } }));
           }
@@ -214,10 +246,12 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
 
       return new Promise<{ port: number; token: string }>((resolve, reject) => {
         httpServer!.listen(port, "127.0.0.1", () => {
+          const address = httpServer!.address();
+          const boundPort = typeof address === "object" && address ? address.port : port;
           bridgeState.running = true;
-          bridgeState.port = port;
+          bridgeState.port = boundPort;
           bridgeState.startTime = new Date();
-          resolve({ port, token });
+          resolve({ port: boundPort, token });
         });
 
         httpServer!.on("error", (err) => {
@@ -233,7 +267,7 @@ export function startBridge(port = 8765, pi?: ExtensionAPI, ctx?: ExtensionConte
   return starting;
 }
 
-async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: ExtensionAPI, _ctx?: ExtensionContext) {
+async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: ExtensionAPI, _ctx?: ExtensionContext, deps: BridgeRuntimeDeps = {}) {
   const reply = (payload: Record<string, unknown>) => {
     client.socket.send(JSON.stringify({ id: msg.id, type: `${msg.type}.response`, payload }));
   };
@@ -244,32 +278,66 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
       break;
 
     case "skill.list": {
-      reply({ ok: true, skills: [] }); // Would be populated from registry
+      const skills = deps.skills ? deps.skills() : listSkills(rootDir());
+      reply({ ok: true, skills });
       break;
     }
 
     case "capture.start": {
-      const target = String(msg.payload?.target ?? "");
-      const format = String(msg.payload?.format ?? "mp4");
-      addEvent({ id: msg.id, type: "capture.started", payload: { target, format } });
-      reply({ ok: true, target, format, status: "started" });
+      const target = String(msg.payload?.target ?? "").trim();
+      const requestedFormat = String(msg.payload?.format ?? "mp4").toLowerCase();
+      if (!target || !isCaptureFormat(requestedFormat)) {
+        reply({ ok: false, error: !target ? "target is required" : `unsupported capture format: ${requestedFormat}` });
+        break;
+      }
+      const jobId = randomUUID();
+      const job: BridgeJob = { id: jobId, status: "running" };
+      captureJobs.set(jobId, job);
+      addEvent({ id: jobId, type: "capture.started", payload: { target, format: requestedFormat } });
+      reply({ ok: true, jobId, target, format: requestedFormat, status: "running" });
+      const runner = deps.capture ?? defaultCapture;
+      void runner(target, requestedFormat).then((result) => {
+        Object.assign(job, { status: "completed", result });
+        addEvent({ id: jobId, type: "capture.completed", payload: { evidenceId: result.evidenceId, validated: result.validated } });
+      }).catch((error: unknown) => {
+        Object.assign(job, { status: "failed", error: error instanceof Error ? error.message : String(error) });
+        addEvent({ id: jobId, type: "capture.failed", payload: { error: job.error } });
+      });
       break;
     }
 
     case "capture.status": {
-      reply({ ok: true, status: "unknown" });
+      const jobId = String(msg.payload?.jobId ?? "");
+      const job = captureJobs.get(jobId);
+      reply(job ? { ok: true, jobId, status: job.status, result: job.result, error: job.error } : { ok: false, jobId, status: "not_found" });
       break;
     }
 
     case "render.start": {
-      const recipe = String(msg.payload?.recipe ?? "showcase-compose");
-      addEvent({ id: msg.id, type: "render.started", payload: { recipe } });
-      reply({ ok: true, recipe, status: "started" });
+      const recipe = String(msg.payload?.recipe ?? "showcase-compose").trim() || "showcase-compose";
+      const capturePath = String(msg.payload?.capturePath ?? "").trim();
+      const outPath = String(msg.payload?.outPath ?? "").trim();
+      const args = [recipe, capturePath, outPath].filter(Boolean).join(" ");
+      const jobId = randomUUID();
+      const job: BridgeJob = { id: jobId, status: "running" };
+      renderJobs.set(jobId, job);
+      addEvent({ id: jobId, type: "render.started", payload: { recipe } });
+      reply({ ok: true, jobId, recipe, status: "running" });
+      const runner = deps.render ?? defaultRender;
+      void runner(args).then((result) => {
+        Object.assign(job, { status: "completed", result });
+        addEvent({ id: jobId, type: "render.completed", payload: { recipe } });
+      }).catch((error: unknown) => {
+        Object.assign(job, { status: "failed", error: error instanceof Error ? error.message : String(error) });
+        addEvent({ id: jobId, type: "render.failed", payload: { error: job.error } });
+      });
       break;
     }
 
     case "render.status": {
-      reply({ ok: true, status: "unknown" });
+      const jobId = String(msg.payload?.jobId ?? "");
+      const job = renderJobs.get(jobId);
+      reply(job ? { ok: true, jobId, status: job.status, result: job.result, error: job.error } : { ok: false, jobId, status: "not_found" });
       break;
     }
 

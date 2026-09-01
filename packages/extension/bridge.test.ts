@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getBridgeState, formatBridgeStatusMarkdown, safeEqual } from "./bridge.ts";
+import { WebSocket } from "ws";
+import { getBridgeState, formatBridgeStatusMarkdown, safeEqual, startBridge, stopBridge } from "./bridge.ts";
 
 describe("safeEqual", () => {
   it("returns true for identical strings", () => {
@@ -70,5 +71,42 @@ describe("formatBridgeStatusMarkdown", () => {
     const md = formatBridgeStatusMarkdown();
     expect(md).toBeDefined();
     expect(typeof md).toBe("string");
+  });
+});
+
+
+describe("bridge runtime jobs", () => {
+  it("runs capture.start and exposes the completed result through capture.status", async () => {
+    const { port, token } = await startBridge(0, undefined, undefined, {
+      capture: async (target, format) => ({
+        evidenceId: "bridge-proof", format, path: "/tmp", validated: true, structurallyValid: true,
+        driver: "test", command: target, warnings: [], executed: true, success: true, artifacts: [],
+      }),
+      render: async (args) => `rendered:${args}`,
+    });
+    const ws = new WebSocket(`ws://127.0.0.1:${port}?token=${token}`);
+    const messages: any[] = [];
+    ws.on("message", (data) => messages.push(JSON.parse(data.toString())));
+    await new Promise<void>((resolve, reject) => { ws.once("open", () => resolve()); ws.once("error", reject); });
+
+    ws.send(JSON.stringify({ id: "c1", type: "capture.start", payload: { target: "https://example.com", format: "png" } }));
+    let start: any;
+    for (let i = 0; i < 50 && !start; i++) {
+      await new Promise((r) => setTimeout(r, 10));
+      start = messages.find((m) => m.id === "c1" && m.type === "capture.start.response");
+    }
+    expect(start?.payload?.ok).toBe(true);
+    expect(start?.payload?.jobId).toBeTruthy();
+
+    let completed: any;
+    for (let i = 0; i < 50 && !completed; i++) {
+      ws.send(JSON.stringify({ id: `s${i}`, type: "capture.status", payload: { jobId: start.payload.jobId } }));
+      await new Promise((r) => setTimeout(r, 10));
+      completed = messages.find((m) => m.type === "capture.status.response" && m.payload?.status === "completed");
+    }
+    expect(completed?.payload?.result?.evidenceId).toBe("bridge-proof");
+
+    ws.close();
+    await stopBridge();
   });
 });

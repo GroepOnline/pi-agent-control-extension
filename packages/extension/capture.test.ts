@@ -214,25 +214,29 @@ describe("command security", () => {
     }
   });
 
-  it("uses -- flag terminator to prevent CLI flag injection in tuistory", () => {
-    const flagInjection = "--backend evil";
-    const result = capture(flagInjection, "cast");
-    expect(result.commandParts?.some((parts) => parts.at(-1) === flagInjection && parts.at(-2) === "--")).toBe(true);
+  it("passes a tuistory target as one positional argv value before tctl options", () => {
+    const target = "--backend evil";
+    const result = capture(target, "cast");
+    expect(result.commandParts?.[0]?.slice(0, 3)).toEqual([
+      expect.stringMatching(/bin[\\/]tctl$/), "launch", target,
+    ]);
   });
 
-  it("uses -- flag terminator to prevent CLI flag injection in browser", () => {
-    const flagInjection = "--viewport 9999x9999";
-    const target = "https://example.com " + flagInjection;
+  it("passes a browser URL containing flag-like text as one argv value", () => {
+    const target = "https://example.com --viewport 9999x9999";
     const result = capture(target, "png");
-    expect(result.commandParts?.some((parts) => parts.at(-1) === target && parts.at(-2) === "--")).toBe(true);
+    const openStep = result.commandParts?.find((parts) => parts.includes("open"));
+    expect(openStep?.at(-1)).toBe(target);
+    expect(openStep?.filter((part) => part === target)).toHaveLength(1);
   });
 
-  it("uses -- flag terminator to prevent CLI flag injection in true-input", () => {
-    const flagInjection = "--record /tmp/evil";
-    const target = "ghostty key encoding " + flagInjection;
+  it("passes a true-input command containing flag-like text as one tctl command value", () => {
+    const target = "ghostty key encoding --record /tmp/evil";
     const result = capture(target, "mp4");
     expect(result.driver).toBe("true-input");
-    expect(result.commandParts?.some((parts) => parts.at(-1) === target && parts.at(-2) === "--")).toBe(true);
+    expect(result.commandParts?.[0]?.slice(0, 3)).toEqual([
+      expect.stringMatching(/bin[\\/]tctl$/), "launch", target,
+    ]);
   });
 });
 
