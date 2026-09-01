@@ -117,12 +117,16 @@ CREATED_SIDS+=("$SID3")
 
 # Keep the process alive briefly so the daemon can expose the failure state via snapshot
 # before the short-lived command exits and the test performs cleanup.
-OUTPUT="$("$TCTL" launch "sleep 0.1 && /nonexistent/binary/that/will/fail" \
+if "$TCTL" launch "sleep 0.1 && /nonexistent/binary/that/will/fail" \
     -s "$SID3" \
     --backend tuistory \
     --background \
     --repo-root "$REPO_ROOT" \
-    --env FORCE_COLOR=3 --env COLORTERM=truecolor 2>&1)" && RC=0 || RC=$?
+    --env FORCE_COLOR=3 --env COLORTERM=truecolor >/dev/null 2>&1; then
+  RC=0
+else
+  RC=$?
+fi
 
 SESSION_DIR3="/tmp/tctl-sessions/$SID3"
 

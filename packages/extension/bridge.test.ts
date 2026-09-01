@@ -155,3 +155,26 @@ describe("bridge render and registry jobs", () => {
     await stopBridge();
   });
 });
+
+describe("bridge bounded job retention", () => {
+  it("never retains more than 100 settled capture jobs", async () => {
+    const { port, token } = await startBridge(0, undefined, undefined, {
+      capture: async (target, format) => ({
+        evidenceId: target, format, path: "/tmp", validated: true, structurallyValid: true,
+        driver: "test", command: target, warnings: [], executed: true, success: true, artifacts: [],
+      }),
+    });
+    const ws = new WebSocket(`ws://127.0.0.1:${port}?token=${token}`);
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+    for (let i = 0; i < 105; i++) {
+      ws.send(JSON.stringify({ id: `cap-${i}`, type: "capture.start", payload: { target: `job-${i}`, format: "png" } }));
+      await new Promise((resolve) => setTimeout(resolve, 2));
+    }
+    expect(getBridgeState().captureJobCount).toBe(100);
+    ws.close();
+    await stopBridge();
+  });
+});

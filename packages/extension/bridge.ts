@@ -40,6 +40,8 @@ export interface BridgeState {
   running: boolean;
   port: number;
   clientCount: number;
+  captureJobCount: number;
+  renderJobCount: number;
   events: BridgeMessage[];
   startTime: Date | null;
 }
@@ -101,8 +103,19 @@ let pingInterval: ReturnType<typeof setInterval> | null = null;
 let httpServer: ReturnType<typeof createServer> | null = null;
 let wss: WebSocketServer | null = null;
 let starting: Promise<{ port: number; token: string }> | null = null;
+const MAX_BRIDGE_JOBS = 100;
 const captureJobs = new Map<string, BridgeJob>();
 const renderJobs = new Map<string, BridgeJob>();
+
+function storeBoundedJob(jobs: Map<string, BridgeJob>, job: BridgeJob): boolean {
+  if (jobs.size >= MAX_BRIDGE_JOBS) {
+    const settledId = [...jobs].find(([, existing]) => existing.status !== "running")?.[0];
+    if (!settledId) return false;
+    jobs.delete(settledId);
+  }
+  jobs.set(job.id, job);
+  return true;
+}
 
 async function defaultCapture(target: string, format: CaptureFormat): Promise<CaptureResult> {
   return executeCapturePlan(capture(target, format));
@@ -175,6 +188,8 @@ export function getBridgeState(): BridgeState {
     running: bridgeState.running,
     port: bridgeState.port,
     clientCount: bridgeState.clients.length,
+    captureJobCount: captureJobs.size,
+    renderJobCount: renderJobs.size,
     events: bridgeState.events,
     startTime: bridgeState.startTime,
   };
@@ -292,7 +307,10 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
       }
       const jobId = randomUUID();
       const job: BridgeJob = { id: jobId, status: "running" };
-      captureJobs.set(jobId, job);
+      if (!storeBoundedJob(captureJobs, job)) {
+        reply({ ok: false, error: "capture job capacity reached" });
+        break;
+      }
       addEvent({ id: jobId, type: "capture.started", payload: { target, format: requestedFormat } });
       reply({ ok: true, jobId, target, format: requestedFormat, status: "running" });
       const runner = deps.capture ?? defaultCapture;
@@ -320,7 +338,10 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
       const args = [recipe, capturePath, outPath].filter(Boolean).join(" ");
       const jobId = randomUUID();
       const job: BridgeJob = { id: jobId, status: "running" };
-      renderJobs.set(jobId, job);
+      if (!storeBoundedJob(renderJobs, job)) {
+        reply({ ok: false, error: "render job capacity reached" });
+        break;
+      }
       addEvent({ id: jobId, type: "render.started", payload: { recipe } });
       reply({ ok: true, jobId, recipe, status: "running" });
       const runner = deps.render ?? defaultRender;
@@ -347,6 +368,8 @@ async function handleMessage(msg: BridgeMessage, client: BridgeClient, _pi?: Ext
         running: bridgeState.running,
         port: bridgeState.port,
         clients: bridgeState.clients.length,
+        captureJobs: captureJobs.size,
+        renderJobs: renderJobs.size,
         uptime: bridgeState.startTime ? Date.now() - bridgeState.startTime.getTime() : 0,
       });
       break;

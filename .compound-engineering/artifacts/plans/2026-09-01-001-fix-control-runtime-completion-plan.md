@@ -27,7 +27,7 @@ The extension currently contains substantial routing, shell safety, terminal con
 - **R2:** Evidence validation for executed captures must verify expected artifact files exist, are regular files, and are non-empty; metadata-only validation must not imply runtime success.
 - **R3:** `/capture` must execute by default and display execution and artifact-validation failures instead of reporting a false positive.
 - **R4:** Bridge `capture.start`, `capture.status`, `render.start`, and `render.status` must run actual operations with bounded in-memory job state; `skill.list` must return the real bundled skill registry.
-- **R5:** `tctl --background` tuistory sessions must support snapshot/wait/type/press/close through their tmux-backed session instead of querying a non-existent outer tuistory session.
+- **R5:** `tctl --background` tuistory sessions must use Tuistory's native persistent daemon so snapshot/wait/type/press/close target the same named session.
 - **R6:** The true-input capture adapter must use a capability that the package actually ships/validates; unsupported capture shapes must fail explicitly rather than claim validation.
 - **R7:** Existing package validation, lint/typecheck, unit tests, package contract, and real driver E2E must pass from the worktree.
 
@@ -47,7 +47,7 @@ The extension currently contains substantial routing, shell safety, terminal con
 - Preserve `capture()` as a synchronous planning helper for existing callers/tests; introduce `executeCapture()` for real runtime execution.
 - Use `execFile`/argument arrays only; no shell interpolation.
 - Add expected artifact paths to capture results rather than trying to infer filenames from free-form command strings.
-- For tmux-backed tuistory sessions, drive the inner tuistory control endpoint from inside the tmux session/socket rather than pretending the outer process has the tuistory session.
+- For detached Tuistory sessions, use Tuistory's native `--background --no-wait` daemon path; do not wrap Tuistory in tmux because that bypasses its named-session registry.
 
 ### Scope Boundaries
 **In scope**
@@ -74,7 +74,7 @@ The extension currently contains substantial routing, shell safety, terminal con
 - Bridge job state can remain process-local for this release; durability is a separate concern.
 
 ### High-Level Technical Design
-`capture()` builds a typed execution plan → `executeCapture()` executes each safe argv step → expected artifacts are validated → result is returned to Pi command or bridge job. Bridge maintains bounded job records and delegates to the same execution/render functions. Background tctl operations branch on `TMUX_SOCKET_NAME` and execute the tuistory control command inside the tmux-backed environment.
+`capture()` builds a typed execution plan → `executeCapture()` executes each safe argv step → expected artifacts are validated → result is returned to Pi command or bridge job. Bridge maintains bounded job records and delegates to the same execution/render functions. Background `tctl` uses Tuistory's native daemon-backed named sessions, preserving the same control endpoint for later snapshot/wait/type/press/close operations.
 
 ### Sequencing
 U1 establishes truthful capture/evidence contracts. U2 fixes tctl and driver alignment. U3 wires bridge operations to the real executors. U4 runs and hardens all gates.
@@ -97,7 +97,7 @@ U1 establishes truthful capture/evidence contracts. U2 fixes tctl and driver ali
 **Requirements:** R5, R6
 **Dependencies:** U1 result contract
 **Files:** `bin/tctl`, `packages/extension/tuistory.ts`, `packages/extension/true-input.ts`, `scripts/test-e2e.sh`, tests
-**Approach:** Detect tmux-backed sessions and proxy control/snapshot inside the tmux socket/session; remove dependency on a phantom `true-input` executable and model unsupported operations explicitly.
+**Approach:** Use Tuistory's native daemon-backed `--background --no-wait` sessions so later control commands target the same session; remove dependency on a phantom `true-input` executable and model unsupported operations explicitly.
 **Execution note:** Reproduce the existing detached E2E failure before changing code.
 **Test scenarios:** foreground tuistory unchanged; background snapshot succeeds; close cleans state; unsupported true-input environment fails truthfully.
 **Verification:** `npm run test:e2e` and focused tests.
