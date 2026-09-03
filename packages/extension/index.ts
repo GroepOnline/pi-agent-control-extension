@@ -387,6 +387,43 @@ export default function agyControlExtension(pi: ExtensionAPI) {
     ctx.ui?.notify?.(`[os-control ${action}${target ? ` ${target}` : ""}]\n\n${result.output}`, result.success ? "info" : "error");
   };
 
+  const metaControlHandler = async (args: string, ctx: ExtensionContext) => {
+    const wantsNewRun = /\b(--new-run|-n)\b/.test(args);
+    const skillCheck = join(rootDir(), "packages", "skills", "meta-control", "scripts", "check.sh");
+    if (!existsSync(skillCheck)) {
+      ctx.ui?.notify?.(`meta-control sidecar niet gevonden: ${skillCheck}`, "error");
+      return;
+    }
+    try {
+      const flags = wantsNewRun ? "--new-run --quiet" : "--quiet";
+      const { stdout } = await execAsync(skillCheck, [flags], 15000);
+      let parsed: any = null;
+      try { parsed = JSON.parse(stdout.trim().split("\n").pop() ?? stdout.trim()); } catch { /* leave parsed null */ }
+      const lines: string[] = [`## meta-control check`, ``];
+      lines.push(`| Field | Value |`);
+      lines.push(`|---|---|`);
+      lines.push(`| **ok** | ${parsed?.ok ? "✅" : "❌"} |`);
+      lines.push(`| **action** | ${parsed?.action ?? "doctor"} |`);
+      lines.push(`| **checked_at** | ${parsed?.checked_at ?? "?"} |`);
+      if (parsed?.run_dir) lines.push(`| **run_dir** | \`${parsed.run_dir}\` |`);
+      const missing: string[] = Array.isArray(parsed?.missing) ? parsed.missing.filter(Boolean) : [];
+      if (missing.length) {
+        lines.push(``, `### Missing`);
+        for (const m of missing) lines.push(`- ${m}`);
+      }
+      if (parsed?.validator_tail) {
+        const fails = parsed.validator_tail.split("\n").filter((l: string) => l.includes("[FAIL]"));
+        if (fails.length) {
+          lines.push(``, `### Validator fails (${fails.length})`);
+          for (const f of fails) lines.push(`- \`${f.trim()}\``);
+        }
+      }
+      ctx.ui?.notify?.(lines.join("\n"), parsed?.ok ? "info" : "error");
+    } catch (e: any) {
+      ctx.ui?.notify?.(`meta-control check mislukt: ${e.message ?? e}`, "error");
+    }
+  };
+
   pi.registerCommand("route-control", { description: "Route a control task: driver + skills + capture + recipe", handler: showFn((a) => formatRouteMarkdown(a)) });
   pi.registerCommand("skills-control", { description: "List bundled skill atoms", handler: async (_a: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(listSkills(rootDir()).map((s) => `- ${s.name}: ${s.description}`).join("\n") || "No skills found.", "info"); } });
   pi.registerCommand("demo-control", { description: "Show tuistory capture recipe", handler: show(recipeFor("tuistory-launch")) });
@@ -419,6 +456,7 @@ export default function agyControlExtension(pi: ExtensionAPI) {
     } });
   pi.registerCommand("recipe-list", { description: "List all available control recipes", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(recipeList(), "info"); } });
   pi.registerCommand("evidence-new", { description: "Generate a new evidence run directory", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(evidenceNew(), "info"); } });
+  pi.registerCommand("meta-control", { description: "Run the meta-control skill sidecar (check.sh). Use --new-run to also create artifacts/runs/run-<ts>/evidence/", handler: metaControlHandler });
   pi.registerCommand("tctl-status", { description: "Show active tctl sessions", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(tctlStatus(), "info"); } });
   pi.registerCommand("skill-diff", { description: "Diff user vs PI version of a skill", handler: showFn((a) => skillDiff(a)) });
   pi.registerCommand("skill-search", { description: "Search skills by name or description", handler: showFn((a) => skillSearch(a)) });
