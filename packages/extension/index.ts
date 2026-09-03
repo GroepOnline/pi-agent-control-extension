@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { execFileSync, execFile } from "node:child_process";
+import { execFileSync, execFile, spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -8,7 +8,7 @@ import { renderRoute, routeControlTask } from "./routing.ts";
 import { recipeFor } from "./recipes.ts";
 import { inspectToolCall } from "./guards.ts";
 import { browserControlGuidance } from "./tools/browser.ts";
-import { osControlGuidance } from "./tools/os.ts";
+import { osControlGuidance, osControlCommand } from "./tools/os.ts";
 import { rootDir, listSkills, runValidator, buildUsageReport } from "./utils.ts";
 import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
@@ -351,6 +351,91 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   const show = (text: string) => async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
   const showFn = (fn: (s: string) => string) => async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
 
+  // Spawn a command in a real terminal window (ghostty/kitty/alacritty), or a
+  // tmux session as fallback when no terminal emulator is available.
+  const spawnTerminal = (cmd: string, cwd: string): string => {
+    const terms: Array<[string, string[]]> = [
+      ["ghostty", ["-e", cmd]],
+      ["kitty", ["-e", cmd]],
+      ["alacritty", ["-e", cmd]],
+    ];
+    for (const [bin, args] of terms) {
+      try {
+        const child = spawn(bin, args, { cwd, detached: true, stdio: "ignore" });
+        child.unref();
+        return `Gestart in een nieuw ${bin}-venster.`;
+      } catch { /* try next terminal */ }
+    }
+    // No terminal emulator: detached tmux session the user can attach to.
+    try {
+      execFileSync("tmux", ["new-session", "-d", "-s", "skill-studio", "-c", cwd, cmd], { encoding: "utf8", timeout: 5000 });
+      return "Geen terminal-emulator gevonden; gestart in tmux-sessie 'skill-studio'.";
+    } catch (e: any) {
+      return `Kon de app niet starten: ${e.stderr || e.message}`;
+    }
+  };
+
+  const studioRunning = (): boolean => {
+    try {
+      execFileSync("pgrep", ["-f", "packages/extension/studio/index"], { encoding: "utf8", timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const osControlHandler = async (args: string, ctx: ExtensionContext) => {
+    const parts = args.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      const list = osControlCommand("list");
+      ctx.ui?.notify?.(
+        [osControlGuidance(), "", "### Live status (tmux)", "", "```", list.output, "```", "", `Acties: /os-control <launch|send|type|capture|snapshot|list|kill|close> ...`].join("\n"),
+        "info"
+      );
+      return;
+    }
+    const [action, target, ...rest] = parts;
+    const result = osControlCommand(action, target ?? undefined, rest.length ? rest : undefined);
+    ctx.ui?.notify?.(`[os-control ${action}${target ? ` ${target}` : ""}]\n\n${result.output}`, result.success ? "info" : "error");
+  };
+
+  const metaControlHandler = async (args: string, ctx: ExtensionContext) => {
+    const wantsNewRun = /\b(--new-run|-n)\b/.test(args);
+    const skillCheck = join(rootDir(), "packages", "skills", "meta-control", "scripts", "check.sh");
+    if (!existsSync(skillCheck)) {
+      ctx.ui?.notify?.(`meta-control sidecar niet gevonden: ${skillCheck}`, "error");
+      return;
+    }
+    try {
+      const flags = wantsNewRun ? "--new-run --quiet" : "--quiet";
+      const { stdout } = await execAsync(skillCheck, [flags], 15000);
+      let parsed: any = null;
+      try { parsed = JSON.parse(stdout.trim().split("\n").pop() ?? stdout.trim()); } catch { /* leave parsed null */ }
+      const lines: string[] = [`## meta-control check`, ``];
+      lines.push(`| Field | Value |`);
+      lines.push(`|---|---|`);
+      lines.push(`| **ok** | ${parsed?.ok ? "✅" : "❌"} |`);
+      lines.push(`| **action** | ${parsed?.action ?? "doctor"} |`);
+      lines.push(`| **checked_at** | ${parsed?.checked_at ?? "?"} |`);
+      if (parsed?.run_dir) lines.push(`| **run_dir** | \`${parsed.run_dir}\` |`);
+      const missing: string[] = Array.isArray(parsed?.missing) ? parsed.missing.filter(Boolean) : [];
+      if (missing.length) {
+        lines.push(``, `### Missing`);
+        for (const m of missing) lines.push(`- ${m}`);
+      }
+      if (parsed?.validator_tail) {
+        const fails = parsed.validator_tail.split("\n").filter((l: string) => l.includes("[FAIL]"));
+        if (fails.length) {
+          lines.push(``, `### Validator fails (${fails.length})`);
+          for (const f of fails) lines.push(`- \`${f.trim()}\``);
+        }
+      }
+      ctx.ui?.notify?.(lines.join("\n"), parsed?.ok ? "info" : "error");
+    } catch (e: any) {
+      ctx.ui?.notify?.(`meta-control check mislukt: ${e.message ?? e}`, "error");
+    }
+  };
+
   pi.registerCommand("route-control", { description: "Route a control task: driver + skills + capture + recipe", handler: showFn((a) => formatRouteMarkdown(a)) });
   pi.registerCommand("skills-control", { description: "List bundled skill atoms", handler: async (_a: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(listSkills(rootDir()).map((s) => `- ${s.name}: ${s.description}`).join("\n") || "No skills found.", "info"); } });
   pi.registerCommand("demo-control", { description: "Show tuistory capture recipe", handler: show(recipeFor("tuistory-launch")) });
@@ -361,12 +446,29 @@ export default function agyControlExtension(pi: ExtensionAPI) {
   pi.registerCommand("control-hub", { description: "Show the recommended control extension stack", handler: show(CONTROL_HUB) });
   pi.registerCommand("parallel-qa", { description: "Show targeted parallel QA guidance", handler: show("Use control_parallel_verify with a list of named verification reports to check multiple QA proof targets at once.") });
   pi.registerCommand("browser-control", { description: "Show browser control status and guidance", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(formatBrowserControl(), "info"); } });
-  pi.registerCommand("os-control", { description: "Show OS control status and guidance", handler: show(osControlGuidance()) });
+  pi.registerCommand("os-control", { description: "OS control: live tmux status + acties (launch, send, type, capture, snapshot, list, kill, close)", handler: osControlHandler });
 
   // New commands
-  pi.registerCommand("skill-studio", { description: "Launch the Skill Studio TUI (terminal dashboard)", handler: show("Run `bin/skill-studio` from the repo root to launch the interactive terminal UI for skill management.") });
+  pi.registerCommand("skill-studio", { description: "Launch the Skill Studio TUI (terminal dashboard)", handler: async (_args: string, ctx: ExtensionContext) => {
+      const root = rootDir();
+      const cmd = join(root, "bin", "skill-studio");
+      if (!existsSync(cmd)) {
+        ctx.ui?.notify?.("Skill Studio niet gevonden (bin/skill-studio ontbreekt in de extension).", "error");
+        return;
+      }
+      if (studioRunning()) {
+        ctx.ui?.notify?.(`Skill Studio draait al — open eventueel zelf: \`${cmd}\``, "info");
+        return;
+      }
+      const where = spawnTerminal(cmd, root);
+      // Give the app a moment to boot, then confirm it is actually up.
+      await new Promise((r) => setTimeout(r, 800));
+      const up = studioRunning();
+      ctx.ui?.notify?.(`${where}\n\n${up ? "✅ Studio draait." : "⚠️ Nog niet bevestigd — check de log."}\nSluiten kan met Ctrl+C in dat venster.`, up ? "info" : "error");
+    } });
   pi.registerCommand("recipe-list", { description: "List all available control recipes", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(recipeList(), "info"); } });
   pi.registerCommand("evidence-new", { description: "Generate a new evidence run directory", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(evidenceNew(), "info"); } });
+  pi.registerCommand("meta-control", { description: "Run the meta-control skill sidecar (check.sh). Use --new-run to also create artifacts/runs/run-<ts>/evidence/", handler: metaControlHandler });
   pi.registerCommand("tctl-status", { description: "Show active tctl sessions", handler: async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(tctlStatus(), "info"); } });
   pi.registerCommand("skill-diff", { description: "Diff user vs PI version of a skill", handler: showFn((a) => skillDiff(a)) });
   pi.registerCommand("skill-search", { description: "Search skills by name or description", handler: showFn((a) => skillSearch(a)) });
