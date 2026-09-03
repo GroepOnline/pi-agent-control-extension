@@ -57,10 +57,10 @@ for rel in REQUIRED_FILES:
     check(f"Required file: {rel}", (ROOT / rel).exists())
 
 pkg = json.loads((ROOT / "package.json").read_text())
-agy = pkg.get("agy", {})
-check("AGY manifest: extensions", "./packages/extension/index.ts" in agy.get("extensions", []))
-check("AGY manifest: skills", "./packages/skills" in agy.get("skills", []))
-check("Keyword: agy-package", "agy-package" in pkg.get("keywords", []))
+pi_manifest = pkg.get("pi", {})
+check("Pi manifest: extensions entry", "./packages/extension/index.ts" in pi_manifest.get("extensions", []))
+check("Pi manifest: skills entry", "./packages/skills" in pi_manifest.get("skills", []))
+check("Keyword: pi-extension", "pi-extension" in pkg.get("keywords", []))
 
 base = ROOT / "packages" / "skills"
 found = {p.parent.name for p in base.glob("*/SKILL.md")}
