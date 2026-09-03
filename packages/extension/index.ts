@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { execFileSync, execFile, spawn } from "node:child_process";
+import { execFileSync, execFile } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -9,6 +9,7 @@ import { recipeFor } from "./recipes.ts";
 import { inspectToolCall } from "./guards.ts";
 import { browserControlGuidance } from "./tools/browser.ts";
 import { osControlGuidance, osControlCommand } from "./tools/os.ts";
+import { spawnTerminal } from "./terminal.ts";
 import { rootDir, listSkills, runValidator, buildUsageReport } from "./utils.ts";
 import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
@@ -339,30 +340,6 @@ export default function controlExtension(pi: ExtensionAPI) {
   const show = (text: string) => async (_args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(text, "info"); };
   const showFn = (fn: (s: string) => string) => async (args: string, ctx: ExtensionContext) => { ctx.ui?.notify?.(fn(args || ""), "info"); };
 
-  // Spawn a command in a real terminal window (ghostty/kitty/alacritty), or a
-  // tmux session as fallback when no terminal emulator is available.
-  const spawnTerminal = (cmd: string, cwd: string): string => {
-    const terms: Array<[string, string[]]> = [
-      ["ghostty", ["-e", cmd]],
-      ["kitty", ["-e", cmd]],
-      ["alacritty", ["-e", cmd]],
-    ];
-    for (const [bin, args] of terms) {
-      try {
-        const child = spawn(bin, args, { cwd, detached: true, stdio: "ignore" });
-        child.unref();
-        return `Gestart in een nieuw ${bin}-venster.`;
-      } catch { /* try next terminal */ }
-    }
-    // No terminal emulator: detached tmux session the user can attach to.
-    try {
-      execFileSync("tmux", ["new-session", "-d", "-s", "skill-studio", "-c", cwd, cmd], { encoding: "utf8", timeout: 5000 });
-      return "Geen terminal-emulator gevonden; gestart in tmux-sessie 'skill-studio'.";
-    } catch (e: any) {
-      return `Kon de app niet starten: ${e.stderr || e.message}`;
-    }
-  };
-
   const studioRunning = (): boolean => {
     try {
       execFileSync("pgrep", ["-f", "packages/extension/studio/index"], { encoding: "utf8", timeout: 3000 });
@@ -448,7 +425,7 @@ export default function controlExtension(pi: ExtensionAPI) {
         ctx.ui?.notify?.(`Skill Studio draait al — open eventueel zelf: \`${cmd}\``, "info");
         return;
       }
-      const where = spawnTerminal(cmd, root);
+      const where = await spawnTerminal(cmd, root);
       // Give the app a moment to boot, then confirm it is actually up.
       await new Promise((r) => setTimeout(r, 800));
       const up = studioRunning();
