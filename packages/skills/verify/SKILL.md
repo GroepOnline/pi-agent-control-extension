@@ -71,6 +71,41 @@ Walk through each commitment from the parse step:
 | Failures documented | Failed steps have evidence and description |
 | Report structured | Markdown report follows the QA template |
 
+## Step 0 — run the sidecar for video deliverables
+
+Before manual checks, run the technical checks:
+
+```bash
+./scripts/check-video.sh <video.mp4> --type single|side-by-side|multi
+```
+
+It validates plays, resolution (default 1920x1080, override with
+`--resolution WxH`), pixel format (yuv420p), size (5MB comfort /
+25MB hard), and the duration window for the demo type. JSON output,
+non-zero exit on hard failure. Fix what it flags before spending time
+on commitment/content review — a wrong resolution never passes.
+
+## Chaining into showcase
+
+Verify is not the end of the line — it feeds `compose`/`showcase`.
+After all checks pass, write `verification.json` next to the deliverable:
+
+```json
+{
+  "video": "<path>",
+  "type": "single | side-by-side | multi",
+  "resolution": "1920x1080",
+  "duration_s": 42,
+  "commitments_met": ["title card", "side-by-side layout"],
+  "sidecar": { "ok": true, "checked_at": "<ts>" }
+}
+```
+
+Copy the technical fields from the sidecar JSON. `compose`/`showcase`
+consume this file instead of re-probing the video. If any check fails,
+chain backwards instead: report the failed stage (capture or compose)
+and re-verify after the fix — never forward a failing deliverable.
+
 ## Failure handling
 
 If any check fails:
