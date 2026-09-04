@@ -328,10 +328,10 @@ export async function showcaseRender(args: string): Promise<string> {
   }
 }
 
-export default function agyControlExtension(pi: ExtensionAPI) {
+export default function controlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
-    ctx.ui?.notify?.(`agy-agent-control loaded (${n} skills)`, "info");
+    ctx.ui?.notify?.(`pi-agent-control loaded (${n} skills)`, "info");
   });
 
   pi.on("tool_call", async (event: unknown, _ctx: unknown) => inspectToolCall(event) || undefined);

@@ -26,11 +26,11 @@ describe("Routing Logic", () => {
   it("handles word-boundary matching correctly to prevent false positives", () => {
     // "api" should not match "pi agent"
     const resultApi = routeControlTask("fetch from the rest api");
-    expect(resultApi.skills).not.toContain("agy-agent-cli");
+    expect(resultApi.skills).not.toContain("background-pty");
 
     // "pi agent" should match
     const resultPi = routeControlTask("use the pi agent to do this");
-    expect(resultPi.skills).toContain("agy-agent-cli");
+    expect(resultPi.skills).toContain("background-pty");
 
     // "random" should not match "dom manipulation"
     const resultRandom = routeControlTask("pick a random number");

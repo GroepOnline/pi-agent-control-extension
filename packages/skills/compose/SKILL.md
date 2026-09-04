@@ -153,7 +153,7 @@ Use `side-by-side` only when the story is fundamentally a comparison: regression
 Save the `showcaseSchema` JSON to a temp file:
 
 ```bash
-DEMO_TMP="$(mktemp -d /tmp/agy-agent-control-demo-XXXXXX)"
+DEMO_TMP="$(mktemp -d /tmp/pi-agent-control-demo-XXXXXX)"
 PROPS="${DEMO_TMP}/showcase-props.json"
 
 cat > "$PROPS" << 'EOF'

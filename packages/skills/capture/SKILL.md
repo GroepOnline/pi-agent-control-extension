@@ -48,8 +48,8 @@ Feeding a 16:9 landscape recording into a near-square side-by-side panel trigger
 If you're unsure of the layout when capturing, default to `960×1000` — it is workable in both layouts (slight horizontal letterbox in `single`, no letterbox in `side-by-side`).
  
 ```bash
-TCTL=${AGY_AGENT_CONTROL_ROOT}/bin/tctl
-# RUN_ID and RUN_DIR should already be set by the parent (see agy-agent-control ground rule 5)
+TCTL=${PI_AGENT_CONTROL_ROOT}/bin/tctl
+# RUN_ID and RUN_DIR should already be set by the parent (see parent orchestrator rule 5)
 ```
  
 ### 2. Launch and record
@@ -133,7 +133,7 @@ Before handing off, confirm every expected output file exists and is non-empty:
 |---|---|
 | Functional behavior | Text snapshots: `$TCTL -s <name> snapshot --trim` |
 | Visual rendering | Screenshots: `$TCTL -s <name> screenshot -o /tmp/proof-N.png` |
-| Keyboard encoding | PTY bytes: \`${AGY_AGENT_CONTROL_ROOT}/scripts/capture-terminal-bytes.py --backend <terminal> --combo <keys>\` |
+| Keyboard encoding | PTY bytes: \`${PI_AGENT_CONTROL_ROOT}/scripts/capture-terminal-bytes.py --backend <terminal> --combo <keys>\` |
 | Web/Electron | Screenshots: `agent-browser screenshot --annotate /tmp/proof-N.png` |
 | Before/after | Run the same sequence on both branches at the same capture points |
 
