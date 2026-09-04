@@ -23,6 +23,20 @@ describe("Routing Logic", () => {
     expect(result.skills).toContain("tuistory");
   });
 
+  it("treats negative keywords as exclusions instead of standalone matches", () => {
+    const result = routeControlTask("summarize these notes");
+    expect(result.skills).not.toContain("tuistory");
+    expect(result.skills).not.toContain("capture");
+    expect(result.capture).toBe("report");
+  });
+
+  it("does not add terminal skills to browser-only tasks", () => {
+    const result = routeControlTask("open the browser");
+    expect(result.driver).toBe("agent-browser");
+    expect(result.skills).not.toContain("tuistory");
+    expect(result.skills).not.toContain("capture");
+  });
+
   it("handles word-boundary matching correctly to prevent false positives", () => {
     // "api" should not match "pi agent"
     const resultApi = routeControlTask("fetch from the rest api");
