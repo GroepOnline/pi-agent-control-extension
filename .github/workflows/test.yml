@@ -1,0 +1,66 @@
+name: Verify
+
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify
+    # GitHub-hosted runners banned until Actions spending restored (fleet only).
+    runs-on: ${{ github.event_name == 'pull_request' && fromJSON('["self-hosted","Linux","X64","pr-isolated"]') || fromJSON('["self-hosted","Linux","X64","heavy"]') }}
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: write  # dispatch promotion via workflow_dispatch (GITHUB_TOKEN-run chain)
+    env:
+      # chef-runner layout: workspace under /opt/chef, HOME under /var/lib/chef.
+      # Extends the shell_command tool cwd allowlist (see packages/extension/tools/shell_command.ts).
+      SHELL_COMMAND_ALLOWED_CWD_PREFIXES: /opt/chef:/var/lib/chef
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci && (cd apps/remotion && npm install)
+      - name: Whitespace check
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            git diff --check "origin/$GITHUB_BASE_REF...HEAD"
+          else
+            git diff --check "HEAD~1" "HEAD"
+          fi
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Run Validation (E2E)
+        run: npm run test:e2e
+      - name: Pi package gate
+        run: npm run verify:package
+      - name: Dependency audit (informational)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      # workflow_run triggers are suppressed when the completed workflow was
+      # itself dispatched via GITHUB_TOKEN (anti-recursion), so the Verify ->
+      # Promote link must be a workflow_dispatch, which always creates a run.
+      - name: Dispatch promotion for verified candidate
+        if: >-
+          success()
+          && github.event_name == 'workflow_dispatch'
+          && github.actor == 'github-actions[bot]'
+          && startsWith(github.ref_name, 'release-candidate/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh workflow run promote-release-candidate.yml --ref main
+          -f branch="${{ github.ref_name }}"
+          -f sha="${{ github.sha }}"
