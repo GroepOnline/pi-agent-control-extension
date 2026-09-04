@@ -65,7 +65,7 @@ Ink-based terminal UI for skill management:
 - **Core control**: agent-browser, tuistory, true-input, capture, pty-capture, verify, compose, showcase
 - **Meta/init**: init, wiki, review, autoresearch, session-navigation, meta-control
 - **Agent orchestration**: ralph
-- **Infrastructure**: agy-agent-cli, agy-agent-control, background-pty, control-narrate, network-audit, notion-linear-bridge
+- **Infrastructure**: background-pty, control-narrate, network-audit
 
 ### Remotion (`remotion/`)
 

@@ -141,7 +141,7 @@ Permitted message types: `ping`, `skill.list`, `capture.start`, `render.start`, 
 
 ## // ARCHITECTURE & ROUTING
 
-The project follows a **Clean Architecture** pattern (`src/core`, `src/drivers`, `src/extension`, `src/skill`). Consult [ARCHITECTURE.md](ARCHITECTURE.md) for a deep dive into the layer boundaries and universal routing keywords (`agent-cli`, `control-cli`, `tctl`, `agy`, `antigravity`).
+The project follows a **Clean Architecture** pattern (`src/drivers`, `src/extension`, `src/skill`). Consult [ARCHITECTURE.md](ARCHITECTURE.md) for a deep dive into the layer boundaries and universal routing keywords (`agent-cli`, `control-cli`, `tctl`).
 
 ```mermaid
 graph TD

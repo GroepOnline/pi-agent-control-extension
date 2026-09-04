@@ -6,7 +6,7 @@ description: "Record terminal TUI sessions and browser interactions for demos, p
 
 The orchestrator routed you here. This atom owns the full recording lifecycle: launch a target, execute an interaction script, collect raw outputs.
 
-You should already have a **driver atom** loaded (tuistory, true-input, or agent-browser) and optionally a **target atom** (agy-agent-cli). This atom layers the recording discipline on top.
+You should already have a **driver atom** loaded (tuistory, true-input, or agent-browser) and optionally a **target atom** (the CLI under test). This atom layers the recording discipline on top.
  
 ## Inputs
  
@@ -28,12 +28,12 @@ Before recording anything:
 - Branch/worktree paths and env vars are correct
 - Recording format matches the driver: `.cast` for tuistory, `.mp4` for true-input, screenshots for agent-browser
 - If comparing branches, both sessions use identical terminal / viewport dimensions and launch parameters
-- For `agy` captures, `--repo-root` is **mandatory** — `tctl` will refuse to launch without it
+- For CLI captures, `--repo-root` is **mandatory** — `tctl` will refuse to launch without it
 - **Color env vars are set** (see below)
  
 ### Browser viewport sizing
  
-Panel aspect ratio in the final composition is **layout-dependent**. At the default 1920×1080 output with `agy-warm` preset margins, the window-chrome panels that clips render into come out roughly:
+Panel aspect ratio in the final composition is **layout-dependent**. At the default 1920×1080 output with `warm` preset margins, the window-chrome panels that clips render into come out roughly:
  
 | Layout | Panel aspect | Recommended browser viewport |
 |---|---|---|
@@ -58,7 +58,7 @@ TCTL=${PI_AGENT_CONTROL_ROOT}/bin/tctl
  
 **Single branch:**
 ```bash
-$TCTL launch "agy" -s ${RUN_ID}-demo --backend tuistory \
+$TCTL launch "cli" -s ${RUN_ID}-demo --backend tuistory \
   --repo-root /path/to/worktree \
   --cols 120 --rows 36 --record ${RUN_DIR}/demo.cast \
   --env FORCE_COLOR=3 --env COLORTERM=truecolor
@@ -66,12 +66,12 @@ $TCTL launch "agy" -s ${RUN_ID}-demo --backend tuistory \
  
 **Comparison (before/after):**
 ```bash
-$TCTL launch "agy" -s ${RUN_ID}-before --backend tuistory \
+$TCTL launch "cli" -s ${RUN_ID}-before --backend tuistory \
   --repo-root /path/to/baseline-worktree \
   --cols 120 --rows 36 --record ${RUN_DIR}/before.cast \
   --env FORCE_COLOR=3 --env COLORTERM=truecolor
  
-$TCTL launch "agy" -s ${RUN_ID}-after --backend tuistory \
+$TCTL launch "cli" -s ${RUN_ID}-after --backend tuistory \
   --repo-root /path/to/candidate-worktree \
   --cols 120 --rows 36 --record ${RUN_DIR}/after.cast \
   --env FORCE_COLOR=3 --env COLORTERM=truecolor
@@ -107,7 +107,7 @@ If the workflow requires keystroke overlay, emit a TSV file during recording. Si
 Write each keystroke's timestamp (seconds from recording start) and a human-readable label:
  
 ```
-0.5	agy --continue
+0.5	cli --continue
 1.2	Enter
 2.8	Ctrl+C
 4.0	Esc

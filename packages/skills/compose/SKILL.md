@@ -174,7 +174,7 @@ cat > "$PROPS" << 'EOF'
   "sections": [],
   "effects": [],
   "speedNote": "3x speed",
-  "windowTitle": "agy demo"
+  "windowTitle": "demo"
 }
 EOF
 ```
