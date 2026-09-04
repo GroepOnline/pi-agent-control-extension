@@ -341,6 +341,42 @@ export async function showcaseRender(args: string): Promise<string> {
   }
 }
 
+
+export function parseMetaControlOutput(stdout: string): any | null {
+  const candidate = stdout.trim().split("\n").pop() ?? stdout.trim();
+  if (!candidate) return null;
+  try { return JSON.parse(candidate); } catch { return null; }
+}
+
+export function formatMetaControlReport(parsed: any): string {
+  const lines: string[] = [`## meta-control check`, ``];
+  lines.push(`| Field | Value |`, `|---|---|`);
+  lines.push(`| **ok** | ${parsed?.ok ? "✅" : "❌"} |`);
+  lines.push(`| **action** | ${parsed?.action ?? "doctor"} |`);
+  lines.push(`| **checked_at** | ${parsed?.checked_at ?? "?"} |`);
+  if (parsed?.run_dir) lines.push(`| **run_dir** | \`${parsed.run_dir}\` |`);
+  const missing: string[] = Array.isArray(parsed?.missing) ? parsed.missing.filter(Boolean) : [];
+  if (missing.length) {
+    lines.push(``, `### Missing`);
+    for (const item of missing) lines.push(`- ${item}`);
+  }
+  if (parsed?.validator_tail) {
+    const fails = String(parsed.validator_tail).split("\n").filter((line) => line.includes("[FAIL]"));
+    if (fails.length) {
+      lines.push(``, `### Validator fails (${fails.length})`);
+      for (const fail of fails) lines.push(`- \`${fail.trim()}\``);
+    }
+  }
+  return lines.join("\n");
+}
+
+export function metaControlArgs(args: string): string[] {
+  const tokens = args.trim().split(/\s+/).filter(Boolean);
+  return tokens.some((token) => token === "--new-run" || token === "-n")
+    ? ["--new-run", "--quiet"]
+    : ["--quiet"];
+}
+
 export default function controlExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
@@ -377,39 +413,19 @@ export default function controlExtension(pi: ExtensionAPI) {
   };
 
   const metaControlHandler = async (args: string, ctx: ExtensionContext) => {
-    const wantsNewRun = /\b(--new-run|-n)\b/.test(args);
     const skillCheck = join(rootDir(), "packages", "skills", "meta-control", "scripts", "check.sh");
     if (!existsSync(skillCheck)) {
       ctx.ui?.notify?.(`meta-control sidecar niet gevonden: ${skillCheck}`, "error");
       return;
     }
     try {
-      const flags = wantsNewRun ? "--new-run --quiet" : "--quiet";
-      const { stdout } = await execAsync(skillCheck, [flags], 15000);
-      let parsed: any = null;
-      try { parsed = JSON.parse(stdout.trim().split("\n").pop() ?? stdout.trim()); } catch { /* leave parsed null */ }
-      const lines: string[] = [`## meta-control check`, ``];
-      lines.push(`| Field | Value |`);
-      lines.push(`|---|---|`);
-      lines.push(`| **ok** | ${parsed?.ok ? "✅" : "❌"} |`);
-      lines.push(`| **action** | ${parsed?.action ?? "doctor"} |`);
-      lines.push(`| **checked_at** | ${parsed?.checked_at ?? "?"} |`);
-      if (parsed?.run_dir) lines.push(`| **run_dir** | \`${parsed.run_dir}\` |`);
-      const missing: string[] = Array.isArray(parsed?.missing) ? parsed.missing.filter(Boolean) : [];
-      if (missing.length) {
-        lines.push(``, `### Missing`);
-        for (const m of missing) lines.push(`- ${m}`);
-      }
-      if (parsed?.validator_tail) {
-        const fails = parsed.validator_tail.split("\n").filter((l: string) => l.includes("[FAIL]"));
-        if (fails.length) {
-          lines.push(``, `### Validator fails (${fails.length})`);
-          for (const f of fails) lines.push(`- \`${f.trim()}\``);
-        }
-      }
-      ctx.ui?.notify?.(lines.join("\n"), parsed?.ok ? "info" : "error");
+      const { stdout } = await execAsync(skillCheck, metaControlArgs(args), 15000);
+      const parsed = parseMetaControlOutput(stdout);
+      ctx.ui?.notify?.(formatMetaControlReport(parsed), parsed?.ok ? "info" : "error");
     } catch (e: any) {
-      ctx.ui?.notify?.(`meta-control check mislukt: ${e.message ?? e}`, "error");
+      const parsed = parseMetaControlOutput(String(e?.stdout ?? ""));
+      if (parsed) ctx.ui?.notify?.(formatMetaControlReport(parsed), "error");
+      else ctx.ui?.notify?.(`meta-control check mislukt: ${e.message ?? e}`, "error");
     }
   };
 

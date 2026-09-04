@@ -37,9 +37,8 @@ The codebase is organized into four distinct functional layers:
 The routing engine (`packages/extension/routing.ts`) uses a keyword-based precedence system to determine the optimal execution path.
 
 ### // UNIVERSAL KEYWORDS
-- **`agent-cli` / `control-cli`**: Routes to the Pi Agent CLI target atom.
+- **`tctl` / `control cli` / `pi agent` / `pi cli` / `pi coding`**: Route to the `background-pty` execution skill.
 - **`command` / `shell`**: Triggers terminal/TUI routing.
-- **`tctl`**: Explicit support for the tctl control layer.
 
 ---
 

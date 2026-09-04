@@ -47,10 +47,13 @@ if grep -q 'subagents/' "$SKILL_MD" 2>/dev/null; then
   [ -d "$SUBAGENTS_DIR" ] || MISSING+=("subagents/ directory referenced in SKILL.md but not present")
 fi
 
-# 3. Optional: ping the package validator if Python is available.
+# 3. Optional: run the package validator when Python is available, preserving failure.
 VALIDATOR_OUT=""
 if command -v python3 >/dev/null 2>&1 && [ -f "$REPO_ROOT/scripts/validate-package.py" ]; then
-  VALIDATOR_OUT=$(python3 "$REPO_ROOT/scripts/validate-package.py" 2>&1 | tail -n 20 || true)
+  VALIDATOR_RAW=$(python3 "$REPO_ROOT/scripts/validate-package.py" 2>&1)
+  VALIDATOR_STATUS=$?
+  VALIDATOR_OUT=$(printf '%s\n' "$VALIDATOR_RAW" | tail -n 20)
+  [ "$VALIDATOR_STATUS" -eq 0 ] || MISSING+=("package validator failed (exit $VALIDATOR_STATUS)")
 fi
 
 # 4. Optional: create a timestamped RUN_DIR with evidence subfolder when --new-run.
@@ -58,9 +61,17 @@ RUN_DIR=""
 RUN_ID=""
 if [ "$ACTION" = "new-run" ]; then
   TS=$(date -u +%Y-%m-%dT%H-%M-%SZ)
-  RUN_ID="run-${TS}"
-  RUN_DIR="$REPO_ROOT/artifacts/runs/$RUN_ID"
-  mkdir -p "$RUN_DIR/evidence"
+  BASE_RUN_ID="run-${TS}"
+  ATTEMPT=0
+  while :; do
+    RUN_ID="$BASE_RUN_ID"
+    [ "$ATTEMPT" -eq 0 ] || RUN_ID="${BASE_RUN_ID}-${ATTEMPT}"
+    RUN_DIR="$REPO_ROOT/artifacts/runs/$RUN_ID"
+    if mkdir "$RUN_DIR" 2>/dev/null; then break; fi
+    ATTEMPT=$((ATTEMPT + 1))
+    [ "$ATTEMPT" -lt 100 ] || { echo "Unable to allocate unique run directory" >&2; exit 1; }
+  done
+  mkdir "$RUN_DIR/evidence"
 fi
 
 OK=1
@@ -72,8 +83,16 @@ MISSING_JSON="[]"
 if [ ${#MISSING[@]} -gt 0 ]; then
   MISSING_JSON=$(printf '"%s",' "${MISSING[@]}" | sed 's/,$//' | awk '{print "["$0"]"}')
 fi
+if command -v python3 >/dev/null 2>&1; then
+  VALIDATOR_JSON=$(printf '%s' "$VALIDATOR_OUT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
+elif command -v node >/dev/null 2>&1; then
+  VALIDATOR_JSON=$(printf '%s' "$VALIDATOR_OUT" | node -e 'let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.stringify(s)))')
+else
+  echo "Neither python3 nor node is available for JSON serialization" >&2
+  exit 1
+fi
 cat <<EOF
-{"ok":$OK,"skill_dir":"$SKILL_DIR","repo_root":"$REPO_ROOT","checked_at":"$TS_NOW","missing":$MISSING_JSON,"validator_tail":$(printf '%s' "$VALIDATOR_OUT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'),"run_id":"$RUN_ID","run_dir":"$RUN_DIR","action":"$ACTION"}
+{"ok":$OK,"skill_dir":"$SKILL_DIR","repo_root":"$REPO_ROOT","checked_at":"$TS_NOW","missing":$MISSING_JSON,"validator_tail":$VALIDATOR_JSON,"run_id":"$RUN_ID","run_dir":"$RUN_DIR","action":"$ACTION"}
 EOF
 
 log ""
