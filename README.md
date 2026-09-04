@@ -1,4 +1,4 @@
-# // PI AGENT CONTROL EXTENSION
+# @groeponline/pi-agent-control-extension
 
 ![Brutalist UI Hero](docs/hero.png)
 
@@ -6,19 +6,35 @@
 Pi Agent Control Extension operates as a strictly structured Pi extension package for terminal, CLI, browser-routing, capture, verification, QA proof, and showcase workflows. It enforces repeatable drivers, skill stacks, capture formats, and evidence recipes from unformatted automation requests.
 
 [![CI](https://github.com/GroepOnline/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
-[![Package](https://img.shields.io/badge/pi-extension-blue)](#)
-[![Version](https://img.shields.io/badge/version-5.2.1-informational)](#)
-[![License](https://img.shields.io/badge/license-MIT-green)](#)
+[![npm](https://img.shields.io/npm/v/@groeponline/pi-agent-control-extension.svg)](https://www.npmjs.com/package/@groeponline/pi-agent-control-extension)
+[![Pi package](https://img.shields.io/badge/Pi-package-9b59b6.svg)](https://pi.dev/packages/@groeponline/pi-agent-control-extension)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
 ## // INSTALLATION
+
+**Requirements:** Node.js 22+ and a compatible Pi coding-agent host.
 
 ```bash
 pi install npm:@groeponline/pi-agent-control-extension
 ```
 
 Initialize or reload a Pi session. Registers commands, tools, bundled skills, routing rules, and package validation functions.
+
+## // WHERE IT FITS
+
+This package owns **QA routing, terminal/browser capture, verification evidence, Skill Studio, and showcase workflows**. It does not own Pi session/model/tool-state control; use [`@groeponline/pi-control`](https://github.com/GroepOnline/pi-control) for that. It also does not own durable work state or multi-agent execution.
+
+| Need | Package |
+|---|---|
+| Operator cockpit and short-lived idea capture | [`pi-wishcraft`](https://github.com/GroepOnline/pi-wishcraft) |
+| Durable missions that survive sessions | [`pi-missions`](https://github.com/GroepOnline/pi-missions) |
+| Multi-agent execution, worktrees, swarms, schedules | [`pi-agent-orchestrator`](https://github.com/GroepOnline/pi-agent-orchestrator) |
+| Live Pi session/model/tool/state control | [`pi-control`](https://github.com/GroepOnline/pi-control) |
+| QA evidence, capture drivers, showcase proof | **this package** |
+
+A normal portfolio flow is `idea -> mission -> orchestration run -> evidence`. This package provides the evidence/capture end of that flow rather than another task store.
 
 ---
 
@@ -198,12 +214,19 @@ Defense-in-depth is enforced across all user input and network I/O modules:
 
 ---
 
+## // PRIVACY & NETWORK BOUNDARY
+
+The extension has no package-owned telemetry service. QA evidence and capture artifacts are local unless an operator explicitly points a driver or bridge at another endpoint. The WebSocket bridge is opt-in and bearer-token protected; exposing it outside a trusted local/network boundary is an operator decision.
+
+`/showcase-render` uses the bundled Remotion workspace. A normal npm/Pi install does not auto-install that nested renderer workspace; when renderer dependencies are absent the command reports the requirement instead of attempting a broken render. A source checkout can enable rendering with `npm run setup`. The core control, routing, verification, and capture surfaces do not require a hosted ChefGroep control plane.
+
 ## // VALIDATE & TEST
 
 ```bash
 # Validation
 npm run validate
 npm run pack:dry
+npm run verify:package
 
 # Unit Tests (Vitest & tsx)
 npm test
@@ -216,7 +239,7 @@ npm run test:e2e
 pytest packages/skills
 ```
 
-`npm run validate` executes structure, manifest, skill inventory, and demo artifact verifications.
+`npm run validate` executes structure, manifest, skill inventory, and demo artifact verifications. `npm run verify:package` additionally inspects the actual npm tarball and fails if the Pi extension entrypoint, bundled skills, validator, or license would be omitted.
 
 ---
 

@@ -38,7 +38,7 @@ else
     # version X is higher than the new version"). Publishing under a marker
     # tag first, then repointing `latest` explicitly, is the only way to
     # publish a lower version.
-    npm publish --access public --tag "release-${VERSION}" 2>"$publish_err"
+    npm publish --access public --provenance --tag "release-${VERSION}" 2>"$publish_err"
     publish_status=$?
     set -e
     cat "$publish_err" >&2

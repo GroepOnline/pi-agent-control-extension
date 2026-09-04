@@ -11,16 +11,11 @@ permissions:
 jobs:
   verify:
     name: verify
-    # GitHub-hosted runners banned until Actions spending restored (fleet only).
-    runs-on: ${{ github.event_name == 'pull_request' && fromJSON('["self-hosted","Linux","X64","pr-isolated"]') || fromJSON('["self-hosted","Linux","X64","heavy"]') }}
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
       contents: read
       actions: write  # dispatch promotion via workflow_dispatch (GITHUB_TOKEN-run chain)
-    env:
-      # chef-runner layout: workspace under /opt/chef, HOME under /var/lib/chef.
-      # Extends the shell_command tool cwd allowlist (see packages/extension/tools/shell_command.ts).
-      SHELL_COMMAND_ALLOWED_CWD_PREFIXES: /opt/chef:/var/lib/chef
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
