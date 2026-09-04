@@ -1,0 +1,126 @@
+name: Promote Release Candidate
+
+# Triggered via workflow_dispatch by the Verify workflow's final step.
+# A plain workflow_run trigger would be suppressed because Verify is itself
+# dispatched from Release via GITHUB_TOKEN (anti-recursion), so promotion must
+# be driven by the explicit dispatch (which always creates a run). The whole
+# gate lives in the validation step below: candidate must be a release commit
+# whose parent is main, at the exact verified SHA, touching only the three
+# release files.
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Release candidate branch (release-candidate/vX.Y.Z-<release>)
+        required: true
+      sha:
+        description: Exact verified candidate SHA
+        required: true
+
+concurrency:
+  group: release-promote-pi-agent-control-extension
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    # GitHub-hosted runners banned until Actions spending restored (fleet only).
+    runs-on: ["self-hosted", "Linux", "X64", "heavy"]
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write # gh workflow run (publish dispatch on the tag) needs it
+    env:
+      # No checkout in this job: pin the repo so gh never resolves it via git remote.
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH: ${{ inputs.branch }}
+      CANDIDATE_SHA: ${{ inputs.sha }}
+    steps:
+      - name: Validate candidate from GitHub metadata only
+        id: candidate
+        run: |
+          set -euo pipefail
+          case "$BRANCH" in
+            release-candidate/v[0-9]*.[0-9]*.[0-9]*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+            *) echo "Invalid candidate branch: $BRANCH" >&2; exit 1 ;;
+          esac
+          VERSION="${BRANCH#release-candidate/v}"
+          VERSION="${VERSION%-????????????}"
+          PARENT_PREFIX="${BRANCH##*-}"
+          MAIN_SHA="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          # gh api writes the error body to stdout on non-2xx, so gate on the exit
+          # code, never on an empty capture.
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$BRANCH" --jq '.object.sha' > /tmp/candidate-ref.json 2>/dev/null; then
+            REMOTE_SHA="$(cat /tmp/candidate-ref.json)"
+          else
+            REMOTE_SHA=""
+          fi
+          if [ -n "$REMOTE_SHA" ] && [ "$REMOTE_SHA" != "$CANDIDATE_SHA" ]; then
+            echo "Candidate branch moved after Verify; refusing promotion." >&2
+            exit 1
+          fi
+          COMMIT="$(gh api "repos/$GITHUB_REPOSITORY/commits/$CANDIDATE_SHA")"
+          PARENT_SHA="$(printf '%s' "$COMMIT" | jq -r '.parents[0].sha')"
+          SUBJECT="$(printf '%s' "$COMMIT" | jq -r '.commit.message | split("\n")[0]')"
+          FILES="$(printf '%s' "$COMMIT" | jq -r '[.files[].filename] | sort | join("\n")')"
+          if [ "$MAIN_SHA" = "$CANDIDATE_SHA" ]; then
+            STATE="already-promoted"
+          elif [ "$PARENT_SHA" = "$MAIN_SHA" ]; then
+            [ -n "$REMOTE_SHA" ] || { echo "Candidate ref disappeared." >&2; exit 1; }
+            STATE="ready"
+          else
+            STATE="stale"
+          fi
+          if [ "$STATE" != "stale" ]; then
+            [ "${PARENT_SHA:0:12}" = "$PARENT_PREFIX" ] || { echo "Parent prefix mismatch." >&2; exit 1; }
+            [ "$SUBJECT" = "chore: release $VERSION" ] || { echo "Unexpected subject: $SUBJECT" >&2; exit 1; }
+            EXPECTED_FILES="$(printf '%s\n' CHANGELOG.md package-lock.json package.json | sort)"
+            [ "$FILES" = "$EXPECTED_FILES" ] || { echo "Unexpected candidate files:" >&2; printf '%s\n' "$FILES" >&2; exit 1; }
+            PACKAGE_JSON="$(gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$CANDIDATE_SHA" --jq '.content' | base64 -d)"
+            PACKAGE_LOCK="$(gh api "repos/$GITHUB_REPOSITORY/contents/package-lock.json?ref=$CANDIDATE_SHA" --jq '.content' | base64 -d)"
+            CHANGELOG="$(gh api "repos/$GITHUB_REPOSITORY/contents/CHANGELOG.md?ref=$CANDIDATE_SHA" --jq '.content' | base64 -d)"
+            PACKAGE_VERSION="$(printf '%s' "$PACKAGE_JSON" | jq -r '.version')"
+            LOCK_VERSION="$(printf '%s' "$PACKAGE_LOCK" | jq -r '.version')"
+            LOCK_ROOT_VERSION="$(printf '%s' "$PACKAGE_LOCK" | jq -r '.packages[""].version')"
+            [ "$PACKAGE_VERSION" = "$VERSION" ] || { echo "package.json version mismatch." >&2; exit 1; }
+            [ "$LOCK_VERSION" = "$VERSION" ] || { echo "package-lock root version mismatch." >&2; exit 1; }
+            [ "$LOCK_ROOT_VERSION" = "$VERSION" ] || { echo "package-lock package version mismatch." >&2; exit 1; }
+            printf '%s\n' "$CHANGELOG" | grep -Fqx "## [$VERSION] - $(date -u +%F)" || {
+              echo "CHANGELOG release heading missing." >&2; exit 1;
+            }
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          fi
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+      - name: Drop stale candidate
+        if: steps.candidate.outputs.state == 'stale'
+        run: gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$BRANCH" || true
+      - name: Promote exact verified SHA and tag
+        if: steps.candidate.outputs.state != 'stale'
+        env:
+          VERSION: ${{ steps.candidate.outputs.version }}
+          STATE: ${{ steps.candidate.outputs.state }}
+        run: |
+          set -euo pipefail
+          if [ "$STATE" = "ready" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/main" -f sha="$CANDIDATE_SHA" -F force=false >/dev/null
+          fi
+          TAG="v$VERSION"
+          # gh api writes the error body to stdout on non-2xx, so gate tag
+          # existence on the exit code, never on an empty capture.
+          if gh api "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" > /tmp/tag.json 2>/dev/null; then
+            TAG_JSON="$(cat /tmp/tag.json)"
+            TAG_TYPE="$(printf '%s' "$TAG_JSON" | jq -r '.object.type')"
+            TAG_SHA="$(printf '%s' "$TAG_JSON" | jq -r '.object.sha')"
+            if [ "$TAG_TYPE" = "tag" ]; then
+              TAG_SHA="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$TAG_SHA" --jq '.object.sha')"
+            fi
+            [ "$TAG_SHA" = "$CANDIDATE_SHA" ] || { echo "Tag $TAG points elsewhere." >&2; exit 1; }
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$CANDIDATE_SHA" >/dev/null
+          fi
+          # A tag created via the API under GITHUB_TOKEN does not emit an `on: push`
+          # tag event (anti-recursion), so publish must be dispatched explicitly on
+          # the tag ref; release.yml's verify/publish gates key off the tag ref and
+          # hold for the dispatched run too.
+          gh workflow run release.yml --ref "$TAG"
+          gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$BRANCH" || true

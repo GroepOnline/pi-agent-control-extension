@@ -1,0 +1,124 @@
+name: Release
+
+# A main push prepares a release candidate; only an exact candidate SHA that has
+# its own Verify check may be promoted to protected main and tagged.
+#
+# Publish is also dispatachable on a tag ref: tags created via the API under
+# GITHUB_TOKEN do not emit an `on: push` tag event (same anti-recursion rule as
+# workflow_run), so Promote explicitly dispatches this workflow on the tag it
+# just created. The verify/publish `if` conditions below key off
+# `github.ref == refs/tags/v*`, which holds for a dispatched run too.
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: npm-publish-pi-agent-control-extension
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: >-
+      (github.ref == 'refs/heads/main'
+      && github.event_name == 'push'
+      && !startsWith(github.event.head_commit.message, 'chore: release')
+      && !contains(github.event.head_commit.message, '[skip release]'))
+      || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      actions: write  # test.yml's nested verify job needs actions:write to dispatch promotion
+    uses: ./.github/workflows/test.yml
+
+  prepare:
+    name: prepare release candidate
+    needs: verify
+    if: >-
+      github.ref == 'refs/heads/main'
+      && github.event_name == 'push'
+      && !startsWith(github.event.head_commit.message, 'chore: release')
+      && !contains(github.event.head_commit.message, '[skip release]')
+    # GitHub-hosted runners banned until Actions spending restored (fleet only).
+    runs-on: ["self-hosted", "Linux", "X64", "heavy"]
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.x'
+      - name: Confirm verified main is still current
+        id: current
+        run: |
+          git fetch origin main --tags --force
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            echo "superseded=true" >> "$GITHUB_OUTPUT"
+            echo "A newer main exists; its Release run owns the next candidate."
+          else
+            echo "superseded=false" >> "$GITHUB_OUTPUT"
+            git reset --hard "$GITHUB_SHA"
+          fi
+      - name: Prepare idempotent candidate
+        id: candidate
+        if: steps.current.outputs.superseded != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          VERSION="$(node scripts/release.mjs next auto)"
+          BASE_SHORT="${GITHUB_SHA:0:12}"
+          BRANCH="release-candidate/v${VERSION}-${BASE_SHORT}"
+          REMOTE_SHA="$(git ls-remote --heads origin "refs/heads/$BRANCH" | awk '{print $1}')"
+          if [ -n "$REMOTE_SHA" ]; then
+            git fetch origin "refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" --force
+            node scripts/release.mjs candidate-check "$BRANCH" "$REMOTE_SHA" "$GITHUB_SHA" >/dev/null
+            CANDIDATE_SHA="$REMOTE_SHA"
+            echo "Reusing existing candidate $BRANCH at $CANDIDATE_SHA"
+          else
+            node scripts/release.mjs "$VERSION"
+            CANDIDATE_SHA="$(git rev-parse HEAD)"
+            node scripts/release.mjs candidate-check "$BRANCH" "$CANDIDATE_SHA" "$GITHUB_SHA" >/dev/null
+            git push origin "$CANDIDATE_SHA:refs/heads/$BRANCH"
+          fi
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "sha=$CANDIDATE_SHA" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Dispatch Verify on exact candidate ref
+        if: steps.current.outputs.superseded != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CANDIDATE_BRANCH: ${{ steps.candidate.outputs.branch }}
+        run: gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/test.yml/dispatches" -f ref="$CANDIDATE_BRANCH"
+
+  publish:
+    name: test + publish
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    # GitHub-hosted runners banned until Actions spending restored (fleet only).
+    runs-on: ["self-hosted", "Linux", "X64", "heavy"]
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.x'
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+      - name: Install devDependencies
+        run: npm ci --ignore-scripts
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: sh scripts/npm-publish.sh
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sh scripts/github-release.sh "${GITHUB_REF_NAME}"
