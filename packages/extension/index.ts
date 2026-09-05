@@ -302,6 +302,18 @@ export async function showcaseRender(args: string): Promise<string> {
   if (capturePath) extraArgs.push(capturePath);
   if (outPath) extraArgs.push(outPath);
 
+  const remotionWorkspace = join(rootDir(), "apps", "remotion");
+  const remotionRenderer = join(remotionWorkspace, "node_modules", "@remotion", "renderer", "package.json");
+  if (!existsSync(remotionRenderer)) {
+    return [
+      `## Showcase Render: ${recipe}`,
+      "",
+      "Remotion renderer dependencies are not installed for this package instance.",
+      "Core routing, capture, verification, and evidence tools remain available.",
+      "For rendering, use a source checkout and run `npm run setup` before `/showcase-render`.",
+    ].join("\n");
+  }
+
   try {
     const { stdout, stderr } = await execAsync("npx", ["tsx", "apps/remotion/scripts/render-showcase.ts", recipe, ...extraArgs], 300000);
     const lines = stdout.split("\n").filter(Boolean);

@@ -22,7 +22,7 @@ class TestValidatePackage(unittest.TestCase):
 
     def test_required_files(self):
         self.assertIn("Required file: package.json", self.stdout)
-        self.assertIn("Required file: extensions/pi-control/index.ts", self.stdout)
+        self.assertIn("Required file: packages/extension/index.ts", self.stdout)
         self.assertIn("Required file: scripts/validate-package.py", self.stdout)
         self.assertIn("Required file: bin/tctl", self.stdout)
 
@@ -30,7 +30,7 @@ class TestValidatePackage(unittest.TestCase):
         self.assertIn("PI manifest: extensions", self.stdout)
         self.assertIn("PI manifest: skills", self.stdout)
         self.assertIn("Keyword: pi-package", self.stdout)
-        self.assertIn("All 26 skills present", self.stdout)
+        self.assertIn("All 20 skills present", self.stdout)
 
     def test_system_dependencies(self):
         self.assertIn("Checking system dependencies...", self.stdout)

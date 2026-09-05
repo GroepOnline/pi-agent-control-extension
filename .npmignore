@@ -1,7 +1,7 @@
 # Remotion build artifacts and dev dependencies
-remotion/node_modules/
-remotion/package-lock.json
-remotion/artifacts/
+apps/remotion/node_modules/
+apps/remotion/package-lock.json
+apps/remotion/artifacts/
 
 # Test & dev artifacts
 artifacts/runs/*
