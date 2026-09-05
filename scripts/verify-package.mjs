@@ -3,7 +3,8 @@ import { execFileSync } from "node:child_process";
 const raw = execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
   encoding: "utf8",
 });
-const pack = JSON.parse(raw)[0];
+const parsed = JSON.parse(raw);
+const pack = Array.isArray(parsed) ? parsed[0] : parsed[Object.keys(parsed)[0]];
 const paths = new Set(pack.files.map((file) => file.path));
 const required = [
   "package.json",
@@ -14,13 +15,16 @@ const required = [
   "scripts/verify-package.mjs",
 ];
 const requiredPrefixes = ["packages/skills/", "apps/remotion/src/"];
-const forbiddenFragments = ["/node_modules/", "apps/remotion/artifacts/runs/"];
 const missing = required.filter((path) => !paths.has(path));
 const forbiddenPrefixes = [
   "apps/remotion/node_modules/",
   "apps/remotion/artifacts/",
 ];
-const forbidden = [...paths].filter((path) => forbiddenPrefixes.some((prefix) => path.startsWith(prefix)));
+const forbiddenFragments = ["/node_modules/", "apps/remotion/artifacts/runs/"];
+const forbidden = [...paths].filter((path) =>
+  forbiddenPrefixes.some((prefix) => path.startsWith(prefix)) ||
+  forbiddenFragments.some((fragment) => path.includes(fragment)),
+);
 if (forbidden.length) {
   console.error(`Invalid npm tarball; forbidden generated/dependency paths included: ${forbidden.slice(0, 10).join(", ")}`);
   process.exit(1);
@@ -32,11 +36,6 @@ if (pack.unpackedSize > maxUnpackedSize) {
 }
 for (const prefix of requiredPrefixes) {
   if (![...paths].some((path) => path.startsWith(prefix))) missing.push(`${prefix}*`);
-}
-const forbidden = [...paths].filter((path) => forbiddenFragments.some((fragment) => path.includes(fragment)));
-if (forbidden.length) {
-  console.error(`Invalid npm tarball; forbidden files: ${forbidden.slice(0, 10).join(", ")}`);
-  process.exit(1);
 }
 if (pack.size > 5 * 1024 * 1024) {
   console.error(`Invalid npm tarball; package is unexpectedly large: ${pack.size} bytes`);
