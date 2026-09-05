@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { mkdtempSync, writeFileSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { validateEvidence, EvidenceInput } from "./control_evidence_schema.ts";
 
 describe("validateEvidence", () => {
@@ -135,4 +138,51 @@ describe("validateEvidence", () => {
     expect(result.errors).toContain("path is required");
     expect(result.errors).toContain("format 'avi' is not a recognized evidence format");
   });
+  it("requires real non-empty artifacts when runtime validation is requested", () => {
+    const dir = mkdtempSync(join(tmpdir(), "control-evidence-"));
+    const missing = join(dir, "missing.png");
+    const result = validateEvidence({
+      evidenceId: "ev-runtime",
+      format: "png",
+      path: dir,
+      driver: "agent-browser",
+      artifactPaths: [missing],
+      requireArtifacts: true,
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("does not exist");
+  });
+
+  it("rejects zero-byte and symlink evidence and returns hashes for real artifacts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "control-evidence-"));
+    const empty = join(dir, "empty.png");
+    writeFileSync(empty, "");
+    const emptyResult = validateEvidence({
+      evidenceId: "ev-empty", format: "png", path: dir, driver: "agent-browser",
+      artifactPaths: [empty], requireArtifacts: true,
+    });
+    expect(emptyResult.valid).toBe(false);
+    expect(emptyResult.errors.join(" ")).toContain("empty");
+
+    const real = join(dir, "real.png");
+    writeFileSync(real, "png-bytes");
+    const link = join(dir, "link.png");
+    symlinkSync(real, link);
+    const linkResult = validateEvidence({
+      evidenceId: "ev-link", format: "png", path: dir, driver: "agent-browser",
+      artifactPaths: [link], requireArtifacts: true,
+    });
+    expect(linkResult.valid).toBe(false);
+    expect(linkResult.errors.join(" ")).toContain("symbolic link");
+
+    const realResult = validateEvidence({
+      evidenceId: "ev-real", format: "png", path: dir, driver: "agent-browser",
+      artifactPaths: [real], requireArtifacts: true,
+    });
+    expect(realResult.valid).toBe(true);
+    expect(realResult.artifacts).toHaveLength(1);
+    expect(realResult.artifacts?.[0]?.size).toBeGreaterThan(0);
+    expect(realResult.artifacts?.[0]?.sha256).toMatch(/^[a-f0-9]{64}$/);
+  });
+
 });
