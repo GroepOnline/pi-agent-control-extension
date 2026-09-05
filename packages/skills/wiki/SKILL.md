@@ -1,49 +1,42 @@
 ---
 name: wiki
-description: Generate comprehensive Pi-centric codebase documentation. Use when asked to map out an extension's architecture, document skill connections, or create internal developer wikis tailored for AI agents.
+description: Answer codebase-documentation questions using DeepWiki as the primary source, falling back to local docs. Use when asked to map out an extension's architecture, document skill connections, or explain how parts of a repo fit together.
 ---
 # Wiki Generation
 
-Read the repository and produce an interconnected documentation wiki specifically optimized for Pi Agent extensions and automation workflows.
+DeepWiki is the primary source. Do not crawl and rewrite a whole repo by hand when DeepWiki already indexed it.
 
-## Subagent Parallelization
+## Step 0 — run the sidecar
 
-If the codebase is large, do not attempt to read and write everything in one turn. Use the `invoke_subagent` tool to dispatch specialized research tasks to cheaper, faster models (e.g., `gemini-1.5-flash` or `claude-3-haiku`):
+```bash
+./scripts/wiki-context.sh                # current repo (from git remote)
+./scripts/wiki-context.sh <owner/repo>   # explicit repo
+```
 
-- **Subagent 1:** Map all `.pi/skills/` and `skills/` directories.
-- **Subagent 2:** Map the core routing logic (e.g., `routing.ts`, `index.ts`).
-- **Subagent 3:** Map evidence and verification guardrails.
+It returns `deepwiki_url`, `local_docs[]`, and `skill_count` as JSON. No network calls — you fetch DeepWiki yourself in the next step.
 
-Once the subagents return their summaries, synthesize them into the final wiki.
+## Step 1 — ask DeepWiki first
 
-## The Output: `docs/wiki/`
+Fetch the relevant DeepWiki page(s) for the question:
 
-Generate markdown files in `docs/wiki/`. The structure must follow Pi extension conventions:
+```
+https://deepwiki.com/<owner>/<repo>
+```
 
-\`\`\`text
-docs/wiki/
-├── index.md                 # Entry point: What this extension/repo does
-├── architecture.md          # High-level component map with Mermaid
-├── skills-catalog.md        # List of all registered Pi skills
-├── routing-logic.md         # How intents map to drivers and capabilities
-└── testing-and-evidence.md  # How to run checks and validate captures
-\`\`\`
+Use the agent's URL-fetch tool and drill into the sections that answer the question (architecture, routing, skills, capture formats, guardrails). Quote or link the DeepWiki sections you used so the answer stays traceable.
 
-## Deep Scan Methodology
+If the repo is private or DeepWiki has no page for it, fall through to step 2.
 
-Look for Pi-specific paradigms:
-- **Routing**: How does the user's intent get parsed into a `RouteDecision`?
-- **Capture**: What formats are expected (e.g., `mp4`, `cast`, `screenshots`)?
-- **Skills**: What atomized skills are available? Are they "control" or "general"?
-- **Validation**: Is there a `validate-package.py` or equivalent strict constraint checking script?
+## Step 2 — local fallback (only when DeepWiki has nothing)
 
-## Drafting the Pages
+Read the local docs from the sidecar's `local_docs[]` list plus `packages/skills/*/SKILL.md` for the skills in question. Synthesize a focused answer — not a full `docs/wiki/` tree. A full generated wiki is only worth it when explicitly asked; a directly answering page with links beats five speculative index pages.
 
-### General Rules
-- Use Mermaid diagrams heavily (e.g., `sequenceDiagram` for tool flow, `graph TD` for component mapping).
-- Keep descriptions concise and agent-friendly. Avoid human-centric tutorials.
-- Every skill listed must have a hyperlink to its actual `SKILL.md` file.
-- Document any "guardrails" (e.g., blocked commands, restricted file paths).
+When you do write local pages, follow these rules:
 
-### Chaining
-Once the wiki is generated, if there are obvious gaps in test coverage or documentation, consider chaining into the `review` skill to audit the implementation, or `autoresearch` to find solutions.
+- One page per question, Mermaid only where a diagram carries information text cannot.
+- Every skill listed links to its actual `SKILL.md` file.
+- Keep it agent-friendly and concise. No human-centric tutorials.
+
+## Step 3 — chain
+
+If the answer exposes gaps in tests or implementation, chain into `review` (audit) — not into writing more wiki pages.

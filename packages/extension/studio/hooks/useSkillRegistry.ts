@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync, openSync, fstatSync, closeSync, 
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { SkillEntry, SkillSource, ShadowState } from '../model/skill.ts';
+import { dedupeUserSkills } from '../model/skill.ts';
 
 const STUDIO_STATE_PATH = join(homedir(), '.config', 'devin', 'skill-studio.json');
 
@@ -131,13 +132,16 @@ function buildRegistry(): SkillEntry[] {
     return a.name.localeCompare(b.name);
   });
 
+  // One row per name across user dirs (global > devin > claude)
+  const deduped = dedupeUserSkills(all);
+
   // Prune stale cache entries for deleted/renamed files
-  const activePaths = new Set(all.map((s) => s.path));
+  const activePaths = new Set(deduped.map((s) => s.path));
   for (const key of skillCache.keys()) {
     if (!activePaths.has(key)) skillCache.delete(key);
   }
 
-  return all;
+  return deduped;
 }
 
 function getWatchedDirs(): string[] {

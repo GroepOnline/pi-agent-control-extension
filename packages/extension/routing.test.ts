@@ -23,14 +23,28 @@ describe("Routing Logic", () => {
     expect(result.skills).toContain("tuistory");
   });
 
+  it("treats negative keywords as exclusions instead of standalone matches", () => {
+    const result = routeControlTask("summarize these notes");
+    expect(result.skills).not.toContain("tuistory");
+    expect(result.skills).not.toContain("capture");
+    expect(result.capture).toBe("report");
+  });
+
+  it("does not add terminal skills to browser-only tasks", () => {
+    const result = routeControlTask("open the browser");
+    expect(result.driver).toBe("agent-browser");
+    expect(result.skills).not.toContain("tuistory");
+    expect(result.skills).not.toContain("capture");
+  });
+
   it("handles word-boundary matching correctly to prevent false positives", () => {
     // "api" should not match "pi agent"
     const resultApi = routeControlTask("fetch from the rest api");
-    expect(resultApi.skills).not.toContain("agy-agent-cli");
+    expect(resultApi.skills).not.toContain("background-pty");
 
     // "pi agent" should match
     const resultPi = routeControlTask("use the pi agent to do this");
-    expect(resultPi.skills).toContain("agy-agent-cli");
+    expect(resultPi.skills).toContain("background-pty");
 
     // "random" should not match "dom manipulation"
     const resultRandom = routeControlTask("pick a random number");

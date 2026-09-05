@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { parseSkillMd, doDiff, SkillEntry } from "./cli.ts";
+import { dedupeUserSkills } from "./studio/model/skill.ts";
 import * as child_process from "node:child_process";
 import * as fs from "node:fs";
 
@@ -23,6 +24,38 @@ vi.mock("node:fs", async () => {
 vi.mock("./skill-merge.ts", () => ({
   mergeSkill: vi.fn(() => ({ hasConflicts: false, conflicts: [] })),
 }));
+
+describe("dedupeUserSkills", () => {
+  const mk = (name: string, sourceDir: string): SkillEntry => ({
+    name,
+    description: "",
+    path: `/some/${sourceDir}/${name}/SKILL.md`,
+    source: "user",
+    sourceDir,
+    enabled: true,
+    valid: "ok",
+    mtime: new Date(),
+    shadowState: null,
+  });
+
+  it("keeps one row per name across user dirs, preferring global", () => {
+    const out = dedupeUserSkills([
+      mk("poteto-mode", "claude"),
+      mk("other", "claude"),
+      mk("poteto-mode", "global"),
+    ]);
+    expect(out.map((s) => s.name).sort()).toEqual(["other", "poteto-mode"]);
+    expect(out.find((s) => s.name === "poteto-mode")?.sourceDir).toBe("global");
+  });
+
+  it("leaves pi entries and user-overrides-pi shadowing untouched", () => {
+    const pi: SkillEntry = { ...mk("tdd", "claude"), source: "pi", sourceDir: "pi", shadowState: "shadowed" };
+    const user: SkillEntry = { ...mk("tdd", "global"), shadowState: "overrides" };
+    const out = dedupeUserSkills([pi, user]);
+    expect(out).toHaveLength(2);
+    expect(out.find((s) => s.name === "tdd" && s.source === "pi")?.shadowState).toBe("shadowed");
+  });
+});
 
 describe("parseSkillMd", () => {
   it("should parse basic name and description", () => {

@@ -40,7 +40,9 @@
     "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'",
     "clean": "rm -rf coverage reports artifacts/telemetry/*.jsonl apps/remotion/node_modules/.cache apps/remotion/node_modules/.remotion && echo 'Caches en tijdelijke bestanden succesvol opgeruimd!'",
     "verify:package": "node scripts/verify-package.mjs",
-    "prepublishOnly": "npm run validate && npm test && npm run lint && npm run verify:package"
+    "prepublishOnly": "npm run validate && npm test && npm run lint && npm run verify:package",
+    "typecheck": "tsc --noEmit",
+    "release": "node scripts/release.mjs"
   },
   "workspaces": [
     "apps/*",

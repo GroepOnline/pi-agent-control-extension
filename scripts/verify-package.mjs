@@ -15,12 +15,12 @@ const required = [
   "scripts/verify-package.mjs",
 ];
 const requiredPrefixes = ["packages/skills/", "apps/remotion/src/"];
-const forbiddenFragments = ["/node_modules/", "apps/remotion/artifacts/runs/"];
 const missing = required.filter((path) => !paths.has(path));
 const forbiddenPrefixes = [
   "apps/remotion/node_modules/",
   "apps/remotion/artifacts/",
 ];
+const forbiddenFragments = ["/node_modules/", "apps/remotion/artifacts/runs/"];
 const forbidden = [...paths].filter((path) =>
   forbiddenPrefixes.some((prefix) => path.startsWith(prefix)) ||
   forbiddenFragments.some((fragment) => path.includes(fragment)),
