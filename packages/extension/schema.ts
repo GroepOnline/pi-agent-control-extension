@@ -3,8 +3,6 @@ export const SKILL_NAMES = [
   "capture",
   "compose",
   "init",
-  "agy-agent-cli",
-  "agy-agent-control",
   "pty-capture",
   "review",
   "session-navigation",

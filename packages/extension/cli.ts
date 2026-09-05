@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { mergeSkill } from './skill-merge.ts';
+import { dedupeUserSkills } from './studio/model/skill.ts';
 
 // CLI Colors (Vibrant HSL-tailored ANSI)
 const C_RESET = '\x1b[0m';
@@ -173,7 +174,7 @@ function buildRegistry(): SkillEntry[] {
     return a.name.localeCompare(b.name);
   });
 
-  return all;
+  return dedupeUserSkills(all);
 }
 
 export function doDiff(skill: SkillEntry): string {

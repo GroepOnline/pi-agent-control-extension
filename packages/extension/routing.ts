@@ -15,29 +15,23 @@ const regexCache = new Map<string, RegExp>();
 // Example: keywords: ["terminal", "!browser"] matches "terminal" but NOT if "browser" is present.
 // This is for rule authors to define exclusions, not for user input parsing.
 
+function containsTerm(text: string, term: string) {
+  if (term.includes(" ")) return text.includes(term);
+  let re = regexCache.get(term);
+  if (!re) {
+    re = new RegExp(`\\b${term}\\b`);
+    regexCache.set(term, re);
+  }
+  return re.test(text);
+}
+
 function has(text: string, terms: string[]) {
   const t = text.toLowerCase();
-  return terms.some((term) => {
-    // Negative keyword support: !term means "must NOT contain term"
-    if (term.startsWith("!")) {
-      const negTerm = term.slice(1);
-      if (negTerm.includes(" ")) return !t.includes(negTerm);
-      let re = regexCache.get(negTerm);
-      if (!re) {
-        re = new RegExp(`\\b${negTerm}\\b`);
-        regexCache.set(negTerm, re);
-      }
-      return !re.test(t);
-    }
-    // Positive keyword
-    if (term.includes(" ")) return t.includes(term);
-    let re = regexCache.get(term);
-    if (!re) {
-      re = new RegExp(`\\b${term}\\b`);
-      regexCache.set(term, re);
-    }
-    return re.test(t);
-  });
+  const positive = terms.filter((term) => !term.startsWith("!"));
+  const excluded = terms.filter((term) => term.startsWith("!")).map((term) => term.slice(1));
+
+  if (excluded.some((term) => containsTerm(t, term))) return false;
+  return positive.length === 0 || positive.some((term) => containsTerm(t, term));
 }
 
 type RouteState = {
@@ -83,8 +77,8 @@ const ROUTE_RULES: Rule[] = [
     apply: (s) => { s.deliverable = "qa-report"; s.skills.push("verify"); }
   },
   {
-    keywords: ["tctl", "agy agent", "agy cli", "antigravity", "control cli", "pi agent", "pi cli", "pi coding"],
-    apply: (s) => { s.skills.push("agy-agent-cli"); }
+    keywords: ["tctl", "control cli", "pi agent", "pi cli", "pi coding"],
+    apply: (s) => { s.skills.push("background-pty"); }
   },
   {
     keywords: ["initialize workspace", "setup workspace", "workspace init", "onboard", "scaffold"],
@@ -181,7 +175,7 @@ export function routeControlTask(task: string, deliverableHint = ""): RouteDecis
     driver: "tuistory",
     capture: "report",
     deliverable: "proof-report",
-    skills: ["agy-agent-control"],
+    skills: ["meta-control"],
     warnings: []
   };
 

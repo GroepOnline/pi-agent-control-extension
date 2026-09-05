@@ -25,6 +25,7 @@ The command or capture stage should have provided a handoff with two sections:
 - **showcase**: preset name -- `macos`, `minimal`, `hero`, `presentation`, `pi-warm`, `pi-hero`
 - **effects tier**: `utilitarian` | `full` | `none` (see "Choosing effects at compose time" below)
 - **output**: desired output path
+- **verification**: if a `verification.json` from the verify stage sits next to the deliverable, reuse its technical fields (resolution, duration, type) instead of re-probing the video
 
 ### Creative (natural language)
 
@@ -153,7 +154,7 @@ Use `side-by-side` only when the story is fundamentally a comparison: regression
 Save the `showcaseSchema` JSON to a temp file:
 
 ```bash
-DEMO_TMP="$(mktemp -d /tmp/agy-agent-control-demo-XXXXXX)"
+DEMO_TMP="$(mktemp -d /tmp/pi-agent-control-demo-XXXXXX)"
 PROPS="${DEMO_TMP}/showcase-props.json"
 
 cat > "$PROPS" << 'EOF'
@@ -174,7 +175,7 @@ cat > "$PROPS" << 'EOF'
   "sections": [],
   "effects": [],
   "speedNote": "3x speed",
-  "windowTitle": "agy demo"
+  "windowTitle": "demo"
 }
 EOF
 ```

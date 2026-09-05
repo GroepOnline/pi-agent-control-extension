@@ -30,8 +30,7 @@ Pi extension package: slash commands, LLM tools, 21 atomized skills in `packages
 | **Terminal TUI** | `packages/skills/tuistory/SKILL.md` · `packages/skills/true-input/SKILL.md` |
 | **PTY / background** | `packages/skills/background-pty/SKILL.md` · `packages/skills/pty-capture/SKILL.md` |
 | **Showcase video (UI)** | `packages/skills/showcase/SKILL.md` · `apps/remotion/` |
-| **Notion / Linear bridge** | `packages/skills/notion-linear-bridge/SKILL.md` |
-| **Repo agent skills** | `.agents/skills/testing-pi-control-tools/SKILL.md` · `testing-notion-linear/SKILL.md` |
+| **Repo agent skills** | `.agents/skills/testing-pi-control-tools/SKILL.md` |
 | **Spawn config** | `../../../pi-agent-orchestrator/AGENTS.md` |
 | **Global** | `~/.agents/skills/agent-browser` · `agent-e2e-tester` |
 
