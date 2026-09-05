@@ -1,6 +1,6 @@
 {
   "name": "@groeponline/pi-agent-control-extension",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
   "type": "module",
   "keywords": [
@@ -73,7 +73,12 @@
     "scripts/render-showcase-helper.py",
     "scripts/verify-package.mjs",
     "bin",
-    "apps/remotion",
+    "apps/remotion/package.json",
+    "apps/remotion/remotion.config.ts",
+    "apps/remotion/tsconfig.json",
+    "apps/remotion/scripts",
+    "apps/remotion/src",
+    "apps/remotion/public",
     "artifacts/demo/demo.gif"
   ],
   "devDependencies": {
