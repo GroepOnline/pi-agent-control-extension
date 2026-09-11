@@ -13,6 +13,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/GroepOnline/pi-agent-control-extension/main/artifacts/demo/demo.gif" alt="Real Pi Agent Control capture and evidence demo" width="100%">
+</p>
+
+<p align="center"><sub>Recorded package output. The demo is evidence from the control surface, not a designed mockup.</sub></p>
+
 ## Start in 10 seconds
 
 ```bash
@@ -269,7 +275,3 @@ pytest packages/skills
 Consult [ROADMAP.md](docs/ROADMAP.md) for architectural vectors, encompassing LLM-powered guardrails, native Playwright integration, and remote tmux orchestration.
 
 ---
-
-## // DEMO
-
-![Demo](artifacts/demo/demo.gif)
