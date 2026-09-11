@@ -1,42 +1,63 @@
-# @groeponline/pi-agent-control-extension
+<p align="center">
+  <img src="https://raw.githubusercontent.com/GroepOnline/pi-agent-control-extension/main/docs/hero.png" alt="Pi Agent Control Extension" width="100%">
+</p>
 
-![Brutalist UI Hero](docs/hero.png)
+<h1 align="center">Pi Agent Control Extension</h1>
 
+<p align="center"><strong>Capture what the agent actually did, not just what it says it did.</strong><br>Route terminal and browser work to the right driver, record the run, and turn it into QA evidence, screenshots, casts or showcase video.</p>
 
-Pi Agent Control Extension operates as a strictly structured Pi extension package for terminal, CLI, browser-routing, capture, verification, QA proof, and showcase workflows. It enforces repeatable drivers, skill stacks, capture formats, and evidence recipes from unformatted automation requests.
+<p align="center">
+  <a href="https://www.npmjs.com/package/@groeponline/pi-agent-control-extension"><img src="https://img.shields.io/npm/v/@groeponline/pi-agent-control-extension.svg" alt="npm version"></a>
+  <a href="https://pi.dev/packages/@groeponline/pi-agent-control-extension"><img src="https://img.shields.io/badge/Pi-package-9b59b6.svg" alt="Pi package"></a>
+  <a href="https://github.com/GroepOnline/pi-agent-control-extension/actions/workflows/ci.yml"><img src="https://github.com/GroepOnline/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+</p>
 
-[![CI](https://github.com/GroepOnline/pi-agent-control-extension/actions/workflows/ci.yml/badge.svg)](#)
-[![npm](https://img.shields.io/npm/v/@groeponline/pi-agent-control-extension.svg)](https://www.npmjs.com/package/@groeponline/pi-agent-control-extension)
-[![Pi package](https://img.shields.io/badge/Pi-package-9b59b6.svg)](https://pi.dev/packages/@groeponline/pi-agent-control-extension)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
----
-
-## // INSTALLATION
-
-**Requirements:** Node.js 22+ and a compatible Pi coding-agent host.
+## Start in 10 seconds
 
 ```bash
 pi install npm:@groeponline/pi-agent-control-extension
 ```
 
-Initialize or reload a Pi session. Registers commands, tools, bundled skills, routing rules, and package validation functions.
+Then capture something real:
 
-## // WHERE IT FITS
+```text
+/capture https://example.com --format mp4
+```
 
-This package owns **QA routing, terminal/browser capture, verification evidence, Skill Studio, and showcase workflows**. It does not own Pi session/model/tool-state control; use [`@groeponline/pi-control`](https://github.com/GroepOnline/pi-control) for that. It also does not own durable work state or multi-agent execution.
+Or capture a terminal flow:
+
+```text
+/capture "npm run dev" --format cast
+```
+
+The extension picks the driver, writes the artifact and returns evidence you can inspect instead of a prose-only success claim.
+
+## Three useful entry points
+
+```text
+/route-control "verify this browser flow"
+/verify-control
+/qa-control
+```
+
+- `/route-control` decides which driver, skills and capture format fit the task.
+- `/verify-control` gives the required commitment/evidence contract.
+- `/qa-control` produces the QA report structure for expected vs observed behavior.
+
+## What this package owns
+
+**QA routing, terminal/browser capture, evidence, Skill Studio and showcase workflows.** It does not own Pi session/model/tool-state control; use [`@groeponline/pi-control`](https://github.com/GroepOnline/pi-control) for that. It also does not own durable task state or multi-agent execution.
 
 | Need | Package |
 |---|---|
-| Operator cockpit and short-lived idea capture | [`pi-wishcraft`](https://github.com/GroepOnline/pi-wishcraft) |
-| Durable missions that survive sessions | [`pi-missions`](https://github.com/GroepOnline/pi-missions) |
-| Multi-agent execution, worktrees, swarms, schedules | [`pi-agent-orchestrator`](https://github.com/GroepOnline/pi-agent-orchestrator) |
+| Operator cockpit and quick idea capture | [`pi-wishcraft`](https://github.com/GroepOnline/pi-wishcraft) |
+| Durable missions across sessions | [`pi-missions`](https://github.com/GroepOnline/pi-missions) |
+| Parallel agents, worktrees, swarms, schedules | [`pi-agent-orchestrator`](https://github.com/GroepOnline/pi-agent-orchestrator) |
 | Live Pi session/model/tool/state control | [`pi-control`](https://github.com/GroepOnline/pi-control) |
-| QA evidence, capture drivers, showcase proof | **this package** |
+| QA evidence, capture and showcase proof | **this package** |
 
-A normal portfolio flow is `idea -> mission -> orchestration run -> evidence`. This package provides the evidence/capture end of that flow rather than another task store.
-
----
+A normal portfolio flow is `idea → mission → orchestration run → evidence`.
 
 ## // CAPABILITIES
 
