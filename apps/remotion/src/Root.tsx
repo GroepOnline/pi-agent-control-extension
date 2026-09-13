@@ -1,6 +1,8 @@
 import { Composition } from 'remotion';
 import { ShowcaseComposition, showcaseSchema } from './compositions/Showcase';
 import { NarratorShowcaseComposition } from './compositions/NarratorShowcase';
+import { PiExtensionsFilm } from './film/PiExtensionsFilm';
+import { filmDuration, fps as filmFps } from './film/timing';
 import { calculateShowcaseDuration } from './lib/duration';
 import { narratorSchema } from './schema/narrator.schema';
 
@@ -55,6 +57,17 @@ export const RemotionRoot: React.FC = () => {
           durationTargetSec: 60,
           chapters: [],
         }}
+      />
+
+      {/* Merged from pi-extensions-showcase: per-extension film (Open, Stack,
+          Wishcraft, Orchestrator, Tools, Missions, Control, Close) */}
+      <Composition
+        id="ExtensionsFilm"
+        component={PiExtensionsFilm}
+        durationInFrames={filmDuration}
+        fps={filmFps}
+        width={1920}
+        height={1080}
       />
     </>
   );
