@@ -164,15 +164,18 @@ if [[ -z "$SPEED" ]]; then
 fi
 
 RENDER_ARGS=()
+# Worker concurrency follows the machine (Remotion CLI defaults to cores/2,
+# which underuses larger machines; frame rendering scales near-linearly).
+CONCURRENCY="$(nproc)"
 case "$FIDELITY" in
   compact)
-    RENDER_ARGS+=(--codec=h264 --crf=21 --jpeg-quality=92 --pixel-format=yuv420p --x264-preset=medium)
+    RENDER_ARGS+=(--codec=h264 --crf=21 --jpeg-quality=92 --pixel-format=yuv420p --x264-preset=medium --concurrency="$CONCURRENCY")
     ;;
   inspect)
-    RENDER_ARGS+=(--codec=h264 --crf=14 --video-image-format=png --pixel-format=yuv420p --x264-preset=slow)
+    RENDER_ARGS+=(--codec=h264 --crf=14 --video-image-format=png --pixel-format=yuv420p --x264-preset=slow --concurrency="$CONCURRENCY")
     ;;
   standard)
-    RENDER_ARGS+=(--codec=h264 --crf=18 --jpeg-quality=96 --pixel-format=yuv420p --x264-preset=slow)
+    RENDER_ARGS+=(--codec=h264 --crf=18 --jpeg-quality=96 --pixel-format=yuv420p --x264-preset=slow --concurrency="$CONCURRENCY")
     ;;
   *)
     echo "error: unsupported fidelity profile: $FIDELITY" >&2
