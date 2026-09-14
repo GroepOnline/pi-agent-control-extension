@@ -165,8 +165,10 @@ fi
 
 RENDER_ARGS=()
 # Worker concurrency follows the machine (Remotion CLI defaults to cores/2,
-# which underuses larger machines; frame rendering scales near-linearly).
-CONCURRENCY="$(nproc)"
+# which underuses larger machines). Leave 2 cores headroom for the browser
+# main thread and the x264 encode so render workers never starve them.
+NPROC="$(nproc)"
+if [ "$NPROC" -gt 2 ]; then CONCURRENCY="$((NPROC - 2))"; else CONCURRENCY="$NPROC"; fi
 case "$FIDELITY" in
   compact)
     RENDER_ARGS+=(--codec=h264 --crf=21 --jpeg-quality=92 --pixel-format=yuv420p --x264-preset=medium --concurrency="$CONCURRENCY")
