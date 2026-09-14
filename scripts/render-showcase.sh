@@ -183,6 +183,11 @@ case "$FIDELITY" in
     ;;
 esac
 
+# Cache the webpack bundle between renders (content-addressed by Remotion;
+# prop-only re-renders skip re-bundling, cold renders are unaffected).
+BUNDLE_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/remotion-bundle-cache"
+RENDER_ARGS+=(--bundle-cache="$BUNDLE_CACHE_DIR")
+
 # Stage clips into public/
 for clip in "${CLIPS[@]}"; do
   base=$(basename "$clip")
