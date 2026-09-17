@@ -1,8 +1,8 @@
 import { Composition } from 'remotion';
 import { ShowcaseComposition, showcaseSchema } from './compositions/Showcase';
 import { NarratorShowcaseComposition } from './compositions/NarratorShowcase';
-import { PiExtensionsFilm } from './film/PiExtensionsFilm';
-import { filmDuration, fps as filmFps } from './film/timing';
+import { PiExtensionsFilm } from './film/PiExtensionsFilm.tsx';
+import { filmDuration, fps as filmFps } from './film/timing.ts';
 import { calculateShowcaseDuration } from './lib/duration';
 import { narratorSchema } from './schema/narrator.schema';
 
