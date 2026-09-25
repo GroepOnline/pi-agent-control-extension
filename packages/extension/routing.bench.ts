@@ -1,38 +1,55 @@
-import { describe, bench } from "vitest";
+import { test } from "vitest";
 import { routeControlTask } from "./routing.ts";
 
-describe("Routing Performance Benchmarks", () => {
-  bench("routeControlTask - simple browser task", () => {
-    routeControlTask("do a visual qa of the login page");
-  });
+const route = routeControlTask;
+const runOptions = { time: 200, iterations: 10 };
 
-  bench("routeControlTask - complex mixed driver task", () => {
-    routeControlTask("analyze and improve the project with wiki and review");
-  });
+test("routeControlTask - simple browser task", async ({ bench }) => {
+  await bench("routeControlTask - simple browser task", () => {
+    route("do a visual qa of the login page");
+  }).run(runOptions);
+});
 
-  bench("routeControlTask - terminal encoding task", () => {
-    routeControlTask("verify the escape sequence encoding in wezterm");
-  });
+test("routeControlTask - complex mixed driver task", async ({ bench }) => {
+  await bench("routeControlTask - complex mixed driver task", () => {
+    route("analyze and improve the project with wiki and review");
+  }).run(runOptions);
+});
 
-  bench("routeControlTask - tctl with color warnings", () => {
-    routeControlTask("run tctl with force_color=3 and colorterm=truecolor");
-  });
+test("routeControlTask - terminal encoding task", async ({ bench }) => {
+  await bench("routeControlTask - terminal encoding task", () => {
+    route("verify the escape sequence encoding in wezterm");
+  }).run(runOptions);
+});
 
-  bench("routeControlTask - deliverable hint", () => {
-    routeControlTask("run something", "with a video");
-  });
+test("routeControlTask - tctl with color warnings", async ({ bench }) => {
+  await bench("routeControlTask - tctl with color warnings", () => {
+    route("run tctl with force_color=3 and colorterm=truecolor");
+  }).run(runOptions);
+});
 
-  bench("routeControlTask - long complex task", () => {
-    routeControlTask(
+test("routeControlTask - deliverable hint", async ({ bench }) => {
+  await bench("routeControlTask - deliverable hint", () => {
+    route("run something", "with a video");
+  }).run(runOptions);
+});
+
+test("routeControlTask - long complex task", async ({ bench }) => {
+  await bench("routeControlTask - long complex task", () => {
+    route(
       "setup workspace with wiki documentation, safety review, and research optimization using subagents for the pipeline"
     );
-  });
+  }).run(runOptions);
+});
 
-  bench("routeControlTask - word boundary matching", () => {
-    routeControlTask("fetch from the rest api");
-  });
+test("routeControlTask - word boundary matching", async ({ bench }) => {
+  await bench("routeControlTask - word boundary matching", () => {
+    route("fetch from the rest api");
+  }).run(runOptions);
+});
 
-  bench("routeControlTask - multiple keyword matches", () => {
-    routeControlTask("browser automation with screenshots and video showcase");
-  });
+test("routeControlTask - multiple keyword matches", async ({ bench }) => {
+  await bench("routeControlTask - multiple keyword matches", () => {
+    route("browser automation with screenshots and video showcase");
+  }).run(runOptions);
 });
