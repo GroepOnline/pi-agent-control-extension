@@ -5,6 +5,8 @@ Older v4/v5 history lives in `CHANGELOG-v5.md` (and `CHANGELOG-v4.md` where pres
 
 ## [Unreleased]
 
+## [5.6.0] - 2026-09-25
+
 ## [5.5.0] - 2026-09-13
 
 ## [5.4.0] - 2026-09-12
