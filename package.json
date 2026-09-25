@@ -81,6 +81,7 @@
     "apps/remotion/scripts",
     "apps/remotion/src",
     "apps/remotion/public",
+    "!apps/remotion/public/*.mp4",
     "artifacts/demo/demo.gif"
   ],
   "devDependencies": {
