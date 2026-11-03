@@ -2,6 +2,13 @@ import { Composition } from 'remotion';
 import { ShowcaseComposition, showcaseSchema } from './compositions/Showcase';
 import { NarratorShowcaseComposition } from './compositions/NarratorShowcase';
 import { PiExtensionsFilm } from './film/PiExtensionsFilm.tsx';
+import {
+  LiveTerminal,
+  liveDurationFrames,
+  liveFps,
+  liveHeight,
+  liveWidth,
+} from './film/LiveTerminal.tsx';
 import { filmDuration, fps as filmFps } from './film/timing.ts';
 import { calculateShowcaseDuration } from './lib/duration';
 import { narratorSchema } from './schema/narrator.schema';
@@ -57,6 +64,18 @@ export const RemotionRoot: React.FC = () => {
           durationTargetSec: 60,
           chapters: [],
         }}
+      />
+
+      {/* Restored from the merged pi-extensions-showcase source repo, where
+          LiveTerminal was registered as a standalone composition. It is not a
+          scene of PiExtensionsFilm; it needs its own composition ID. */}
+      <Composition
+        id="LiveTerminal"
+        component={LiveTerminal}
+        durationInFrames={liveDurationFrames}
+        fps={liveFps}
+        width={liveWidth}
+        height={liveHeight}
       />
 
       {/* Merged from pi-extensions-showcase: per-extension film (Open, Stack,
