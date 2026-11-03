@@ -15,12 +15,9 @@ export default defineConfig({
         lines: 50,
       },
     },
-  },
-  benchmark: {
-    include: ["packages/**/*.bench.ts"],
-    exclude: ["node_modules", "apps/remotion/node_modules"],
-    environment: "node",
-    time: 200,
-    iterations: 10,
+    benchmark: {
+      include: ["packages/**/*.bench.ts"],
+      exclude: ["node_modules", "apps/remotion/node_modules"],
+    },
   },
 });

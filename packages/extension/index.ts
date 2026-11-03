@@ -15,6 +15,7 @@ import { registerCapture } from "./capture.ts";
 import { registerBridge } from "./bridge.ts";
 import { mergeSkill, listMergeStates } from "./skill-merge.ts";
 import { registerTools } from "./tools/index.ts";
+import { installFatalExceptionExit } from "./fatal-exit.ts";
 
 const CONTROL_HUB = `# Control Hub
 
@@ -378,6 +379,8 @@ export function metaControlArgs(args: string): string[] {
 }
 
 export default function controlExtension(pi: ExtensionAPI) {
+  installFatalExceptionExit();
+
   pi.on("session_start", async (_event: unknown, ctx: ExtensionContext) => {
     const n = listSkills(rootDir()).length;
     ctx.ui?.notify?.(`pi-agent-control loaded (${n} skills)`, "info");
