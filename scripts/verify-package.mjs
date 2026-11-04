@@ -1,0 +1,33 @@
+import { execFileSync } from "node:child_process";
+
+const raw = execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+  encoding: "utf8",
+});
+const pack = JSON.parse(raw)[0];
+const paths = new Set(pack.files.map((file) => file.path));
+const required = [
+  "package.json",
+  "README.md",
+  "LICENSE",
+  "packages/extension/index.ts",
+  "scripts/validate-package.py",
+  "scripts/verify-package.mjs",
+];
+const requiredPrefixes = ["packages/skills/"];
+const missing = required.filter((path) => !paths.has(path));
+for (const prefix of requiredPrefixes) {
+  if (![...paths].some((path) => path.startsWith(prefix))) missing.push(`${prefix}*`);
+}
+if (missing.length) {
+  console.error(`Invalid npm tarball; missing: ${missing.join(", ")}`);
+  process.exit(1);
+}
+const pkg = JSON.parse(execFileSync(process.execPath, ["-e", "process.stdout.write(JSON.stringify(require('./package.json')))"]));
+for (const entrypoint of [...(pkg.pi?.extensions ?? []), ...(pkg.pi?.skills ?? [])]) {
+  const rel = entrypoint.replace(/^\.\//, "").replace(/\/$/, "");
+  if (!paths.has(rel) && ![...paths].some((path) => path.startsWith(`${rel}/`))) {
+    console.error(`Pi manifest target is absent from npm tarball: ${entrypoint}`);
+    process.exit(1);
+  }
+}
+console.log(`package contract ok: ${pack.name}@${pack.version}, ${pack.files.length} files, ${pack.size} bytes`);
