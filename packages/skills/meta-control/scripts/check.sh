@@ -60,6 +60,7 @@ fi
 RUN_DIR=""
 RUN_ID=""
 if [ "$ACTION" = "new-run" ]; then
+  mkdir -p "$REPO_ROOT/artifacts/runs"
   TS=$(date -u +%Y-%m-%dT%H-%M-%SZ)
   BASE_RUN_ID="run-${TS}"
   ATTEMPT=0
