@@ -12,7 +12,7 @@
 set -uo pipefail
 
 TYPE="single"
-RES="1920x1080"
+RES=""
 QUIET=0
 VIDEO=""
 
@@ -52,6 +52,14 @@ case "$TYPE" in
   multi) DMIN=60; DMAX=120 ;;
   *) echo "Unknown --type: $TYPE (single|side-by-side|multi)" >&2; exit 2 ;;
 esac
+# Match the actual render profile when the caller didn't pass --resolution:
+# side-by-side renders use the inspect profile at 2560x1440.
+if [ -z "$RES" ]; then
+  case "$TYPE" in
+    side-by-side|sidebyside) RES="2560x1440" ;;
+    *) RES="1920x1080" ;;
+  esac
+fi
 EXP_W="${RES%x*}"; EXP_H="${RES#*x}"
 
 if ! PROBE=$(ffprobe -v quiet -print_format json -show_format -show_streams "$VIDEO" 2>/dev/null) || [ -z "$PROBE" ]; then

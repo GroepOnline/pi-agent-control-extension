@@ -106,10 +106,12 @@ export function runValidator() {
       // [OK] lines printed before the crash — keep them, but mark the crash
       // so formatDoctor can never read a truncated report as all-pass.
       const out = typeof err.stdout === "string" ? err.stdout.trim() : "";
-      const tail = typeof err.stderr === "string" && err.stderr.trim()
-        ? `: ${err.stderr.trim().split("\n").pop()}` : "";
+      const lastStderr = typeof err.stderr === "string" && err.stderr.trim()
+        ? err.stderr.trim().split("\n").pop() : "";
       const how = typeof err.signal === "string" ? `signal ${err.signal}` : `exit ${err.status}`;
-      return `${out ? `${out}\n` : ""}[FAIL] validator crashed (${how})${tail}`;
+      // Keep the [FAIL] marker line clean — detail goes on a continuation
+      // line so consumers scanning for [OK]/[FAIL] never read stderr noise.
+      return `${out ? `${out}\n` : ""}[FAIL] validator crashed (${how})${lastStderr ? `\n  stderr: ${lastStderr}` : ""}`;
     }
   }
   return "Unable to run Python validator. [FAIL]";

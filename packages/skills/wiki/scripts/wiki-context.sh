@@ -10,11 +10,12 @@ set -uo pipefail
 
 QUIET=0
 REPO_SLUG=""
+EXPLICIT_REPO=0
 for arg in "$@"; do
   case "$arg" in
     --quiet) QUIET=1 ;;
     -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
-    *) REPO_SLUG="$arg" ;;
+    *) REPO_SLUG="$arg"; EXPLICIT_REPO=1 ;;
   esac
 done
 
@@ -29,6 +30,11 @@ CHECKOUT_REPO=$(printf '%s' "$REMOTE_URL" \
   | sed -E 's#^https?://[^/]+/##; s#^git@[^:]+:##; s#\.git$##')
 if [ -z "$REPO_SLUG" ]; then
   REPO_SLUG="$CHECKOUT_REPO"
+fi
+
+if [ "$EXPLICIT_REPO" -eq 1 ] && [[ "$REPO_SLUG" != */* ]]; then
+  echo "wiki-context: invalid repository '$REPO_SLUG' (expected owner/repo)" >&2
+  exit 2
 fi
 
 if [ -z "$REPO_SLUG" ] || [[ "$REPO_SLUG" != */* ]]; then
