@@ -98,12 +98,18 @@ export function runValidator() {
   for (const [cmd, args] of cmds) {
     try { return execFileSync(cmd, args, { cwd: PACKAGE_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }).trim(); }
     catch (e) {
-      // A non-zero validator exit carries its report on stdout — return it so
-      // formatDoctor sees the [FAIL] lines instead of a generic message that
-      // reads as "all checks passed". Interpreter-missing errors have no
-      // stdout and fall through to the next candidate.
-      const out = (e as { stdout?: unknown })?.stdout;
-      if (typeof out === "string" && out.trim()) return out.trim();
+      const err = e as { stdout?: unknown; stderr?: unknown; status?: unknown; signal?: unknown };
+      // Spawn-level failures carry no exit status or signal: that is the
+      // missing-interpreter case and the only one worth retrying elsewhere.
+      if (typeof err.status !== "number" && typeof err.signal !== "string") continue;
+      // The validator ran and died nonzero. Its stdout can hold partial
+      // [OK] lines printed before the crash — keep them, but mark the crash
+      // so formatDoctor can never read a truncated report as all-pass.
+      const out = typeof err.stdout === "string" ? err.stdout.trim() : "";
+      const tail = typeof err.stderr === "string" && err.stderr.trim()
+        ? `: ${err.stderr.trim().split("\n").pop()}` : "";
+      const how = typeof err.signal === "string" ? `signal ${err.signal}` : `exit ${err.status}`;
+      return `${out ? `${out}\n` : ""}[FAIL] validator crashed (${how})${tail}`;
     }
   }
   return "Unable to run Python validator. [FAIL]";
