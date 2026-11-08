@@ -48,3 +48,5 @@ This project is a Pi extension package that provides routing, capture, and verif
 ### // VALIDATION
 
 The project uses a Python-based validator ([validate-package.py](scripts/validate-package.py)) to ensure all required files, skills, and manifest entries are present.
+
+Compound Engineering overlay: `.compound-engineering/` (tracked `config.yaml`, gitignored `config.local.yaml`). Artifact root `.compound-engineering/artifacts/`. Portable skills `~/.agents/skills/ce-*` and `lfg`. The native Cursor plugin is Cursor-only fallback when this overlay is absent — Pi, Codex, and Claude never enable it, never spawn `cursor-agent`, and never copy Cursor Task slugs (`cursor-grok-*`). Each CLI implements in-session (`work_engine_mode: off`).

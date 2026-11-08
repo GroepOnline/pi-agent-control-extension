@@ -30,6 +30,6 @@ vi.mock("node:child_process", async (importOriginal) => {
 describe("runValidator fallback", () => {
   it("returns fallback message when all python commands fail", () => {
     const result = runValidator();
-    expect(result).toBe("Unable to run Python validator.");
+    expect(result).toBe("Unable to run Python validator. [FAIL]");
   });
 });

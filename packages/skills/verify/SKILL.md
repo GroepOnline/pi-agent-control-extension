@@ -76,11 +76,15 @@ Walk through each commitment from the parse step:
 Before manual checks, run the technical checks:
 
 ```bash
-./scripts/check-video.sh <video.mp4> --type single|side-by-side|multi
+./scripts/check-video.sh <video.mp4> --type single
 ```
 
-It validates plays, resolution (default 1920x1080, override with
-`--resolution WxH`), pixel format (yuv420p), size (5MB comfort /
+Use `single`, `side-by-side` or `multi` for `--type` (pick one value — the
+`a|b|c` notation is documentation, not a command). It validates plays,
+resolution (default 1920x1080, override with `--resolution WxH` — a plain
+`side-by-side` render uses the `inspect` profile at 2560x1440, so pass
+`--resolution 2560x1440` there or take the expected value from the
+compose handoff), pixel format (yuv420p), size (5MB comfort /
 25MB hard), and the duration window for the demo type. JSON output,
 non-zero exit on hard failure. Fix what it flags before spending time
 on commitment/content review — a wrong resolution never passes.

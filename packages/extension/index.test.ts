@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList } from "./index.ts";
+import { formatRouteMarkdown, formatUsageTable, recipeList, skillSearch, skillInfo, presetList, transitionList, metaControlArgs, parseMetaControlOutput, formatMetaControlReport } from "./index.ts";
 import * as utils from "./utils.ts";
 
 vi.mock("./utils.ts", async (importOriginal) => {
@@ -17,6 +17,23 @@ function buildExecArgs(p: { action: string; target?: string; args?: string[]; se
   if (p.session) execArgs.unshift("--session", p.session);
   return execArgs;
 }
+
+describe("metaControl reporting", () => {
+  it("recovers structured failure details from sidecar stdout", () => {
+    const parsed = parseMetaControlOutput('{"ok":0,"action":"doctor","missing":["validator failed"],"validator_tail":"[FAIL] package"}\n');
+    const report = formatMetaControlReport(parsed);
+    expect(report).toContain("validator failed");
+    expect(report).toContain("[FAIL] package");
+  });
+});
+
+describe("metaControlArgs", () => {
+  it("passes sidecar flags as distinct argv entries", () => {
+    expect(metaControlArgs("--new-run")).toEqual(["--new-run", "--quiet"]);
+    expect(metaControlArgs("-n")).toEqual(["--new-run", "--quiet"]);
+    expect(metaControlArgs("")).toEqual(["--quiet"]);
+  });
+});
 
 describe("formatRouteMarkdown", () => {
   it("returns markdown table with route fields", () => {

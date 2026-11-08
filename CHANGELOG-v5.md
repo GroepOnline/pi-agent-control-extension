@@ -1,3 +1,10 @@
+# v5.2.3 - Catalog-safe npm package
+
+## Packaging
+- Stop publishing nested Remotion `node_modules` and generated capture artifacts.
+- Ship only the Remotion source/config files needed by showcase workflows.
+- Fail package verification when generated/dependency paths leak into the tarball or the unpacked package exceeds 10 MiB.
+
 # v5.1 - Enhanced Control Layer
 
 ## Features

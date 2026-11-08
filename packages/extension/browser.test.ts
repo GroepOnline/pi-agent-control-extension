@@ -1,206 +1,54 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { captureBrowser } from "./browser.ts";
 
-const { mockExecFileSync } = vi.hoisted(() => ({
-  mockExecFileSync: vi.fn(),
-}));
-vi.mock("node:child_process", () => ({
-  execFileSync: mockExecFileSync,
-}));
+vi.mock("./utils.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./utils.ts")>();
+  return { ...actual, shellEscape: (s: string) => `'${s}'` };
+});
 
-vi.mock("./utils.ts", () => ({
-  shellEscape: vi.fn((s: string) => s),
-}));
+const TARGET = "https://example.com/path?q=safe";
+const DIR = "/tmp/evidence/run-001";
+const ID = "evidence-abc123";
 
-const TARGET = "https://example.com";
-const EVIDENCE_DIR = "/tmp/evidence/run-001";
-const EVIDENCE_ID = "evidence-abc123";
-
-describe("captureBrowser", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe("captureBrowser runtime plans", () => {
+  it("uses current agent-browser open/set viewport/screenshot commands", () => {
+    const r = captureBrowser(TARGET, "png", DIR, ID);
+    const session = expect.stringContaining("evidence-abc123");
+    expect(r.commandParts).toEqual([
+      ["agent-browser", "--session", session, "open", TARGET],
+      ["agent-browser", "--session", session, "set", "viewport", "1280", "720"],
+      ["agent-browser", "--session", session, "screenshot", `${DIR}/screenshot.png`],
+    ]);
+    expect(r.expectedArtifacts).toEqual([`${DIR}/screenshot.png`]);
+    expect(r.cleanupCommandParts?.[0]?.at(-1)).toBe("close");
+  });
+  it("persists snapshot stdout as a report artifact", () => {
+    const r = captureBrowser(TARGET, "report", DIR, ID);
+    expect(r.commandParts?.at(-1)).toEqual([
+      "agent-browser", "--session", expect.stringContaining("evidence-abc123"), "snapshot",
+    ]);
+    expect(r.outputArtifact).toBe(`${DIR}/report.txt`);
+    expect(r.expectedArtifacts).toEqual([`${DIR}/report.txt`]);
   });
 
-  describe("png format", () => {
-    it("returns driver 'agent-browser'", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.driver).toBe("agent-browser");
-    });
-
-    it("sets validated to true when agent-browser is installed", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.validated).toBe(true);
-    });
-
-    it("sets validated to false when agent-browser is not installed", () => {
-      mockExecFileSync.mockImplementation(() => {
-        throw new Error("not found");
-      });
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.validated).toBe(false);
-    });
-
-    it("adds a warning when agent-browser is not found", () => {
-      mockExecFileSync.mockImplementation(() => {
-        throw new Error("not found");
-      });
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.warnings).toEqual([
-        "agent-browser CLI not found in PATH. Install it to execute browser captures.",
-      ]);
-    });
-
-    it("has empty warnings when agent-browser is found", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.warnings).toEqual([]);
-    });
-
-    it("builds the correct command string", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.command).toBe(
-        `agent-browser open --viewport 1280x720 -- ${TARGET} && agent-browser screenshot --out ${EVIDENCE_DIR}/screenshot.png`,
-      );
-    });
-
-    it("has correct commandParts structure with two steps", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.commandParts).toEqual([
-        ["agent-browser", "open", "--viewport", "1280x720", "--", TARGET],
-        ["agent-browser", "screenshot", "--out", `${EVIDENCE_DIR}/screenshot.png`],
-      ]);
-    });
-
-    it("calls execFileSync to check for agent-browser installation", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(mockExecFileSync).toHaveBeenCalledWith(
-        expect.stringMatching(/^(which|where)$/),
-        ["agent-browser"],
-        expect.objectContaining({
-          encoding: "utf8",
-          timeout: 5000,
-        }),
-      );
-    });
-
-    it("preserves evidenceId and format", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.evidenceId).toBe(EVIDENCE_ID);
-      expect(r.format).toBe("png");
-    });
-
-    it("sets path to evidenceDir", () => {
-      mockExecFileSync.mockReturnValue("/usr/bin/agent-browser");
-      const r = captureBrowser(TARGET, "png", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.path).toBe(EVIDENCE_DIR);
-    });
+  it("records webm and converts it to mp4", () => {
+    const r = captureBrowser(TARGET, "mp4", DIR, ID);
+    expect(r.commandParts?.some((step) => step.includes("record") && step.includes("start"))).toBe(true);
+    expect(r.commandParts?.some((step) => step.includes("record") && step.includes("stop"))).toBe(true);
+    expect(r.commandParts?.some((step) => step[0] === "ffmpeg")).toBe(true);
+    expect(r.expectedArtifacts).toContain(`${DIR}/recording.mp4`);
   });
 
-  describe("mp4 format", () => {
-    it("returns driver 'agent-browser'", () => {
-      const r = captureBrowser(TARGET, "mp4", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.driver).toBe("agent-browser");
-    });
-
-    it("sets validated to false", () => {
-      const r = captureBrowser(TARGET, "mp4", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.validated).toBe(false);
-    });
-
-    it("builds the correct command string", () => {
-      const r = captureBrowser(TARGET, "mp4", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.command).toBe(
-        `agent-browser open --viewport 1280x720 -- ${TARGET} && agent-browser record --out ${EVIDENCE_DIR}/recording.mp4`,
-      );
-    });
-
-    it("has empty warnings", () => {
-      const r = captureBrowser(TARGET, "mp4", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.warnings).toEqual([]);
-    });
-
-    it("has correct commandParts structure with two steps", () => {
-      const r = captureBrowser(TARGET, "mp4", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.commandParts).toEqual([
-        ["agent-browser", "open", "--viewport", "1280x720", "--", TARGET],
-        ["agent-browser", "record", "--out", `${EVIDENCE_DIR}/recording.mp4`],
-      ]);
-    });
-
-    it("does not call execFileSync", () => {
-      captureBrowser(TARGET, "mp4", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(mockExecFileSync).not.toHaveBeenCalled();
-    });
+  it("rejects asciicast instead of pretending browser open is cast evidence", () => {
+    const r = captureBrowser(TARGET, "cast", DIR, ID);
+    expect(r.supported).toBe(false);
+    expect(r.commandParts).toEqual([]);
+    expect(r.warnings.join(" ")).toContain("not supported");
   });
 
-  describe("cast format", () => {
-    it("returns driver 'agent-browser'", () => {
-      const r = captureBrowser(TARGET, "cast", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.driver).toBe("agent-browser");
-    });
-
-    it("sets validated to false", () => {
-      const r = captureBrowser(TARGET, "cast", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.validated).toBe(false);
-    });
-
-    it("builds the correct command string", () => {
-      const r = captureBrowser(TARGET, "cast", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.command).toBe(
-        `agent-browser open --viewport 1280x720 -- ${TARGET}`,
-      );
-    });
-
-    it("includes a warning about unsupported asciicast format", () => {
-      const r = captureBrowser(TARGET, "cast", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.warnings).toEqual([
-        "asciicast format is not supported for browser captures; use mp4 or png.",
-      ]);
-    });
-
-    it("has correct commandParts structure with one step", () => {
-      const r = captureBrowser(TARGET, "cast", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.commandParts).toEqual([
-        ["agent-browser", "open", "--viewport", "1280x720", "--", TARGET],
-      ]);
-    });
-  });
-
-  describe("report format", () => {
-    it("returns driver 'agent-browser'", () => {
-      const r = captureBrowser(TARGET, "report", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.driver).toBe("agent-browser");
-    });
-
-    it("sets validated to true", () => {
-      const r = captureBrowser(TARGET, "report", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.validated).toBe(true);
-    });
-
-    it("builds the correct command string", () => {
-      const r = captureBrowser(TARGET, "report", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.command).toBe(
-        `agent-browser open --viewport 1280x720 -- ${TARGET} && agent-browser snapshot`,
-      );
-    });
-
-    it("has empty warnings", () => {
-      const r = captureBrowser(TARGET, "report", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.warnings).toEqual([]);
-    });
-
-    it("has correct commandParts structure with two steps", () => {
-      const r = captureBrowser(TARGET, "report", EVIDENCE_DIR, EVIDENCE_ID);
-      expect(r.commandParts).toEqual([
-        ["agent-browser", "open", "--viewport", "1280x720", "--", TARGET],
-        ["agent-browser", "snapshot"],
-      ]);
-    });
+  it("never marks a plan as runtime validated before execution", () => {
+    for (const format of ["png", "mp4", "report"] as const) {
+      expect(captureBrowser(TARGET, format, DIR, ID).validated).toBe(false);
+    }
   });
 });

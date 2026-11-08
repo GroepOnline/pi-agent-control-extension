@@ -54,8 +54,7 @@ case "$TYPE" in
 esac
 EXP_W="${RES%x*}"; EXP_H="${RES#*x}"
 
-PROBE=$(ffprobe -v quiet -print_format json -show_format -show_streams "$VIDEO" 2>/dev/null || true)
-if [ -z "$PROBE" ]; then
+if ! PROBE=$(ffprobe -v quiet -print_format json -show_format -show_streams "$VIDEO" 2>/dev/null) || [ -z "$PROBE" ]; then
   echo "{\"ok\":0,\"video\":\"$VIDEO\",\"error\":\"ffprobe could not read file\"}"
   log "❌ ffprobe could not read: $VIDEO"
   exit 1

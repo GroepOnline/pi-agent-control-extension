@@ -28,9 +28,6 @@ cleanup_test_sessions() {
   local sid
   for sid in "${CREATED_SIDS[@]:-}"; do
     "$TCTL" -s "$sid" close 2>/dev/null || true
-    # Belt-and-suspenders: kill any lingering tmux servers
-    local socket="tctl-$(echo "$sid" | tr -cd '[:alnum:]-')"
-    tmux -L "$socket" kill-server 2>/dev/null || true
   done
 }
 trap cleanup_test_sessions EXIT INT TERM
@@ -40,12 +37,6 @@ trap cleanup_test_sessions EXIT INT TERM
 # ---------------------------------------------------------------------------
 if ! command -v tuistory >/dev/null 2>&1; then
   echo "SKIP: tuistory not installed — cannot run tctl background tests"
-  echo "Passed: $PASS  Failed: $FAIL  Skipped: $SKIP"
-  exit 0
-fi
-
-if ! command -v tmux >/dev/null 2>&1; then
-  echo "SKIP: tmux not installed — cannot run tctl background tests"
   echo "Passed: $PASS  Failed: $FAIL  Skipped: $SKIP"
   exit 0
 fi
@@ -106,7 +97,7 @@ if "$TCTL" launch "sleep 10" \
   END_NS=$(date +%s%N)
   ELAPSED_MS=$(( (END_NS - START_NS) / 1000000 ))
   echo "  Launch completed in ${ELAPSED_MS}ms"
-  # Budget: 0.5s initial sleep + 10 retries x 0.5s = 5.5s max, allow 8s for tmux overhead
+  # Native tuistory --background --no-wait should return well inside this generous budget.
   if (( ELAPSED_MS < 8000 )); then
     pass "health check completed within 8s budget (${ELAPSED_MS}ms)"
   else
@@ -124,19 +115,20 @@ section "3. Failed launch cleanup"
 SID3="tctl-ut-bg-fail-$(date +%s)"
 CREATED_SIDS+=("$SID3")
 
-# Use sleep 0.1 to give tuistory a window to register before the runner exits.
-# Without the delay, the runner exits so fast that tuistory may not register,
-# making the health check exhaust retries (cleanup path). With the delay,
-# tuistory registers, the health check passes, and we cover the success path.
-OUTPUT="$("$TCTL" launch "sleep 0.1 && /nonexistent/binary/that/will/fail" \
+# Keep the process alive briefly so the daemon can expose the failure state via snapshot
+# before the short-lived command exits and the test performs cleanup.
+if "$TCTL" launch "sleep 0.1 && /nonexistent/binary/that/will/fail" \
     -s "$SID3" \
     --backend tuistory \
     --background \
     --repo-root "$REPO_ROOT" \
-    --env FORCE_COLOR=3 --env COLORTERM=truecolor 2>&1)" && RC=0 || RC=$?
+    --env FORCE_COLOR=3 --env COLORTERM=truecolor >/dev/null 2>&1; then
+  RC=0
+else
+  RC=$?
+fi
 
 SESSION_DIR3="/tmp/tctl-sessions/$SID3"
-TMUX_SOCKET3="tctl-$(echo "$SID3" | tr -cd '[:alnum:]-')"
 
 if [[ "$RC" -ne 0 ]]; then
   # Launch reported failure → verify cleanup
@@ -145,13 +137,6 @@ if [[ "$RC" -ne 0 ]]; then
   else
     fail "failed launch left meta file behind"
     rm -rf "$SESSION_DIR3" 2>/dev/null || true
-  fi
-  # Verify tmux server was killed
-  if tmux -L "$TMUX_SOCKET3" has-session -t "$SID3" 2>/dev/null; then
-    fail "failed launch left tmux session running"
-    tmux -L "$TMUX_SOCKET3" kill-server 2>/dev/null || true
-  else
-    pass "failed launch killed tmux server"
   fi
 else
   # Launch succeeded (tuistory registered before the runner exited)

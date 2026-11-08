@@ -58,7 +58,7 @@ TCTL=${PI_AGENT_CONTROL_ROOT}/bin/tctl
  
 **Single branch:**
 ```bash
-$TCTL launch "cli" -s ${RUN_ID}-demo --backend tuistory \
+$TCTL launch "pi" -s ${RUN_ID}-demo --backend tuistory \
   --repo-root /path/to/worktree \
   --cols 120 --rows 36 --record ${RUN_DIR}/demo.cast \
   --env FORCE_COLOR=3 --env COLORTERM=truecolor
@@ -66,12 +66,12 @@ $TCTL launch "cli" -s ${RUN_ID}-demo --backend tuistory \
  
 **Comparison (before/after):**
 ```bash
-$TCTL launch "cli" -s ${RUN_ID}-before --backend tuistory \
+$TCTL launch "pi" -s ${RUN_ID}-before --backend tuistory \
   --repo-root /path/to/baseline-worktree \
   --cols 120 --rows 36 --record ${RUN_DIR}/before.cast \
   --env FORCE_COLOR=3 --env COLORTERM=truecolor
  
-$TCTL launch "cli" -s ${RUN_ID}-after --backend tuistory \
+$TCTL launch "pi" -s ${RUN_ID}-after --backend tuistory \
   --repo-root /path/to/candidate-worktree \
   --cols 120 --rows 36 --record ${RUN_DIR}/after.cast \
   --env FORCE_COLOR=3 --env COLORTERM=truecolor

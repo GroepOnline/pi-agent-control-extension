@@ -1,6 +1,6 @@
 {
   "name": "@groeponline/pi-agent-control-extension",
-  "version": "5.2.2",
+  "version": "5.13.0",
   "description": "Pi extension for terminal, CLI, browser-routing, capture, QA evidence, verification, usage observability, and control hub workflows",
   "type": "module",
   "keywords": [
@@ -40,7 +40,9 @@
     "showcase:preview": "echo 'Run /showcase-preview <recipe> in a Pi session'",
     "clean": "rm -rf coverage reports artifacts/telemetry/*.jsonl apps/remotion/node_modules/.cache apps/remotion/node_modules/.remotion && echo 'Caches en tijdelijke bestanden succesvol opgeruimd!'",
     "verify:package": "node scripts/verify-package.mjs",
-    "prepublishOnly": "npm run validate && npm test && npm run lint && npm run verify:package"
+    "prepublishOnly": "npm run validate && npm test && npm run lint && npm run verify:package",
+    "typecheck": "tsc --noEmit",
+    "release": "node scripts/release.mjs"
   },
   "workspaces": [
     "apps/*",
@@ -73,17 +75,23 @@
     "scripts/render-showcase-helper.py",
     "scripts/verify-package.mjs",
     "bin",
-    "apps/remotion",
+    "apps/remotion/package.json",
+    "apps/remotion/remotion.config.ts",
+    "apps/remotion/tsconfig.json",
+    "apps/remotion/scripts",
+    "apps/remotion/src",
+    "apps/remotion/public",
+    "!apps/remotion/public/*.mp4",
     "artifacts/demo/demo.gif"
   ],
   "devDependencies": {
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/ws": "^8.18.1",
-    "@vitest/coverage-v8": "^4.1.7",
+    "@vitest/coverage-v8": "^5.0.0",
     "ink-testing-library": "^4.0.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^5.0.0"
   },
   "dependencies": {
     "ink": "^7.0.4",

@@ -21,20 +21,30 @@ done
 log() { [ "$QUIET" -eq 1 ] || echo "$@" >&2; }
 
 # Resolve owner/repo from explicit arg or git remote.
+# Always record the local checkout's remote separately: local_docs[] describe
+# this checkout, which may differ from the requested repo.
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || true)
+# Handles https://github.com/Owner/Repo(.git) and git@github.com:Owner/Repo(.git)
+CHECKOUT_REPO=$(printf '%s' "$REMOTE_URL" \
+  | sed -E 's#^https?://[^/]+/##; s#^git@[^:]+:##; s#\.git$##')
 if [ -z "$REPO_SLUG" ]; then
-  REMOTE_URL=$(git remote get-url origin 2>/dev/null || true)
-  # Handles https://github.com/Owner/Repo(.git) and git@github.com:Owner/Repo(.git)
-  REPO_SLUG=$(printf '%s' "$REMOTE_URL" \
-    | sed -E 's#^https?://[^/]+/##; s#^git@[^:]+:##; s#\.git$##')
+  REPO_SLUG="$CHECKOUT_REPO"
 fi
 
 if [ -z "$REPO_SLUG" ] || [[ "$REPO_SLUG" != */* ]]; then
-  echo '{"ok":0,"error":"could not resolve owner/repo (no git remote?)"}'
-  log "❌ no owner/repo resolvable; pass <owner/repo> explicitly"
-  exit 1
+  # No remote and no explicit slug: still inventory the local docs (they are
+  # the useful half of this sidecar) and report a null DeepWiki target.
+  REPO_JSON="null"
+  DEEPWIKI_JSON="null"
+  log "⚠️  no owner/repo resolvable; reporting local docs only"
+else
+  REPO_JSON="\"$REPO_SLUG\""
+  DEEPWIKI_URL="https://deepwiki.com/${REPO_SLUG}"
+  DEEPWIKI_JSON="\"$DEEPWIKI_URL\""
 fi
+CHECKOUT_JSON="null"
+[ -n "$CHECKOUT_REPO" ] && [[ "$CHECKOUT_REPO" == */* ]] && CHECKOUT_JSON="\"$CHECKOUT_REPO\""
 
-DEEPWIKI_URL="https://deepwiki.com/${REPO_SLUG}"
 
 # Inventory local docs relative to repo root.
 GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
@@ -49,11 +59,16 @@ done < <(find "$GIT_ROOT/docs" -name '*.md' -not -path '*/node_modules/*' | head
 SKILL_COUNT=$(find "$GIT_ROOT/packages/skills" -maxdepth 2 -name 'SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
 
 TS_NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-DOCS_JSON=$(printf '"%s",' "${DOCS[@]:-}" | sed 's/,$//')
+DOCS_JSON=""
+for doc in "${DOCS[@]:-}"; do
+  [ -n "$doc" ] || continue
+  DOCS_JSON="${DOCS_JSON}\"${doc}\","
+done
+DOCS_JSON="${DOCS_JSON%,}"
 cat <<EOF
-{"ok":1,"repo":"$REPO_SLUG","deepwiki_url":"$DEEPWIKI_URL","checked_at":"$TS_NOW","local_docs":[${DOCS_JSON}],"skill_count":${SKILL_COUNT:-0}}
+{"ok":1,"repo":${REPO_JSON},"deepwiki_url":${DEEPWIKI_JSON},"checkout_repo":${CHECKOUT_JSON},"checked_at":"$TS_NOW","local_docs":[${DOCS_JSON}],"skill_count":${SKILL_COUNT:-0}}
 EOF
 
 log ""
-log "📖 DeepWiki: $DEEPWIKI_URL"
-log "📁 ${#DOCS[@]} local doc(s), $SKILL_COUNT skill(s)"
+[ "$REPO_JSON" = "null" ] || log "📖 DeepWiki: $DEEPWIKI_URL"
+log "📁 ${#DOCS[@]} local doc(s), $SKILL_COUNT skill(s) in checkout ${CHECKOUT_REPO:-<none>}"

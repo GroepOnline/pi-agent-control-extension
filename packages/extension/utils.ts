@@ -97,9 +97,16 @@ export function runValidator() {
     : [["python3", [script]], ["python", [script]]];
   for (const [cmd, args] of cmds) {
     try { return execFileSync(cmd, args, { cwd: PACKAGE_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }).trim(); }
-    catch { }
+    catch (e) {
+      // A non-zero validator exit carries its report on stdout — return it so
+      // formatDoctor sees the [FAIL] lines instead of a generic message that
+      // reads as "all checks passed". Interpreter-missing errors have no
+      // stdout and fall through to the next candidate.
+      const out = (e as { stdout?: unknown })?.stdout;
+      if (typeof out === "string" && out.trim()) return out.trim();
+    }
   }
-  return "Unable to run Python validator.";
+  return "Unable to run Python validator. [FAIL]";
 }
 
 function finiteNumber(value: unknown) {
