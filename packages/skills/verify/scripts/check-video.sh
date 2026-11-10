@@ -52,13 +52,12 @@ case "$TYPE" in
   multi) DMIN=60; DMAX=120 ;;
   *) echo "Unknown --type: $TYPE (single|side-by-side|multi)" >&2; exit 2 ;;
 esac
-# Match the actual render profile when the caller didn't pass --resolution:
-# side-by-side renders use the inspect profile at 2560x1440.
+# render-showcase.sh defaults fidelity to "standard" (1920x1080) unless the
+# recipe asks for "inspect" (2560x1440), independent of the demo type, so the
+# default here stays 1920x1080 for every type. Pass --resolution (or the value
+# from the compose handoff) when the render used a different profile.
 if [ -z "$RES" ]; then
-  case "$TYPE" in
-    side-by-side|sidebyside) RES="2560x1440" ;;
-    *) RES="1920x1080" ;;
-  esac
+  RES="1920x1080"
 fi
 EXP_W="${RES%x*}"; EXP_H="${RES#*x}"
 

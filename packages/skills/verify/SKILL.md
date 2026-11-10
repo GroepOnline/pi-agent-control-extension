@@ -81,10 +81,12 @@ Before manual checks, run the technical checks:
 
 Use `single`, `side-by-side` or `multi` for `--type` (pick one value — the
 `a|b|c` notation is documentation, not a command). It validates plays,
-resolution (default 1920x1080, override with `--resolution WxH` — a plain
-`side-by-side` render uses the `inspect` profile at 2560x1440, so pass
-`--resolution 2560x1440` there or take the expected value from the
-compose handoff), pixel format (yuv420p), size (5MB comfort /
+resolution (default 1920x1080 for every type — `render-showcase.sh` only
+widens to 2560x1440 when the recipe asks for `fidelity: inspect`, so read
+`fidelity`/`resolution` from the compose handoff and pass
+`--resolution 2560x1440` for an inspect render, or `--resolution 1920x1080`
+for a side-by-side render that used the standard profile), pixel format
+(yuv420p), size (5MB comfort /
 25MB hard), and the duration window for the demo type. JSON output,
 non-zero exit on hard failure. Fix what it flags before spending time
 on commitment/content review — a wrong resolution never passes.

@@ -75,6 +75,8 @@ cat <<EOF
 {"ok":1,"repo":${REPO_JSON},"deepwiki_url":${DEEPWIKI_JSON},"checkout_repo":${CHECKOUT_JSON},"checked_at":"$TS_NOW","local_docs":[${DOCS_JSON}],"skill_count":${SKILL_COUNT:-0}}
 EOF
 
+DOC_COUNT=${#DOCS[@]}
+
 log ""
 [ "$REPO_JSON" = "null" ] || log "📖 DeepWiki: $DEEPWIKI_URL"
-log "📁 ${#DOCS[@]} local doc(s), $SKILL_COUNT skill(s) in checkout ${CHECKOUT_REPO:-<none>}"
+log "📁 $DOC_COUNT local doc(s), $SKILL_COUNT skill(s) in checkout ${CHECKOUT_REPO:-<none>}"
