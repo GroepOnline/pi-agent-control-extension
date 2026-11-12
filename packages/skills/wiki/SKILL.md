@@ -25,6 +25,11 @@ https://deepwiki.com/<owner>/<repo>
 
 Use the agent's URL-fetch tool and drill into the sections that answer the question (architecture, routing, skills, capture formats, guardrails). Quote or link the DeepWiki sections you used so the answer stays traceable.
 
+DeepWiki indexes only what is pushed — it cannot see unpushed work. Check any
+answer that depends on recent code against the local checkout and revision
+before quoting it; when `repo` differs from `checkout_repo` in the sidecar
+output, treat `local_docs[]` as belonging to the checkout.
+
 If the repo is private or DeepWiki has no page for it, fall through to step 2.
 
 ## Step 2 — local fallback (only when DeepWiki has nothing)

@@ -12,7 +12,7 @@
 set -uo pipefail
 
 TYPE="single"
-RES="1920x1080"
+RES=""
 QUIET=0
 VIDEO=""
 
@@ -52,10 +52,16 @@ case "$TYPE" in
   multi) DMIN=60; DMAX=120 ;;
   *) echo "Unknown --type: $TYPE (single|side-by-side|multi)" >&2; exit 2 ;;
 esac
+# render-showcase.sh defaults fidelity to "standard" (1920x1080) unless the
+# recipe asks for "inspect" (2560x1440), independent of the demo type, so the
+# default here stays 1920x1080 for every type. Pass --resolution (or the value
+# from the compose handoff) when the render used a different profile.
+if [ -z "$RES" ]; then
+  RES="1920x1080"
+fi
 EXP_W="${RES%x*}"; EXP_H="${RES#*x}"
 
-PROBE=$(ffprobe -v quiet -print_format json -show_format -show_streams "$VIDEO" 2>/dev/null || true)
-if [ -z "$PROBE" ]; then
+if ! PROBE=$(ffprobe -v quiet -print_format json -show_format -show_streams "$VIDEO" 2>/dev/null) || [ -z "$PROBE" ]; then
   echo "{\"ok\":0,\"video\":\"$VIDEO\",\"error\":\"ffprobe could not read file\"}"
   log "❌ ffprobe could not read: $VIDEO"
   exit 1

@@ -47,7 +47,8 @@ else
       # this is the intended line. (npm refuses to auto-assign latest to a
       # version lower than the current one, hence the explicit repoint.)
       if ! npm dist-tag add "$PACKAGE@$VERSION" latest 2>/dev/null; then
-        echo "warning: published ${VERSION} but could not set latest; dist-tag 'release-${VERSION}' remains." >&2
+        echo "error: published ${VERSION} but could not set latest; dist-tag 'release-${VERSION}' remains. Fix the tag manually." >&2
+        exit 1
       fi
     else
       if npm view "$SPEC" version 2>/dev/null | grep -q .; then

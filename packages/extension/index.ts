@@ -343,13 +343,13 @@ export async function showcaseRender(args: string): Promise<string> {
 }
 
 
-export function parseMetaControlOutput(stdout: string): any | null {
+export function parseMetaControlOutput(stdout: string): Record<string, unknown> | null {
   const candidate = stdout.trim().split("\n").pop() ?? stdout.trim();
   if (!candidate) return null;
   try { return JSON.parse(candidate); } catch { return null; }
 }
 
-export function formatMetaControlReport(parsed: any): string {
+export function formatMetaControlReport(parsed: Record<string, unknown> | null): string {
   const lines: string[] = [`## meta-control check`, ``];
   lines.push(`| Field | Value |`, `|---|---|`);
   lines.push(`| **ok** | ${parsed?.ok ? "✅" : "❌"} |`);

@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 
-const raw = execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+// npm resolves to npm.cmd on Windows; execFileSync cannot run .cmd directly.
+const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+const raw = execFileSync(npmCmd, ["pack", "--dry-run", "--json", "--ignore-scripts"], {
   encoding: "utf8",
 });
 const parsed = JSON.parse(raw);

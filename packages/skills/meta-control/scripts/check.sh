@@ -57,17 +57,21 @@ if command -v python3 >/dev/null 2>&1 && [ -f "$REPO_ROOT/scripts/validate-packa
 fi
 
 # 4. Optional: create a timestamped RUN_DIR with evidence subfolder when --new-run.
+# Run artifacts belong to the caller's working directory, never to the skill
+# package itself — when this script runs from an installed npm package,
+# REPO_ROOT is a read-only-ish node_modules path.
 RUN_DIR=""
 RUN_ID=""
+RUNS_ROOT="${PWD:-$REPO_ROOT}/artifacts/runs"
 if [ "$ACTION" = "new-run" ]; then
-  mkdir -p "$REPO_ROOT/artifacts/runs"
+  mkdir -p "$RUNS_ROOT"
   TS=$(date -u +%Y-%m-%dT%H-%M-%SZ)
   BASE_RUN_ID="run-${TS}"
   ATTEMPT=0
   while :; do
     RUN_ID="$BASE_RUN_ID"
     [ "$ATTEMPT" -eq 0 ] || RUN_ID="${BASE_RUN_ID}-${ATTEMPT}"
-    RUN_DIR="$REPO_ROOT/artifacts/runs/$RUN_ID"
+    RUN_DIR="$RUNS_ROOT/$RUN_ID"
     if mkdir "$RUN_DIR" 2>/dev/null; then break; fi
     ATTEMPT=$((ATTEMPT + 1))
     [ "$ATTEMPT" -lt 100 ] || { echo "Unable to allocate unique run directory" >&2; exit 1; }
@@ -81,19 +85,22 @@ OK=1
 # Emit JSON.
 TS_NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 MISSING_JSON="[]"
-if [ ${#MISSING[@]} -gt 0 ]; then
-  MISSING_JSON=$(printf '"%s",' "${MISSING[@]}" | sed 's/,$//' | awk '{print "["$0"]"}')
-fi
 if command -v python3 >/dev/null 2>&1; then
-  VALIDATOR_JSON=$(printf '%s' "$VALIDATOR_OUT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
+  json_str() { printf '%s' "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }
+  json_arr() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "$@"; }
 elif command -v node >/dev/null 2>&1; then
-  VALIDATOR_JSON=$(printf '%s' "$VALIDATOR_OUT" | node -e 'let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.stringify(s)))')
+  json_str() { printf '%s' "$1" | node -e 'let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.stringify(s)))'; }
+  json_arr() { node -e 'process.stdout.write(JSON.stringify(process.argv.slice(1)))' "$@"; }
 else
   echo "Neither python3 nor node is available for JSON serialization" >&2
   exit 1
 fi
+VALIDATOR_JSON=$(json_str "$VALIDATOR_OUT")
+if [ ${#MISSING[@]} -gt 0 ]; then
+  MISSING_JSON=$(json_arr "${MISSING[@]}")
+fi
 cat <<EOF
-{"ok":$OK,"skill_dir":"$SKILL_DIR","repo_root":"$REPO_ROOT","checked_at":"$TS_NOW","missing":$MISSING_JSON,"validator_tail":$VALIDATOR_JSON,"run_id":"$RUN_ID","run_dir":"$RUN_DIR","action":"$ACTION"}
+{"ok":$OK,"skill_dir":$(json_str "$SKILL_DIR"),"repo_root":$(json_str "$REPO_ROOT"),"checked_at":"$TS_NOW","missing":$MISSING_JSON,"validator_tail":$VALIDATOR_JSON,"run_id":$(json_str "$RUN_ID"),"run_dir":$(json_str "$RUN_DIR"),"action":$(json_str "$ACTION")}
 EOF
 
 log ""

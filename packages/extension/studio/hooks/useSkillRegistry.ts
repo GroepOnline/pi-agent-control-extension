@@ -135,8 +135,9 @@ function buildRegistry(): SkillEntry[] {
   // One row per name across user dirs (global > devin > claude)
   const deduped = dedupeUserSkills(all);
 
-  // Prune stale cache entries for deleted/renamed files
-  const activePaths = new Set(deduped.map((s) => s.path));
+  // Prune stale cache entries for deleted/renamed files only — paths that
+  // survived as a dedupe loser still exist on disk and would be re-read.
+  const activePaths = new Set(all.map((s) => s.path));
   for (const key of skillCache.keys()) {
     if (!activePaths.has(key)) skillCache.delete(key);
   }

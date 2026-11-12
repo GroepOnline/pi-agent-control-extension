@@ -97,9 +97,24 @@ export function runValidator() {
     : [["python3", [script]], ["python", [script]]];
   for (const [cmd, args] of cmds) {
     try { return execFileSync(cmd, args, { cwd: PACKAGE_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }).trim(); }
-    catch { }
+    catch (e) {
+      const err = e as { stdout?: unknown; stderr?: unknown; status?: unknown; signal?: unknown };
+      // Spawn-level failures carry no exit status or signal: that is the
+      // missing-interpreter case and the only one worth retrying elsewhere.
+      if (typeof err.status !== "number" && typeof err.signal !== "string") continue;
+      // The validator ran and died nonzero. Its stdout can hold partial
+      // [OK] lines printed before the crash — keep them, but mark the crash
+      // so formatDoctor can never read a truncated report as all-pass.
+      const out = typeof err.stdout === "string" ? err.stdout.trim() : "";
+      const lastStderr = typeof err.stderr === "string" && err.stderr.trim()
+        ? err.stderr.trim().split("\n").pop() : "";
+      const how = typeof err.signal === "string" ? `signal ${err.signal}` : `exit ${err.status}`;
+      // Keep the [FAIL] marker line clean — detail goes on a continuation
+      // line so consumers scanning for [OK]/[FAIL] never read stderr noise.
+      return `${out ? `${out}\n` : ""}[FAIL] validator crashed (${how})${lastStderr ? `\n  stderr: ${lastStderr}` : ""}`;
+    }
   }
-  return "Unable to run Python validator.";
+  return "Unable to run Python validator. [FAIL]";
 }
 
 function finiteNumber(value: unknown) {

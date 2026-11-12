@@ -30,7 +30,8 @@ class TestValidatePackage(unittest.TestCase):
         self.assertIn("PI manifest: extensions", self.stdout)
         self.assertIn("PI manifest: skills", self.stdout)
         self.assertIn("Keyword: pi-package", self.stdout)
-        self.assertIn("All 17 skills present", self.stdout)
+        self.assertEqual(self.result.returncode, 0, msg=self.stdout[-500:])
+        self.assertIn("[OK] All 17 skills present", self.stdout)
 
     def test_system_dependencies(self):
         self.assertIn("Checking system dependencies...", self.stdout)
