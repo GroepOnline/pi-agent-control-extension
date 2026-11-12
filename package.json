@@ -98,6 +98,20 @@
     "react": "^19.2.6",
     "tsx": "^4.22.3"
   },
+  "overrides": {
+    "@remotion/light-leaks": {
+      "zod": "4.6.6"
+    },
+    "@remotion/media": {
+      "zod": "4.6.6"
+    },
+    "@remotion/studio": {
+      "zod": "4.6.6"
+    },
+    "@remotion/studio-server": {
+      "zod": "4.6.6"
+    }
+  },
   "author": "GroepOnline",
   "homepage": "https://github.com/GroepOnline/pi-agent-control-extension#readme",
   "bugs": {
