@@ -299,14 +299,29 @@ Use the render script — it handles clip staging, duration detection, rendering
 ```bash
 RENDER=${PI_AGENT_CONTROL_ROOT}/scripts/render-showcase.sh
 
-# Basic render
-$RENDER --props "$PROPS" --output /tmp/demo.mp4 \
-  /tmp/before.cast /tmp/after.cast
+# Basic render (always pass --handoff: verify reads the target from it)
+$RENDER --props "$PROPS" --handoff /tmp/demo-pr-11621.handoff.json \
+  --output /tmp/demo-pr-11621.mp4 /tmp/before.cast /tmp/after.cast
 
 # Or with inline props (useful for simple cases)
 $RENDER --props-inline '{"clips":["clip.mp4"],"layout":"single","labels":[],"title":"Demo","subtitle":"Test","preset":"macos","keys":[],"effects":[]}' \
-  --output /tmp/demo.mp4 /tmp/clip.mp4
+  --handoff /tmp/demo-pr-11621.handoff.json --output /tmp/demo-pr-11621.mp4 /tmp/clip.mp4
 ```
+
+**`--handoff <path>`** writes a JSON artefact next to the deliverable carrying
+the render target the renderer actually resolved:
+
+```json
+{"target_resolution": "1920x1440", "fidelity": "inspect", "width": 1920, "height": 1440}
+```
+
+The helper computes it from the same normalized props it hands to Remotion
+(`resolve_target_dimensions` in `scripts/render-showcase-helper.py`), so the
+value includes the per-axis fill — `fidelity: inspect` with only `width: 1920`
+records `1920x1440`, not the `2560x1440` profile default. Never write this file
+by hand and never put the measured size in it; verify uses it as the pass
+condition.
+
 
 The script:
 1. Converts `.cast` inputs to `.mp4` using the selected fidelity profile
@@ -333,7 +348,7 @@ ffprobe -v quiet -print_format json -show_format -show_streams /tmp/demo.mp4
 ```
 
 Confirm:
-- Resolution is 1920x1080 (or matches the expected output)
+- Resolution matches `target_resolution` in the handoff artefact (not just "1920x1080")
 - Duration is reasonable (not 0s, not hours)
 - File size is manageable (under 5 MB for GitHub embeds, 25 MB hard limit)
 - Pixel format is yuv420p (universal playback)
@@ -345,6 +360,8 @@ Hand to the **verify** stage:
 ```
 ## Compose outputs
 - video: /tmp/demo-pr-11621.mp4
+- handoff: /tmp/demo-pr-11621.handoff.json
+- target resolution: 1920x1080 (from the handoff artefact)
 - resolution: 1920x1080
 - duration: 42s
 - size: 3.2 MB
@@ -353,6 +370,11 @@ Hand to the **verify** stage:
 - effects: 1 spotlight
 - engine: remotion
 ```
+
+`target resolution` is the **requested** size taken verbatim from the handoff
+JSON; `resolution` is the **measured** size from `ffprobe`. Keep both — verify
+compares one against the other, and collapsing them makes the check approve a
+render that missed its target.
 
 ## Screenshot-only artifacts (proofs, QA)
 

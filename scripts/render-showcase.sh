@@ -4,6 +4,7 @@
 # Usage:
 #   render-showcase.sh --props props.json --output /tmp/out.mp4 clip1.cast [clip2.mp4]
 #   render-showcase.sh --props-inline '{"clips":...}' --output /tmp/out.mp4 clip1.cast
+#   render-showcase.sh --props props.json --handoff /tmp/out.handoff.json --output /tmp/out.mp4 clip1.cast
 #
 # What it does:
 #   1. Converts .cast clips to .mp4 when needed, using a fidelity profile
@@ -20,7 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REMOTION_DIR="${SCRIPT_DIR}/../apps/remotion"
 PI_CLI_THEME='181818,e0d0c0,15161e,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,a9b1d6,414868,f7768e,9ece6a,e0af68,7aa2f7,bb9af7,7dcfff,c0caf5'
 
-PROPS_FILE="" PROPS_INLINE="" OUTPUT="" FIDELITY_OVERRIDE="auto" CLIPS=()
+PROPS_FILE="" PROPS_INLINE="" OUTPUT="" FIDELITY_OVERRIDE="auto" HANDOFF_FILE="" CLIPS=()
 WORK_DIR="$(mktemp -d /tmp/render-showcase-XXXXXX)"
 STAGED=()
 STAGED_BASES=()
@@ -49,6 +50,13 @@ normalize_props() {
   local fidelity_override="$3"
   local props_source="$4"
   PROPS_JSON="$props_json" python3 "${SCRIPT_DIR}/render-showcase-helper.py" normalize_props "$output_file" "$fidelity_override" "$props_source"
+}
+
+write_handoff() {
+  local props_json="$1"
+  local output_file="$2"
+  local props_source="$3"
+  PROPS_JSON="$props_json" python3 "${SCRIPT_DIR}/render-showcase-helper.py" handoff "$output_file" "auto" "$props_source"
 }
 
 props_number() {
@@ -131,6 +139,7 @@ parse_args() {
       --props)        PROPS_FILE="$2";   shift 2 ;;
       --props-inline) PROPS_INLINE="$2"; shift 2 ;;
       --fidelity)     FIDELITY_OVERRIDE="$2"; shift 2 ;;
+      --handoff)      HANDOFF_FILE="$2";  shift 2 ;;
       --output|-o)    OUTPUT="$2";       shift 2 ;;
       -h|--help)      sed -n '2,10p' "$0" | sed 's/^# \?//'; return 0 ;;
       -*)             echo "error: unknown option '$1'" >&2; return 1 ;;
@@ -158,6 +167,14 @@ fi
 NORMALIZED_PROPS="${WORK_DIR}/props.json"
 FIDELITY="$(normalize_props "$PROPS" "$NORMALIZED_PROPS" "$FIDELITY_OVERRIDE" "$PROPS_SOURCE")"
 PROPS=$(cat "$NORMALIZED_PROPS")
+
+# Record the render target for the verify stage before WORK_DIR is cleaned up.
+# Props here are the normalized props handed to Remotion, so the handoff carries
+# the renderer's own resolution instead of a value verify has to recompute.
+if [[ -n "$HANDOFF_FILE" ]]; then
+  write_handoff "$PROPS" "$HANDOFF_FILE" "$PROPS_SOURCE" >/dev/null
+fi
+
 SPEED="$(props_number "$PROPS" "speed")"
 if [[ -z "$SPEED" ]]; then
   SPEED="1"

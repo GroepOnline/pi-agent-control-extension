@@ -245,5 +245,129 @@ class TestNormalizePropsAutoEndToEnd(unittest.TestCase):
         self.assertEqual(props["height"], 1440)
 
 
+class TestHandoffTargetResolution(unittest.TestCase):
+    """Pins the compose handoff target that verify consumes, so verify never has
+    to re-derive the resolution from the props under different rules."""
+
+    def _run_handoff(self, props_json, fidelity_override="auto"):
+        tmp = tempfile.NamedTemporaryFile("r", suffix=".json", delete=False)
+        tmp.close()
+        self.addCleanup(os.unlink, tmp.name)
+        env = dict(os.environ, PROPS_JSON=props_json)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT_PATH),
+                "handoff",
+                tmp.name,
+                fidelity_override,
+                "inline",
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with open(tmp.name, encoding="utf-8") as f:
+            return result.stdout.strip(), json.load(f)
+
+    def test_inspect_keeps_explicit_width_and_fills_height(self):
+        printed, handoff = self._run_handoff(
+            '{"layout": "side-by-side", "fidelity": "inspect", "width": 1920}'
+        )
+        self.assertEqual(printed, "1920x1440")
+        self.assertEqual(handoff["target_resolution"], "1920x1440")
+        self.assertEqual(handoff["fidelity"], "inspect")
+        self.assertEqual(handoff["width"], 1920)
+        self.assertEqual(handoff["height"], 1440)
+
+    def test_standard_yields_1920x1080(self):
+        printed, handoff = self._run_handoff(
+            '{"layout": "single", "fidelity": "standard"}'
+        )
+        self.assertEqual(printed, "1920x1080")
+        self.assertEqual(handoff["target_resolution"], "1920x1080")
+        self.assertEqual(handoff["fidelity"], "standard")
+
+    def test_auto_fidelity_resolves_like_the_renderer(self):
+        cases = [
+            ('{"layout": "side-by-side", "fidelity": "auto"}', "inspect", "2560x1440"),
+            ('{"layout": "single", "fidelity": "auto"}', "standard", "1920x1080"),
+            ('{"layout": "side-by-side"}', "inspect", "2560x1440"),
+        ]
+        for props_json, expected_fidelity, expected_target in cases:
+            with self.subTest(props_json=props_json):
+                _, handoff = self._run_handoff(props_json)
+                self.assertEqual(handoff["fidelity"], expected_fidelity)
+                self.assertEqual(handoff["target_resolution"], expected_target)
+
+    def test_handoff_reuses_normalized_props_identity(self):
+        # The render script feeds the *normalized* props (fidelity resolved,
+        # dimensions filled) back through `handoff`, which must reproduce them
+        # unchanged rather than re-deriving a different pair.
+        props_json = '{"layout": "side-by-side", "fidelity": "inspect", "width": 1920}'
+        tmp = tempfile.NamedTemporaryFile("r", suffix=".json", delete=False)
+        tmp.close()
+        self.addCleanup(os.unlink, tmp.name)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT_PATH),
+                "normalize_props",
+                tmp.name,
+                "auto",
+                "inline",
+            ],
+            env=dict(os.environ, PROPS_JSON=props_json),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with open(tmp.name, encoding="utf-8") as f:
+            normalized = f.read()
+        _, handoff = self._run_handoff(normalized)
+        self.assertEqual(handoff["target_resolution"], "1920x1440")
+
+    def test_target_resolution_is_not_injected_into_render_props(self):
+        # Remotion validates the composition props; the handoff field must stay
+        # out of them.
+        tmp = tempfile.NamedTemporaryFile("r", suffix=".json", delete=False)
+        tmp.close()
+        self.addCleanup(os.unlink, tmp.name)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT_PATH),
+                "normalize_props",
+                tmp.name,
+                "auto",
+                "inline",
+            ],
+            env=dict(os.environ, PROPS_JSON='{"layout": "single", "fidelity": "standard"}'),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with open(tmp.name, encoding="utf-8") as f:
+            self.assertNotIn("target_resolution", json.load(f))
+
+    def test_invalid_json_fails(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT_PATH),
+                "handoff",
+                os.devnull,
+                "auto",
+                "inline",
+            ],
+            env=dict(os.environ, PROPS_JSON="{"),
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("invalid", result.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
