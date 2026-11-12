@@ -103,6 +103,37 @@ class TestNormalizeProps(unittest.TestCase):
                     # Verify print output
                     mock_print.assert_called_once_with("standard")
 
+    def test_partial_dimensions_fill_only_the_missing_axis(self):
+        # A half-specified pair must keep the given axis and fill the other one
+        # from the chosen profile, not overwrite both with the default pair.
+        cases = [
+            ('{"fidelity": "inspect", "width": 1920}', 1920, 1440),
+            ('{"fidelity": "inspect", "height": 1080}', 2560, 1080),
+            ('{"fidelity": "standard", "width": 1280}', 1280, 1080),
+            ('{"fidelity": "inspect", "width": 1920, "height": null}', 1920, 1440),
+        ]
+        for props_json, expected_width, expected_height in cases:
+            with self.subTest(props_json=props_json):
+                with patch.object(
+                    sys,
+                    "argv",
+                    ["script", "normalize_props", "out.json", "auto", "test_source"],
+                ):
+                    with patch.dict(os.environ, {"PROPS_JSON": props_json}):
+                        with (
+                            patch("builtins.open", mock_open()) as m,
+                            patch("builtins.print"),
+                        ):
+                            helper.cmd_normalize_props()
+
+                            handle = m()
+                            written = "".join(
+                                call.args[0] for call in handle.write.mock_calls
+                            )
+                            props = json.loads(written)
+                            self.assertEqual(props["width"], expected_width)
+                            self.assertEqual(props["height"], expected_height)
+
 
 class TestResolveFidelity(unittest.TestCase):
     def test_auto_override_picks_inspect_for_side_by_side(self):
@@ -200,6 +231,18 @@ class TestNormalizePropsAutoEndToEnd(unittest.TestCase):
                 )
                 self.assertEqual(printed, profile)
                 self.assertEqual(props["fidelity"], profile)
+
+    def test_cli_fidelity_override_drives_dimension_defaults(self):
+        # The --fidelity flag wins over the props, so it also decides which
+        # profile default fills a missing height.
+        printed, props = self._run(
+            '{"layout": "single", "fidelity": "standard", "width": 1920}',
+            fidelity_override="inspect",
+        )
+        self.assertEqual(printed, "inspect")
+        self.assertEqual(props["fidelity"], "inspect")
+        self.assertEqual(props["width"], 1920)
+        self.assertEqual(props["height"], 1440)
 
 
 if __name__ == "__main__":

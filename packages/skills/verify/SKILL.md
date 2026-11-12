@@ -26,7 +26,7 @@ ffprobe -v quiet -print_format json -show_format -show_streams <video>
 | Check | Pass condition |
 |---|---|
 | Exists and plays | ffprobe exits 0, duration > 0 |
-| Resolution | Matches the target resolution from the render props: explicit `width`/`height` if the recipe set them, otherwise the fidelity default (`inspect` => 2560x1440, everything else => 1920x1080) |
+| Resolution | Matches the target resolution the effective fidelity and props produce: each explicit `width`/`height` is kept, each missing dimension falls back separately to the fidelity default (`inspect` => 2560x1440, `compact`/`standard` => 1920x1080) |
 | Pixel format | yuv420p |
 | File size | Under 5 MB for GitHub embeds (25 MB hard limit) |
 | Duration | Must fall within the compose pacing table's target range for this demo type: **30-45s** (single feature), **45-75s** (side-by-side comparison), **60-120s** (multi-phase). Below the minimum is a **failure** — re-compose with a lower speed factor or re-capture with more steps. |
@@ -83,16 +83,27 @@ Use `single`, `side-by-side` or `multi` for `--type` (pick one value — the
 `a|b|c` notation is documentation, not a command).
 
 The sidecar defaults to 1920x1080 for every type, so pass `--resolution` with
-the **target** size you asked the renderer for. Resolve that target from the
-original render props — `scripts/render-showcase-helper.py:24-30` applies the
-same precedence:
+the **target** size you asked the renderer for. Resolve that target exactly the
+way the renderer does — `scripts/render-showcase-helper.py:9-24`
+(`resolve_fidelity`) and `:45-51` (dimension fill), reached from
+`scripts/render-showcase.sh:133,159`:
 
-1. **Explicit `width`/`height` in the props win, always** — including under
-   `fidelity: inspect`. `fidelity: inspect` with `width: 1920, height: 1080`
-   really renders 1920x1080, so check it with `--resolution 1920x1080`; do not
-   reject it against the 2560x1440 profile default.
-2. **Otherwise the fidelity default:** `inspect` => 2560x1440; `compact`,
-   `standard`, or an omitted `fidelity` => 1920x1080.
+1. **Resolve the effective fidelity first.** A `--fidelity` flag on the
+   `render-showcase.sh` command line wins, unless it is `auto`. Otherwise a
+   `fidelity` set in the props wins, unless it is `auto`. Only when both are
+   absent or `auto` does the layout decide: `side-by-side` => `inspect`,
+   anything else => `standard`. An omitted `fidelity` behaves like `auto`, so a
+   side-by-side render with no `fidelity` in the props and no `--fidelity` flag
+   is still `inspect`.
+2. **Fill each dimension separately, from that effective fidelity.** Width and
+   height are resolved one at a time: an explicitly given `width` or `height`
+   is kept as-is, and each missing (absent or `null`) dimension is filled from
+   the effective fidelity's default — `inspect` => 2560x1440; `compact` or
+   `standard` => 1920x1080. So `fidelity: inspect` with only `width: 1920`
+   renders **1920x1440** (width kept, height from the inspect default): check
+   it with `--resolution 1920x1440`. Likewise `fidelity: inspect` with
+   `width: 1920, height: 1080` really renders 1920x1080 — do not reject either
+   of these against the 2560x1440 profile default.
 
 Never take the expected size from the compose handoff, the render log, or an
 existing `verification.json`: those carry the **measured** size of the render.
