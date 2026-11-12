@@ -2,6 +2,29 @@ import json
 import os
 import sys
 
+DEFAULT_FIDELITY = "standard"
+SIDE_BY_SIDE_FIDELITY = "inspect"
+
+
+def resolve_fidelity(props, fidelity_override):
+    """Resolve the effective fidelity profile.
+
+    `auto` (from --fidelity or from the props) means "let the layout decide":
+    side-by-side renders get `inspect`, everything else gets `standard`.
+    Omitted fidelity behaves like `auto`. Any other value is passed through
+    verbatim so the shell wrapper can reject unknown profiles.
+    """
+    if fidelity_override and fidelity_override != "auto":
+        return fidelity_override
+
+    fidelity = props.get("fidelity")
+    if fidelity and fidelity != "auto":
+        return fidelity
+
+    if props.get("layout") == "side-by-side":
+        return SIDE_BY_SIDE_FIDELITY
+    return DEFAULT_FIDELITY
+
 
 def cmd_normalize_props():
     output_file = sys.argv[2]
@@ -19,13 +42,8 @@ def cmd_normalize_props():
             f"error: props JSON is invalid: {props_source}: {error.msg} at line {error.lineno} column {error.colno}"
         ) from error
 
-    if fidelity_override != "auto":
-        props["fidelity"] = fidelity_override
-
-    fidelity = props.get("fidelity")
-    if fidelity is None:
-        fidelity = "standard"
-        props["fidelity"] = fidelity
+    fidelity = resolve_fidelity(props, fidelity_override)
+    props["fidelity"] = fidelity
 
     if props.get("width") is None:
         props["width"] = 2560 if fidelity == "inspect" else 1920

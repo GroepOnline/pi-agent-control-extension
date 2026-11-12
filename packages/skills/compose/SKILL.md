@@ -193,7 +193,7 @@ Use a run-scoped props path like `$PROPS`; do not reuse a global `/tmp/showcase-
 | `clips` | `string[]` | yes | Filenames (basenames only — the render script handles staging) |
 | `layout` | `"single" \| "side-by-side"` | yes | Composition layout |
 | `labels` | `string[]` | yes | Labels for each clip (visible in side-by-side; pass `[]` for single) |
-| `fidelity` | `"compact" \| "standard" \| "inspect"` | no | Output quality/compression profile. Omit for auto-selection by layout. |
+| `fidelity` | `"auto" \| "compact" \| "standard" \| "inspect"` | no | Output quality/compression profile. `auto` (or omitting it) resolves by layout: `inspect` for `side-by-side`, `standard` for `single`. |
 | `speed` | `number` | no | Playback speed for `.cast -> agg` conversion. |
 | `title` | `string` | yes | Title card heading |
 | `subtitle` | `string` | yes | Title card subheading |

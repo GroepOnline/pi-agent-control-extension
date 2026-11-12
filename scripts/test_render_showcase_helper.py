@@ -1,7 +1,9 @@
 import importlib.util
 import json
 import os
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import mock_open, patch
@@ -100,6 +102,104 @@ class TestNormalizeProps(unittest.TestCase):
 
                     # Verify print output
                     mock_print.assert_called_once_with("standard")
+
+
+class TestResolveFidelity(unittest.TestCase):
+    def test_auto_override_picks_inspect_for_side_by_side(self):
+        self.assertEqual(
+            helper.resolve_fidelity({"layout": "side-by-side"}, "auto"), "inspect"
+        )
+
+    def test_auto_override_picks_standard_for_single(self):
+        props = {"layout": "single"}
+        self.assertEqual(helper.resolve_fidelity(props, "auto"), "standard")
+
+    def test_props_auto_picks_inspect_for_side_by_side(self):
+        props = {"layout": "side-by-side", "fidelity": "auto"}
+        self.assertEqual(helper.resolve_fidelity(props, "auto"), "inspect")
+
+    def test_props_auto_picks_standard_for_single(self):
+        props = {"layout": "single", "fidelity": "auto"}
+        self.assertEqual(helper.resolve_fidelity(props, "auto"), "standard")
+
+    def test_omitted_fidelity_matches_auto(self):
+        omitted = {"layout": "side-by-side"}
+        explicit = {"layout": "side-by-side", "fidelity": "auto"}
+        self.assertEqual(
+            helper.resolve_fidelity(omitted, "auto"),
+            helper.resolve_fidelity(explicit, "auto"),
+        )
+
+    def test_explicit_props_fidelity_wins_over_auto(self):
+        props = {"layout": "side-by-side", "fidelity": "compact"}
+        self.assertEqual(helper.resolve_fidelity(props, "auto"), "compact")
+
+    def test_explicit_override_wins_over_props(self):
+        auto_props = {"layout": "side-by-side", "fidelity": "auto"}
+        self.assertEqual(helper.resolve_fidelity(auto_props, "standard"), "standard")
+        compact_props = {"layout": "single", "fidelity": "compact"}
+        self.assertEqual(helper.resolve_fidelity(compact_props, "inspect"), "inspect")
+
+    def test_unknown_profile_is_passed_through_unchanged(self):
+        # The shell wrapper owns rejection of unknown profiles; the helper must
+        # not silently reinterpret anything other than `auto`.
+        self.assertEqual(helper.resolve_fidelity({}, "bogus"), "bogus")
+        props = {"layout": "side-by-side", "fidelity": "bogus"}
+        self.assertEqual(helper.resolve_fidelity(props, "auto"), "bogus")
+
+
+class TestNormalizePropsAutoEndToEnd(unittest.TestCase):
+    """Runs the helper's CLI entry point so `fidelity: auto` from the compose
+    skill's props template can never reach the shell as an unsupported profile."""
+
+    def _run(self, props_json, fidelity_override="auto"):
+        tmp = tempfile.NamedTemporaryFile("r", suffix=".json", delete=False)
+        tmp.close()
+        self.addCleanup(os.unlink, tmp.name)
+        env = dict(os.environ, PROPS_JSON=props_json)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT_PATH),
+                "normalize_props",
+                tmp.name,
+                fidelity_override,
+                "inline",
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with open(tmp.name, encoding="utf-8") as f:
+            return result.stdout.strip(), json.load(f)
+
+    def test_cli_resolves_auto_for_side_by_side(self):
+        props_json = (
+            '{"layout": "side-by-side", "fidelity": "auto",'
+            ' "clips": ["a.cast", "b.cast"]}'
+        )
+        printed, props = self._run(props_json)
+        self.assertEqual(printed, "inspect")
+        self.assertEqual(props["fidelity"], "inspect")
+        self.assertEqual(props["width"], 2560)
+        self.assertEqual(props["height"], 1440)
+
+    def test_cli_resolves_auto_for_single(self):
+        printed, props = self._run('{"layout": "single", "fidelity": "auto"}')
+        self.assertEqual(printed, "standard")
+        self.assertEqual(props["fidelity"], "standard")
+        self.assertEqual(props["width"], 1920)
+        self.assertEqual(props["height"], 1080)
+
+    def test_cli_preserves_explicit_profiles(self):
+        for profile in ("compact", "standard", "inspect"):
+            with self.subTest(profile=profile):
+                printed, props = self._run(
+                    '{"layout": "side-by-side", "fidelity": "%s"}' % profile
+                )
+                self.assertEqual(printed, profile)
+                self.assertEqual(props["fidelity"], profile)
 
 
 if __name__ == "__main__":
